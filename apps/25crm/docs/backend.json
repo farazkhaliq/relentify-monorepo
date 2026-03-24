@@ -1,0 +1,1780 @@
+{
+  "entities": {
+    "UserOrganizationMap": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserOrganizationMap",
+      "type": "object",
+      "description": "Maps a staff user's Firebase UID to their Organization ID for quick lookup.",
+      "properties": {
+        "organizationId": {
+          "type": "string",
+          "description": "The ID of the organization the user belongs to."
+        }
+      },
+      "required": [
+        "organizationId"
+      ]
+    },
+    "Organization": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Organization",
+      "type": "object",
+      "description": "Represents a lettings or sales agency using the Relentify CRM platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Organization entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The registered name of the agency or organization."
+        },
+        "logoUrl": {
+          "type": "string",
+          "description": "URL of the organization's logo.",
+          "format": "uri"
+        },
+        "aiEnabled": {
+          "type": "boolean",
+          "description": "Indicates whether AI-powered features are enabled for the organization."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the organization record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the organization record was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
+      "type": "object",
+      "description": "Represents a staff member of an organization who uses the Relentify CRM.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the UserProfile entity."
+        },
+        "organizationId": {
+          "type": "string",
+          "description": "Reference to the Organization this user belongs to. (Relationship: Organization 1:N UserProfile)"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the staff member."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the staff member."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the staff member, used for communication and login.",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the staff member within the system, dictating permissions.",
+          "enum": [
+            "Admin",
+            "Staff"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "description": "The current employment status of the staff member (e.g., Active, Inactive).",
+          "enum": [
+            "Active",
+            "Inactive"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the user profile was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the user profile was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "organizationId",
+        "firstName",
+        "lastName",
+        "email",
+        "role",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PortalUserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "PortalUserProfile",
+      "type": "object",
+      "description": "Links a portal user's Firebase UID to their Contact record and Organization ID.",
+      "properties": {
+        "organizationId": {
+          "type": "string",
+          "description": "The ID of the organization this portal user belongs to."
+        },
+        "contactId": {
+          "type": "string",
+          "description": "The ID of the Contact record associated with this portal user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The user's first name, denormalized for display."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The user's last name, denormalized for display."
+        }
+      },
+      "required": [
+        "organizationId",
+        "contactId",
+        "email",
+        "firstName",
+        "lastName"
+      ]
+    },
+    "Contact": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Contact",
+      "type": "object",
+      "description": "Represents a person associated with the agency, such as a landlord, tenant, lead, or contractor.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Contact entity."
+        },
+        "organizationId": {
+          "type": "string",
+          "description": "Reference to the Organization this contact is associated with. (Relationship: Organization 1:N Contact)"
+        },
+        "contactType": {
+          "type": "string",
+          "description": "The type of contact (e.g., Landlord, Tenant, Lead, Contractor).",
+          "enum": [
+            "Landlord",
+            "Tenant",
+            "Lead",
+            "Contractor"
+          ]
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the contact."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the contact."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the contact.",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "The primary phone number of the contact."
+        },
+        "notes": {
+          "type": "string",
+          "description": "General notes or comments about the contact."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the contact record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the contact record was last updated.",
+          "format": "date-time"
+        },
+        "propertyIds": {
+          "type": "array",
+          "description": "References to properties associated with this contact. (Relationship: Contact N:N Property)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tenancyIds": {
+          "type": "array",
+          "description": "References to tenancies associated with this contact. (Relationship: Contact N:N Tenancy)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "assignedStaffId": {
+          "type": "string",
+          "description": "Reference to the UserProfile assigned to manage this contact. (Relationship: UserProfile 1:N Contact)"
+        },
+        "mailingAddress": {
+          "type": "object",
+          "description": "The primary mailing address of the contact.",
+          "properties": {
+            "addressLine1": {
+              "type": "string",
+              "description": "The first line of the contact's mailing address."
+            },
+            "addressLine2": {
+              "type": "string",
+              "description": "The second line of the contact's mailing address (optional)."
+            },
+            "city": {
+              "type": "string",
+              "description": "The city of the contact's mailing address."
+            },
+            "postcode": {
+              "type": "string",
+              "description": "The postcode of the contact's mailing address."
+            },
+            "country": {
+              "type": "string",
+              "description": "The country of the contact's mailing address."
+            }
+          }
+        },
+        "previousAddress": {
+          "type": "object",
+          "description": "The contact's address prior to a tenancy. Relevant for tenants.",
+          "properties": {
+            "addressLine1": {
+              "type": "string",
+              "description": "The first line of the contact's previous address."
+            },
+            "addressLine2": {
+              "type": "string",
+              "description": "The second line of the contact's previous address (optional)."
+            },
+            "city": {
+              "type": "string",
+              "description": "The city of the contact's previous address."
+            },
+            "postcode": {
+              "type": "string",
+              "description": "The postcode of the contact's previous address."
+            },
+            "country": {
+              "type": "string",
+              "description": "The country of the contact's previous address."
+            }
+          }
+        },
+        "forwardingAddress": {
+          "type": "object",
+          "description": "The contact's forwarding address after a tenancy ends. Relevant for tenants.",
+          "properties": {
+            "addressLine1": {
+              "type": "string",
+              "description": "The first line of the contact's forwarding address."
+            },
+            "addressLine2": {
+              "type": "string",
+              "description": "The second line of the contact's forwarding address (optional)."
+            },
+            "city": {
+              "type": "string",
+              "description": "The city of the contact's forwarding address."
+            },
+            "postcode": {
+              "type": "string",
+              "description": "The postcode of the contact's forwarding address."
+            },
+            "country": {
+              "type": "string",
+              "description": "The country of the contact's forwarding address."
+            }
+          }
+        }
+      },
+      "required": [
+        "id",
+        "organizationId",
+        "contactType",
+        "firstName",
+        "lastName",
+        "email",
+        "phone",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Property": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Property",
+      "type": "object",
+      "description": "Details about a physical property managed by the agency.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Property entity."
+        },
+        "organizationId": {
+          "type": "string",
+          "description": "Reference to the Organization that manages this property. (Relationship: Organization 1:N Property)"
+        },
+        "addressLine1": {
+          "type": "string",
+          "description": "The first line of the property's address."
+        },
+        "addressLine2": {
+          "type": "string",
+          "description": "The second line of the property's address (optional)."
+        },
+        "city": {
+          "type": "string",
+          "description": "The city of the property's address."
+        },
+        "postcode": {
+          "type": "string",
+          "description": "The postcode of the property's address."
+        },
+        "country": {
+          "type": "string",
+          "description": "The country of the property's address."
+        },
+        "propertyType": {
+          "type": "string",
+          "description": "The type of property (e.g., House, Apartment, Commercial).",
+          "enum": [
+            "House",
+            "Apartment",
+            "Bungalow",
+            "Maisonette",
+            "Commercial"
+          ]
+        },
+        "numberOfBedrooms": {
+          "type": "number",
+          "description": "The number of bedrooms in the property."
+        },
+        "numberOfBathrooms": {
+          "type": "number",
+          "description": "The number of bathrooms in the property."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the property."
+        },
+        "rentAmount": {
+          "type": "number",
+          "description": "The current or suggested monthly rent amount for the property."
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the property (e.g., Available, Occupied, Under Offer).",
+          "enum": [
+            "Available",
+            "Occupied",
+            "Under Offer",
+            "Let Agreed"
+          ]
+        },
+        "landlordIds": {
+          "type": "array",
+          "description": "References to Contact entities who are landlords of this property. (Relationship: Property N:N Contact)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the primary image for the property.",
+          "format": "uri"
+        },
+        "imageHint": {
+          "type": "string",
+          "description": "AI hint for the property image."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the property record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the property record was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "organizationId",
+        "addressLine1",
+        "city",
+        "postcode",
+        "country",
+        "propertyType",
+        "numberOfBedrooms",
+        "numberOfBathrooms",
+        "description",
+        "rentAmount",
+        "status",
+        "landlordIds",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PropertyListing": {
+      "title": "PropertyListing",
+      "type": "object",
+      "description": "Publicly-facing data for a property listing.",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "organizationId": {
+          "type": "string"
+        },
+        "addressLine1": {
+          "type": "string"
+        },
+        "addressLine2": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "postcode": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "propertyType": {
+          "type": "string"
+        },
+        "numberOfBedrooms": {
+          "type": "number"
+        },
+        "numberOfBathrooms": {
+          "type": "number"
+        },
+        "description": {
+          "type": "string"
+        },
+        "rentAmount": {
+          "type": "number"
+        },
+        "imageUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "organizationId",
+        "addressLine1",
+        "city",
+        "postcode",
+        "country",
+        "propertyType",
+        "numberOfBedrooms",
+        "numberOfBathrooms",
+        "description",
+        "rentAmount",
+        "updatedAt"
+      ]
+    },
+    "Tenancy": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Tenancy",
+      "type": "object",
+      "description": "Details about a tenancy agreement for a property.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Tenancy entity."
+        },
+        "organizationId": {
+          "type": "string",
+          "description": "Reference to the Organization that manages this tenancy. (Relationship: Organization 1:N Tenancy)"
+        },
+        "propertyId": {
+          "type": "string",
+          "description": "Reference to the Property associated with this tenancy. (Relationship: Property 1:N Tenancy)"
+        },
+        "tenantIds": {
+          "type": "array",
+          "description": "References to Contact entities who are tenants in this tenancy. (Relationship: Tenancy N:N Contact)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "landlordIds": {
+          "type": "array",
+          "description": "References to Contact entities who are landlords for this specific tenancy agreement. (Relationship: Tenancy N:N Contact)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "startDate": {
+          "type": "string",
+          "description": "The start date of the tenancy agreement.",
+          "format": "date-time"
+        },
+        "endDate": {
+          "type": "string",
+          "description": "The end date of the tenancy agreement.",
+          "format": "date-time"
+        },
+        "rentAmount": {
+          "type": "number",
+          "description": "The agreed rent amount for this tenancy."
+        },
+        "depositAmount": {
+          "type": "number",
+          "description": "The deposit amount collected for this tenancy."
+        },
+        "depositSchemeId": {
+          "type": "string",
+          "description": "Identifier for the Tenancy Deposit Scheme used for this tenancy's deposit. (Future integration)"
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the tenancy (e.g., Active, Ended, Arrears).",
+          "enum": [
+            "Active",
+            "Ended",
+            "Arrears",
+            "Pending"
+          ]
+        },
+        "pipelineStatus": {
+          "type": "string",
+          "description": "The status within the tenancy application/management pipeline (e.g., Application Received, Referencing, Contract Signed).",
+          "enum": [
+            "Application Received",
+            "Referencing",
+            "Awaiting Guarantor",
+            "Contract Signed",
+            "Awaiting Payment",
+            "Complete"
+          ]
+        },
+        "inventoryUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL link to the inventory report from an external inventory application."
+        },
+        "createdByUserId": {
+          "type": "string",
+          "description": "Reference to the UserProfile who created this tenancy. (Relationship: UserProfile 1:N Tenancy)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the tenancy record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the tenancy record was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "organizationId",
+        "propertyId",
+        "tenantIds",
+        "landlordIds",
+        "startDate",
+        "endDate",
+        "rentAmount",
+        "depositAmount",
+        "status",
+        "pipelineStatus",
+        "createdByUserId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MaintenanceRequest": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "MaintenanceRequest",
+      "type": "object",
+      "description": "Records details of a maintenance request for a property.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the MaintenanceRequest entity."
+        },
+        "organizationId": {
+          "type": "string",
+          "description": "Reference to the Organization managing this maintenance request. (Relationship: Organization 1:N MaintenanceRequest)"
+        },
+        "propertyId": {
+          "type": "string",
+          "description": "Reference to the Property where the maintenance is required. (Relationship: Property 1:N MaintenanceRequest)"
+        },
+        "tenancyId": {
+          "type": "string",
+          "description": "Optional reference to the Tenancy related to this request. (Relationship: Tenancy 1:N MaintenanceRequest)"
+        },
+        "reporterContactId": {
+          "type": "string",
+          "description": "Reference to the Contact who reported the maintenance issue (e.g., Tenant, Landlord). (Relationship: Contact 1:N MaintenanceRequest)"
+        },
+        "issueLocation": {
+          "type": "string",
+          "description": "The specific location of the issue within the property.",
+          "enum": [
+            "Kitchen",
+            "Bathroom",
+            "Bedroom 1",
+            "Bedroom 2",
+            "Bedroom 3",
+            "Living Room",
+            "Dining Room",
+            "Garden",
+            "Exterior",
+            "Communal Area",
+            "Other"
+          ]
+        },
+        "issueType": {
+          "type": "string",
+          "description": "The category of the maintenance issue.",
+          "enum": [
+            "Plumbing",
+            "Electrical",
+            "Heating",
+            "Appliance",
+            "Structural",
+            "General",
+            "Other"
+          ]
+        },
+        "permissionToEnter": {
+          "type": "boolean",
+          "description": "Indicates if the tenant has granted permission for contractors to enter the property."
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the maintenance issue."
+        },
+        "reportedDate": {
+          "type": "string",
+          "description": "Timestamp when the maintenance request was reported.",
+          "format": "date-time"
+        },
+        "priority": {
+          "type": "string",
+          "description": "The urgency level of the maintenance request (e.g., Low, High, Urgent).",
+          "enum": [
+            "Urgent",
+            "High",
+            "Medium",
+            "Low"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the maintenance request (e.g., New, In Progress, Completed).",
+          "enum": [
+            "New",
+            "In Progress",
+            "Awaiting Parts",
+            "On Hold",
+            "Completed",
+            "Cancelled"
+          ]
+        },
+        "assignedContractorContactId": {
+          "type": "string",
+          "description": "Optional reference to the Contact entity (type: Contractor) assigned to fulfill the request. (Relationship: Contact 1:N MaintenanceRequest)"
+        },
+        "assignedLandlordContactId": {
+          "type": "string",
+          "description": "Optional reference to the Contact entity (type: Landlord) whose approval is required or who is responsible. (Relationship: Contact 1:N MaintenanceRequest)"
+        },
+        "assignedStaffId": {
+          "type": "string",
+          "description": "Optional reference to the UserProfile who is managing this maintenance request. (Relationship: UserProfile 1:N MaintenanceRequest)"
+        },
+        "resolutionNotes": {
+          "type": "string",
+          "description": "Notes detailing the resolution of the maintenance request."
+        },
+        "documentIds": {
+          "type": "array",
+          "description": "References to Document entities providing evidence or details for this request (e.g., photos, invoices). (Relationship: MaintenanceRequest N:N Document)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the maintenance request record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the maintenance request record was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "organizationId",
+        "propertyId",
+        "reporterContactId",
+        "description",
+        "reportedDate",
+        "priority",
+        "status",
+        "createdAt",
+        "updatedAt",
+        "issueLocation",
+        "issueType"
+      ]
+    },
+    "Document": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Document",
+      "type": "object",
+      "description": "Metadata for a document or file stored in the system, linked to relevant entities.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Document entity."
+        },
+        "organizationId": {
+          "type": "string",
+          "description": "Reference to the Organization this document belongs to. (Relationship: Organization 1:N Document)"
+        },
+        "fileName": {
+          "type": "string",
+          "description": "The original file name of the document."
+        },
+        "filePath": {
+          "type": "string",
+          "description": "The internal path or URL where the document is stored (e.g., S3 URL, local path)."
+        },
+        "mimeType": {
+          "type": "string",
+          "description": "The MIME type of the document (e.g., 'application/pdf', 'image/jpeg')."
+        },
+        "fileSize": {
+          "type": "number",
+          "description": "The size of the document in bytes."
+        },
+        "uploadDate": {
+          "type": "string",
+          "description": "Timestamp when the document was uploaded.",
+          "format": "date-time"
+        },
+        "uploadedByUserId": {
+          "type": "string",
+          "description": "Reference to the UserProfile who uploaded the document. (Relationship: UserProfile 1:N Document)"
+        },
+        "tags": {
+          "type": "array",
+          "description": "A list of arbitrary tags for categorization (e.g., 'invoice', 'lease agreement').",
+          "items": {
+            "type": "string"
+          }
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the document's content."
+        },
+        "propertyIds": {
+          "type": "array",
+          "description": "References to Property entities this document is related to. (Relationship: Document N:N Property)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tenancyIds": {
+          "type": "array",
+          "description": "References to Tenancy entities this document is related to. (Relationship: Document N:N Tenancy)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "contactIds": {
+          "type": "array",
+          "description": "References to Contact entities this document is related to. (Relationship: Document N:N Contact)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the document metadata record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the document metadata record was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "organizationId",
+        "fileName",
+        "filePath",
+        "mimeType",
+        "fileSize",
+        "uploadDate",
+        "uploadedByUserId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Task": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Task",
+      "type": "object",
+      "description": "Represents a simple task or to-do item related to CRM activities.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Task entity."
+        },
+        "organizationId": {
+          "type": "string",
+          "description": "Reference to the Organization this task belongs to. (Relationship: Organization 1:N Task)"
+        },
+        "title": {
+          "type": "string",
+          "description": "A concise title for the task."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the task."
+        },
+        "dueDate": {
+          "type": "string",
+          "description": "The date by which the task is expected to be completed.",
+          "format": "date-time"
+        },
+        "priority": {
+          "type": "string",
+          "description": "The priority level of the task (e.g., 'Low', 'Medium', 'High').",
+          "enum": [
+            "High",
+            "Medium",
+            "Low"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the task (e.g., 'Open', 'In Progress', 'Completed').",
+          "enum": [
+            "Open",
+            "In Progress",
+            "Completed"
+          ]
+        },
+        "assignedToUserId": {
+          "type": "string",
+          "description": "Reference to the UserProfile who is assigned to complete this task. (Relationship: UserProfile 1:N Task)"
+        },
+        "createdByUserId": {
+            "type": "string",
+            "description": "Reference to the UserProfile who created this task. (Relationship: UserProfile 1:N Task)"
+        },
+        "relatedPropertyId": {
+          "type": "string",
+          "description": "Optional reference to a Property related to this task. (Relationship: Property 1:N Task)"
+        },
+        "relatedTenancyId": {
+          "type": "string",
+          "description": "Optional reference to a Tenancy related to this task. (Relationship: Tenancy 1:N Task)"
+        },
+        "relatedContactId": {
+          "type": "string",
+          "description": "Optional reference to a Contact related to this task. (Relationship: Contact 1:N Task)"
+        },
+        "relatedCommunicationId": {
+          "type": "string",
+          "description": "Optional reference to a Communication (email) this task was created from. (Relationship: Communication 1:1 Task)"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the task record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the task record was last updated.",
+          "format": "date-time"
+        },
+        "completedAt": {
+          "type": "string",
+          "description": "Timestamp when the task was marked as completed.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "organizationId",
+        "title",
+        "description",
+        "dueDate",
+        "priority",
+        "status",
+        "assignedToUserId",
+        "createdByUserId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Notification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Notification",
+      "type": "object",
+      "description": "Represents an in-app notification for a user.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Notification."
+        },
+        "organizationId": {
+          "type": "string",
+          "description": "The ID of the organization this notification belongs to."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The ID of the UserProfile this notification is for."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the notification."
+        },
+        "message": {
+          "type": "string",
+          "description": "The main content of the notification."
+        },
+        "link": {
+          "type": "string",
+          "description": "A URL or app path to navigate to when the notification is clicked."
+        },
+        "isRead": {
+          "type": "boolean",
+          "description": "Indicates if the user has read the notification."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the notification was created.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "organizationId",
+        "userId",
+        "title",
+        "message",
+        "isRead",
+        "createdAt"
+      ]
+    },
+    "Transaction": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Transaction",
+      "type": "object",
+      "description": "Records financial transactions related to properties and tenancies.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Transaction entity."
+        },
+        "organizationId": {
+          "type": "string",
+          "description": "Reference to the Organization that this transaction belongs to. (Relationship: Organization 1:N Transaction)"
+        },
+        "transactionType": {
+          "type": "string",
+          "description": "The type of financial transaction (e.g., Rent Payment, Landlord Fee, Maintenance Payment).",
+          "enum": [
+            "Rent Payment",
+            "Management Fee",
+            "Commission",
+            "Landlord Payout",
+            "Contractor Payment",
+            "Agency Expense",
+            "Deposit"
+          ]
+        },
+        "amount": {
+          "type": "number",
+          "description": "The monetary amount of the transaction."
+        },
+        "currency": {
+          "type": "string",
+          "description": "The currency of the transaction (e.g., 'GBP', 'USD')."
+        },
+        "transactionDate": {
+          "type": "string",
+          "description": "The date and time when the transaction occurred.",
+          "format": "date-time"
+        },
+        "description": {
+          "type": "string",
+          "description": "A brief description of the transaction."
+        },
+        "relatedPropertyId": {
+          "type": "string",
+          "description": "Optional reference to the Property related to this transaction. (Relationship: Property 1:N Transaction)"
+        },
+        "relatedTenancyId": {
+          "type": "string",
+          "description": "Optional reference to the Tenancy related to this transaction. (Relationship: Tenancy 1:N Transaction)"
+        },
+        "payerContactId": {
+          "type": "string",
+          "description": "Optional reference to the Contact entity who initiated the payment. (Relationship: Contact 1:N Transaction)"
+        },
+        "payeeContactId": {
+          "type": "string",
+          "description": "Optional reference to the Contact entity who received the payment. (Relationship: Contact 1:N Transaction)"
+        },
+        "reconciled": {
+          "type": "boolean",
+          "description": "Indicates if the transaction has been reconciled, typically with bank statements."
+        },
+        "reconciliationDate": {
+          "type": "string",
+          "description": "Timestamp when the transaction was reconciled.",
+          "format": "date-time"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the transaction record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the transaction record was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "organizationId",
+        "transactionType",
+        "amount",
+        "currency",
+        "transactionDate",
+        "description",
+        "reconciled",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "BankAccount": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "BankAccount",
+      "type": "object",
+      "description": "Represents a linked bank account for receiving payments or making payouts, typically associated with a landlord.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the BankAccount entity."
+        },
+        "organizationId": {
+          "type": "string",
+          "description": "Reference to the Organization this account belongs to."
+        },
+        "contactId": {
+          "type": "string",
+          "description": "Reference to the Contact (Landlord) this bank account is associated with."
+        },
+        "bankName": {
+          "type": "string",
+          "description": "The name of the bank or financial institution."
+        },
+        "accountName": {
+          "type": "string",
+          "description": "The name on the account (e.g., 'Mr John Smith')."
+        },
+        "accountNumberMask": {
+          "type": "string",
+          "description": "The masked account number (e.g., '****1234')."
+        },
+        "sortCode": {
+          "type": "string",
+          "description": "The account sort code."
+        },
+        "externalId": {
+          "type": "string",
+          "description": "The unique identifier from the third-party integration provider (e.g., Plaid, Yapily)."
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Active",
+            "Disconnected",
+            "Error"
+          ],
+          "description": "The status of the connection to the bank account."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "organizationId",
+        "contactId",
+        "bankName",
+        "accountName",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "WorkflowRule": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "WorkflowRule",
+      "type": "object",
+      "description": "Defines a configurable rule for automated workflows within the CRM.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the WorkflowRule entity."
+        },
+        "organizationId": {
+          "type": "string",
+          "description": "Reference to the Organization this workflow rule belongs to. (Relationship: Organization 1:N WorkflowRule)"
+        },
+        "name": {
+          "type": "string",
+          "description": "A descriptive name for the workflow rule."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of what the rule does and when it applies."
+        },
+        "eventType": {
+          "type": "string",
+          "description": "The event that triggers this workflow rule (e.g., 'RentOverdue', 'MaintenanceRequestCreated')."
+        },
+        "conditions": {
+          "type": "string",
+          "description": "A JSON string or domain-specific language defining the conditions that must be met for the rule to fire."
+        },
+        "actions": {
+          "type": "string",
+          "description": "A JSON string or domain-specific language defining the actions to be performed when the rule fires (e.g., 'SendEmail', 'CreateTask')."
+        },
+        "priority": {
+          "type": "number",
+          "description": "The priority level of the rule, influencing evaluation order."
+        },
+        "isActive": {
+          "type": "boolean",
+          "description": "Indicates if the workflow rule is currently active and being evaluated."
+        },
+        "createdByUserId": {
+          "type": "string",
+          "description": "Reference to the UserProfile who created this workflow rule. (Relationship: UserProfile 1:N WorkflowRule)"
+        },
+        "overrideLandlordContactIds": {
+          "type": "array",
+          "description": "References to Contact entities (landlords) for whom this rule acts as an override or specific configuration. (Relationship: WorkflowRule N:N Contact)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the workflow rule was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the workflow rule was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "organizationId",
+        "name",
+        "description",
+        "eventType",
+        "conditions",
+        "actions",
+        "priority",
+        "isActive",
+        "createdByUserId",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AuditLog": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AuditLog",
+      "type": "object",
+      "description": "Records every significant action performed within the CRM for accountability and traceability.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the AuditLog entity."
+        },
+        "organizationId": {
+          "type": "string",
+          "description": "Reference to the Organization where the action occurred. (Relationship: Organization 1:N AuditLog)"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The date and time when the action was performed.",
+          "format": "date-time"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to the UserProfile who performed the action. (Relationship: UserProfile 1:N AuditLog)"
+        },
+        "entityType": {
+          "type": "string",
+          "description": "The type of entity that was affected by the action (e.g., 'Contact', 'Property', 'Tenancy')."
+        },
+        "entityId": {
+          "type": "string",
+          "description": "The unique identifier of the entity that was affected."
+        },
+        "entityName": {
+          "type": "string",
+          "description": "The human-readable name or identifier of the entity that was affected (e.g., contact's full name, property address)."
+        },
+        "action": {
+          "type": "string",
+          "description": "The specific action performed (e.g., 'Created', 'Updated', 'Deleted', 'StatusChanged')."
+        },
+        "details": {
+          "type": "string",
+          "description": "A JSON string containing detailed information about the changes or context of the action."
+        }
+      },
+      "required": [
+        "id",
+        "organizationId",
+        "timestamp",
+        "userId",
+        "entityType",
+        "entityId",
+        "action",
+        "details"
+      ]
+    },
+    "Communication": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Communication",
+      "type": "object",
+      "description": "Represents a communication event (email, SMS, call, WhatsApp) within the CRM system.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Communication entity."
+        },
+        "organizationId": {
+          "type": "string",
+          "description": "Reference to the Organization this communication belongs to. (Relationship: Organization 1:N Communication)"
+        },
+        "externalId": {
+          "type": "string",
+          "description": "The unique identifier from the external mail service (e.g., Microsoft Graph ID, Gmail ID)."
+        },
+        "threadId": {
+          "type": "string",
+          "description": "The conversation thread ID from the external mail service."
+        },
+        "communicationType": {
+          "type": "string",
+          "description": "The type of communication (e.g., 'Email', 'SMS', 'Call', 'WhatsApp').",
+          "enum": [
+            "Email",
+            "SMS",
+            "Call",
+            "WhatsApp"
+          ]
+        },
+        "subject": {
+          "type": "string",
+          "description": "The subject line of the communication (for emails/messages)."
+        },
+        "body": {
+          "type": "string",
+          "description": "The main content or body of the communication. This may be cached or fetched on demand."
+        },
+        "fromAddress": {
+          "type": "string",
+          "description": "The sender's identifier (email address, phone number)."
+        },
+        "toAddresses": {
+          "type": "array",
+          "description": "An array of recipient identifiers (email addresses, phone numbers).",
+          "items": {
+            "type": "string"
+          }
+        },
+        "direction": {
+          "type": "string",
+          "description": "Indicates if the communication was 'Inbound' or 'Outbound'.",
+          "enum": [
+            "Inbound",
+            "Outbound"
+          ]
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "The date and time the communication occurred or was logged.",
+          "format": "date-time"
+        },
+        "status": {
+          "type": "string",
+          "description": "The current status of the communication (e.g., 'Sent', 'Received', 'Read').",
+          "enum": [
+            "Sent",
+            "Received",
+            "Read",
+            "Archived",
+            "Trashed"
+          ]
+        },
+        "flags": {
+          "type": "string",
+          "description": "Optional JSON data for flags pushed back to the external mailbox (e.g., categories)."
+        },
+        "relatedPropertyId": {
+          "type": "string",
+          "description": "Optional reference to the Property this communication is related to. (Relationship: Property 1:N Communication)"
+        },
+        "relatedTenancyId": {
+          "type": "string",
+          "description": "Optional reference to a Tenancy this communication is related to. (Relationship: Tenancy 1:N Communication)"
+        },
+        "relatedContactIds": {
+          "type": "array",
+          "description": "References to Contact entities involved in this communication. (Relationship: Communication N:N Contact)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "relatedTaskId": {
+          "type": "string",
+          "description": "Optional reference to a Task created from this communication. (Relationship: Task 1:1 Communication)"
+        },
+        "createdByUserId": {
+          "type": "string",
+          "description": "Reference to the UserProfile who initiated or logged this communication. (Relationship: UserProfile 1:N Communication)"
+        },
+        "documentIds": {
+          "type": "array",
+          "description": "References to Document entities attached to this communication. (Relationship: Communication N:N Document)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp when the communication record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp when the communication record was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "organizationId",
+        "communicationType",
+        "direction",
+        "timestamp",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/userOrganizationMap/{userId}",
+        "definition": {
+          "entityName": "UserOrganizationMap",
+          "schema": {
+            "$ref": "#/backend/entities/UserOrganizationMap"
+          },
+          "description": "Top-level collection mapping staff UIDs to their Organization ID for quick lookup. This allows the application to determine a user's organization with a single document read upon login, which is essential for all subsequent database queries and security rule evaluations. The document ID is the user's Firebase UID.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The Firebase Authentication User ID of the staff member."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/systemAdmins/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Top-level collection for system administrators of Relentify. Documents in this collection simply indicate existence, where the document ID is the user's Firebase UID. Used for global role authorization (DBAC).",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The Firebase Authentication User ID of the system administrator."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/portalUserProfiles/{portalUserId}",
+        "definition": {
+          "entityName": "PortalUserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/PortalUserProfile"
+          },
+          "description": "Top-level collection for portal users (Landlords, Tenants) to link their Firebase Authentication UID to their Contact record and Organization ID. The document ID is the Firebase UID. Includes denormalized 'organizationId' and 'contactId' for authorization independence.",
+          "params": [
+            {
+              "name": "portalUserId",
+              "description": "The Firebase Authentication User ID of the portal user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/propertyListings/{propertyId}",
+        "definition": {
+          "entityName": "PropertyListing",
+          "schema": {
+            "$ref": "#/backend/entities/PropertyListing"
+          },
+          "description": "Public collection of property listings for external feeds like Rightmove. Data is copied from the main properties collection via a user action. This collection is publicly readable.",
+          "params": [
+            {
+              "name": "propertyId",
+              "description": "The unique identifier for the Property, same as in the /organizations/{orgId}/properties collection."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/organizations/{organizationId}",
+        "definition": {
+          "entityName": "Organization",
+          "schema": {
+            "$ref": "#/backend/entities/Organization"
+          },
+          "description": "Primary collection for each agency/organization using Relentify CRM. All other data related to an agency will be nested under its respective organization document.",
+          "params": [
+            {
+              "name": "organizationId",
+              "description": "The unique identifier for the Organization."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/organizations/{organizationId}/userProfiles/{userProfileId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Subcollection for staff user profiles within a specific organization. The 'userProfileId' is the Firebase Authentication User ID (UID). This document holds the user's role and is crucial for DBAC.",
+          "params": [
+            {
+              "name": "organizationId",
+              "description": "The unique identifier for the Organization."
+            },
+            {
+              "name": "userProfileId",
+              "description": "The Firebase Authentication User ID (UID) of the staff member, also acting as the document ID."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/organizations/{organizationId}/contacts/{contactId}",
+        "definition": {
+          "entityName": "Contact",
+          "schema": {
+            "$ref": "#/backend/entities/Contact"
+          },
+          "description": "Subcollection for all contacts (landlords, tenants, leads, contractors) belonging to a specific organization. Includes denormalized 'organizationId' for authorization independence.",
+          "params": [
+            {
+              "name": "organizationId",
+              "description": "The unique identifier for the Organization."
+            },
+            {
+              "name": "contactId",
+              "description": "The unique identifier for the Contact."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/organizations/{organizationId}/properties/{propertyId}",
+        "definition": {
+          "entityName": "Property",
+          "schema": {
+            "$ref": "#/backend/entities/Property"
+          },
+          "description": "Subcollection for properties managed by a specific organization. Includes denormalized 'organizationId' for authorization independence.",
+          "params": [
+            {
+              "name": "organizationId",
+              "description": "The unique identifier for the Organization."
+            },
+            {
+              "name": "propertyId",
+              "description": "The unique identifier for the Property."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/organizations/{organizationId}/tenancies/{tenancyId}",
+        "definition": {
+          "entityName": "Tenancy",
+          "schema": {
+            "$ref": "#/backend/entities/Tenancy"
+          },
+          "description": "Subcollection for tenancy agreements managed by a specific organization. Includes denormalized 'organizationId' for authorization independence.",
+          "params": [
+            {
+              "name": "organizationId",
+              "description": "The unique identifier for the Organization."
+            },
+            {
+              "name": "tenancyId",
+              "description": "The unique identifier for the Tenancy."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/organizations/{organizationId}/maintenanceRequests/{maintenanceRequestId}",
+        "definition": {
+          "entityName": "MaintenanceRequest",
+          "schema": {
+            "$ref": "#/backend/entities/MaintenanceRequest"
+          },
+          "description": "Subcollection for maintenance requests submitted for properties managed by a specific organization. Includes denormalized 'organizationId' for authorization independence. Denormalizes 'reporterContactId', 'assignedLandlordContactId', 'assignedContractorContactId', and 'assignedStaffId' for direct access checks.",
+          "params": [
+            {
+              "name": "organizationId",
+              "description": "The unique identifier for the Organization."
+            },
+            {
+              "name": "maintenanceRequestId",
+              "description": "The unique identifier for the MaintenanceRequest."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/organizations/{organizationId}/documents/{documentId}",
+        "definition": {
+          "entityName": "Document",
+          "schema": {
+            "$ref": "#/backend/entities/Document"
+          },
+          "description": "Subcollection for document metadata uploaded for a specific organization. Includes denormalized 'organizationId', 'uploadedByUserId', 'propertyIds', 'tenancyIds', 'contactIds' for authorization independence and contextual linking.",
+          "params": [
+            {
+              "name": "organizationId",
+              "description": "The unique identifier for the Organization."
+            },
+            {
+              "name": "documentId",
+              "description": "The unique identifier for the Document."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/organizations/{organizationId}/tasks/{taskId}",
+        "definition": {
+          "entityName": "Task",
+          "schema": {
+            "$ref": "#/backend/entities/Task"
+          },
+          "description": "Subcollection for tasks and to-do items specific to an organization. Includes denormalized 'organizationId' and 'assignedToUserId' for authorization independence.",
+          "params": [
+            {
+              "name": "organizationId",
+              "description": "The unique identifier for the Organization."
+            },
+            {
+              "name": "taskId",
+              "description": "The unique identifier for the Task."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/organizations/{organizationId}/notifications/{notificationId}",
+        "definition": {
+          "entityName": "Notification",
+          "schema": {
+            "$ref": "#/backend/entities/Notification"
+          },
+          "description": "Subcollection for user-specific notifications within an organization. Includes denormalized 'organizationId' and 'userId' for authorization.",
+          "params": [
+            {
+              "name": "organizationId",
+              "description": "The unique identifier for the Organization."
+            },
+            {
+              "name": "notificationId",
+              "description": "The unique identifier for the Notification."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/organizations/{organizationId}/transactions/{transactionId}",
+        "definition": {
+          "entityName": "Transaction",
+          "schema": {
+            "$ref": "#/backend/entities/Transaction"
+          },
+          "description": "Subcollection for financial transactions within a specific organization. Includes denormalized 'organizationId' for authorization independence. Denormalizes 'payerContactId' and 'payeeContactId' for direct access checks.",
+          "params": [
+            {
+              "name": "organizationId",
+              "description": "The unique identifier for the Organization."
+            },
+            {
+              "name": "transactionId",
+              "description": "The unique identifier for the Transaction."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/organizations/{organizationId}/bankAccounts/{bankAccountId}",
+        "definition": {
+          "entityName": "BankAccount",
+          "schema": {
+            "$ref": "#/backend/entities/BankAccount"
+          },
+          "description": "Subcollection for linked bank accounts within an organization. Includes denormalized 'organizationId' and 'contactId' for authorization.",
+          "params": [
+            {
+              "name": "organizationId",
+              "description": "The unique identifier for the Organization."
+            },
+            {
+              "name": "bankAccountId",
+              "description": "The unique identifier for the BankAccount."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/organizations/{organizationId}/workflowRules/{workflowRuleId}",
+        "definition": {
+          "entityName": "WorkflowRule",
+          "schema": {
+            "$ref": "#/backend/entities/WorkflowRule"
+          },
+          "description": "Subcollection for workflow rules configured by a specific organization. Includes denormalized 'organizationId' and 'createdByUserId' for authorization independence.",
+          "params": [
+            {
+              "name": "organizationId",
+              "description": "The unique identifier for the Organization."
+            },
+            {
+              "name": "workflowRuleId",
+              "description": "The unique identifier for the WorkflowRule."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/organizations/{organizationId}/auditLogs/{auditLogId}",
+        "definition": {
+          "entityName": "AuditLog",
+          "schema": {
+            "$ref": "#/backend/entities/AuditLog"
+          },
+          "description": "Subcollection for audit logs tracking actions within a specific organization. Includes denormalized 'organizationId' and 'userId' for authorization independence and accountability.",
+          "params": [
+            {
+              "name": "organizationId",
+              "description": "The unique identifier for the Organization."
+            },
+            {
+              "name": "auditLogId",
+              "description": "The unique identifier for the AuditLog entry."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/organizations/{organizationId}/communications/{communicationId}",
+        "definition": {
+          "entityName": "Communication",
+          "schema": {
+            "$ref": "#/backend/entities/Communication"
+          },
+          "description": "Subcollection for communications (emails, SMS, calls) related to a specific organization. Includes denormalized 'organizationId', 'relatedContactIds', and 'createdByUserId' for authorization independence.",
+          "params": [
+            {
+              "name": "organizationId",
+              "description": "The unique identifier for the Organization."
+            },
+            {
+              "name": "communicationId",
+              "description": "The unique identifier for the Communication."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure for Relentify CRM is designed with a strong emphasis on multi-tenancy, Authorization Independence, and robust security rules, adhering to the core design principles. The primary design strategy is to establish a top-level `/organizations/{organizationId}` collection, under which all agency-specific data resides as subcollections. This immediately scopes all data to a particular organization.\n\n**Authorization Independence via Denormalization:**\nEvery document within an organization's subcollection (e.g., `/organizations/{organizationId}/contacts/{contactId}`, `/organizations/{organizationId}/properties/{propertyId}`) explicitly includes the `organizationId` field. This denormalization is crucial for Authorization Independence. Security rules can directly check `resource.data.organizationId == request.auth.token.organizationId` (if `organizationId` is passed via a custom claim in the user's auth token for staff) or `resource.data.organizationId == get(/userProfiles/$(request.auth.uid)).data.organizationId` for the currently authenticated user's organization. This eliminates the need for `get()` calls on parent documents (e.g., `get(/organizations/{organizationId})`) when authorizing access to subcollection documents, thereby making rules simpler, more performant, and preventing breaks in atomic operations.\n\nFor portal users (landlords, tenants), a separate top-level collection `/portalUserProfiles/{portalUserId}` maps the Firebase `uid` to their `contactId` and `organizationId`. This allows portal users to securely access only the data where their `contactId` or `organizationId` is explicitly referenced (e.g., `MaintenanceRequest.reporterContactId`, `Property.landlordIds`, `Tenancy.tenantIds`, `Document.contactIds`).\n\n**Support for Query-Aware Permissions (QAPs):**\nThe structural segregation by `organizationId` inherently supports QAPs. When an authenticated staff user or portal user makes a `list` query on a collection like `/organizations/{organizationId}/contacts`, the security rules enforce that the `organizationId` in the path matches the user's authenticated `organizationId`. This ensures that `list` operations implicitly return only data relevant to and authorized for that specific organization, preventing data leakage across tenants. Further granular permissions (e.g., 'read-only' for Staff vs. 'read/write' for Agency Admin) are enforced by checking the `role` field within the user's `userProfile` document or the specific `contactId` for portal users, always in conjunction with the `organizationId` check.\n\n**DBAC and Role Management:**\nUser roles are managed within the database: `/systemAdmins/{userId}` for global Relentify administrators (existence check), and `organizations/{organizationId}/userProfiles/{userProfileId}` for agency staff, where `userProfileId` is the Firebase `uid` and the `role` field dictates permissions within the agency. This adheres to DBAC, relying solely on `request.auth.uid` and database lookups, not custom claims for roles.\n\nOverall, this structure provides a clear, secure, and scalable foundation for the Relentify CRM, ensuring multi-tenancy and robust access control with simplified Firestore Security Rules."
+  }
+}

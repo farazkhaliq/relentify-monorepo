@@ -1,0 +1,16 @@
+@import "tailwindcss";
+@import "@relentify/ui/styles";
+@source "../../../../packages/ui/src";
+
+@layer base {
+  body {
+    @apply transition-colors duration-700 bg-[var(--theme-background)] text-[var(--theme-text)];
+  }
+}
+
+@media print {
+  aside { display: none !important; }
+  .no-print { display: none !important; }
+  main { overflow: visible !important; height: auto !important; }
+  body { background: white !important; }
+}

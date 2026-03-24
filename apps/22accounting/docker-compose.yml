@@ -1,0 +1,37 @@
+services:
+  web:
+    build:
+      context: ../../
+      dockerfile: apps/22accounting/Dockerfile
+    container_name: 22accounting
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+    ports:
+      - "3022:3000"
+    env_file:
+      - .env
+    networks:
+      - relentify_default
+      - infra_default
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  relentify_default:
+    external: true
+    name: relentify_default
+  infra_default:
+    external: true
+    name: infra_default

@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+/* Use .dark class (set by ThemeProvider) for dark: variants, not OS media query */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@import "@relentify/ui/styles";
+@source "../../../../packages/ui/src";
+
+/* App-specific styles below */
+@layer base {
+}

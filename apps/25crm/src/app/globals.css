@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+/* Use .dark class (set by ThemeProvider) for dark: variants, not OS media query */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@source "../../../../packages/ui/src";
+
+@layer base {
+}

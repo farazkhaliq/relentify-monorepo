@@ -1,0 +1,32 @@
+@import "tailwindcss";
+@import "@relentify/ui/styles";
+@source "../../../../packages/ui/src";
+
+/* 
+  relentify-accounting: DESIGN ALIGNMENT
+  100% Shared Monorepo DNA 
+*/
+
+@layer base {
+  body {
+    @apply antialiased;
+    font-family: var(--font-sans);
+  }
+}
+
+/* 
+  Accounting-specific animations (Keep these for character, 
+  but use shared variables where possible)
+*/
+@keyframes wave-animation {
+  0%, 100% { transform: translate(0, 0) scaleY(1); }
+  50% { transform: translate(-0.5%, 1px) scaleY(1.05); }
+}
+
+.liquidity-wave {
+  animation: wave-animation 4s ease-in-out infinite;
+  background: linear-gradient(135deg, var(--theme-accent) 0%, var(--theme-primary) 100%);
+}
+
+/* Form specific formatting */
+input[type="date"]::-webkit-date-and-time-value { text-align: left; }

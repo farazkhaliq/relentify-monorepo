@@ -1,0 +1,13 @@
+{
+  "name": "@relentify/auth",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "jose": "latest"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
