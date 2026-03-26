@@ -25,7 +25,7 @@ Both platforms allow CSV export from their settings. No OAuth, no API credential
 
 ## Migration Wizard — 6 Steps
 
-The wizard lives at `/dashboard/migrate`. Each step is a separate view within the page (no full-page navigations). State is held in React context for the duration of the session.
+The wizard lives at `/dashboard/migrate`. Each step is a separate view within the page (no full-page navigations). State is held in React context for the duration of the session and persisted to `localStorage` for 24 hours so the user can resume after navigating away.
 
 ### Step 1: Choose Source
 
@@ -39,9 +39,10 @@ Two cards: **Xero** and **QuickBooks Desktop/Online**.
 User picks a date — typically their last year-end or last month-end.
 
 **Rules:**
-- All outstanding invoices/bills as of this date will be imported as open items
+- All outstanding invoices/bills with a date **up to and including** this date will be imported as open items
 - Opening balances will reflect account balances at this date
 - Transactions before this date are not imported (only the resulting balances)
+- A "Preview balances as of cutoff" panel shows before proceeding — account-by-account summary of what will be imported as opening balances
 
 The cutoff date is stored in migration context and used throughout all subsequent steps.
 
@@ -65,7 +66,9 @@ Drag-and-drop or file picker. Multiple files accepted simultaneously.
 - `bill_list.csv` (optional)
 - `trial_balance.csv` (for validation)
 
-Files are parsed in-browser (using ExcelJS / Papa Parse for CSV). No file is uploaded to the server at this stage — all parsing happens client-side for speed and privacy.
+**Parsing approach:** Files are parsed in-browser using Papa Parse for CSV. No file is uploaded to the server at this stage — all parsing happens client-side for speed and privacy.
+
+**Large file handling:** Files over 5MB are parsed via a Web Worker to avoid blocking the main thread. Progress is reported back to the UI. If the Web Worker approach fails (browser compatibility edge case), parsing falls back to chunked synchronous processing. For very large exports (>20MB total), a banner offers a server-side fallback: files are uploaded to a temporary presigned R2 URL and parsed server-side, returning the normalised `MigrationData` JSON to the client.
 
 ### Step 4: Map Accounts
 
@@ -73,12 +76,18 @@ A two-column mapping UI:
 - **Left column:** source accounts (from uploaded COA file)
 - **Right column:** Relentify account (dropdown from live COA)
 
-Auto-matching logic suggests mappings based on:
+**Auto-matching logic** suggests mappings based on (in priority order):
 1. Exact name match
 2. Account code match
-3. Account type match (ASSET → ASSET range, INCOME → 4000–4999, etc.)
+3. Fuzzy name match (Levenshtein distance ≤ 2 characters difference)
+4. Account type match (ASSET → ASSET range, INCOME → 4000–4999, etc.)
 
-User reviews and overrides any suggested mappings. Unmapped accounts are highlighted in amber — they must be resolved before proceeding. A "Skip" option is available for accounts with zero balance and no outstanding items.
+**Confidence levels:**
+- **High confidence** (exact name or code match): pre-selected silently
+- **Medium confidence** (fuzzy match or type match): pre-selected but flagged amber with "Suggested match — please verify"
+- **No match**: shown as unresolved (amber), must be manually mapped before proceeding
+
+User reviews and overrides any suggested mappings. A "Skip" option is available for accounts with zero balance and no outstanding items.
 
 ### Step 5: Preview & Validate
 
@@ -108,20 +117,29 @@ Validation:
 ### Step 6: Confirm & Import
 
 "Import [X] records" button. On click:
-- Show progress indicator (per data type: accounts → customers → suppliers → invoices → bills → opening balances)
+- Show progress indicator per data type: `accounts → customers → suppliers → invoices → bills → opening balances`
+- Progress shown as live counts: `23/89 invoices imported` with an estimated time remaining based on elapsed rate
 - Each data type is committed as a batch within a DB transaction
-- If any batch fails, that batch rolls back, others already committed remain (partial import is acceptable — the wizard shows which batches succeeded)
-- On completion: summary of what was imported, link to dashboard
+- If any batch fails, that batch rolls back; batches already committed remain (partial import is acceptable)
+- Wizard shows which batches succeeded and which failed
+- Failed batches show a **"Resume import"** button that replays only the failed batch without reprocessing successful ones (uses the persisted `MigrationData` from `localStorage`)
+- On full completion: summary of what was imported + downloadable import report (CSV listing every record created), link to dashboard
 
 ---
 
 ## Parser Architecture
 
-Two dedicated parser services, one per platform. Both output the same normalised format consumed by the import layer.
+Two dedicated parser services, one per platform. Both output the same normalised format consumed by the import layer. The shared `MigrationSource` interface makes future sources (Sage, FreeAgent) trivial to add.
 
-### Normalised Output Format
+### Parser Interface (extensible)
 
 ```ts
+// src/lib/migration/types.ts
+
+interface MigrationSource {
+  parse(files: File[]): Promise<MigrationData>;
+}
+
 interface MigrationData {
   accounts:        NormalisedAccount[];
   customers:       NormalisedContact[];
@@ -133,19 +151,25 @@ interface MigrationData {
 }
 ```
 
+Both `XeroParser` and `QuickBooksParser` implement `MigrationSource`. Adding Sage requires only a new class implementing this interface — no changes to wizard or import layer.
+
 ### `src/lib/migration/xero.parser.ts`
 
 Parses Xero's CSV exports. Key mappings:
 - `Chart of Accounts.csv`: AccountCode, Name, Type, TaxType → NormalisedAccount
 - `Contacts.csv`: ContactName, IsCustomer, IsSupplier, Email, Phone → split into customers/suppliers
-- `Invoices.csv`: InvoiceNumber, ContactName, InvoiceDate, DueDate, UnitAmount, TaxAmount, Status → NormalisedInvoice (filter Status = AUTHORISED or OUTSTANDING)
+- `Invoices.csv`: InvoiceNumber, ContactName, InvoiceDate, DueDate, UnitAmount, TaxAmount, Status → NormalisedInvoice (filter Status = AUTHORISED or OUTSTANDING, date ≤ cutoff)
 - `Trial Balance.csv`: AccountCode, Debit, Credit → NormalisedTrialBalance
 
 ### `src/lib/migration/quickbooks.parser.ts`
 
-Parses QuickBooks IIF and CSV exports. Key mappings:
-- IIF files: tab-delimited, `!ACCNT` rows for accounts, `!CUST` for customers, `!VEND` for vendors, `!TRNS`/`!SPL` for transactions
-- CSV variant: similar column names but comma-delimited
+Parses QuickBooks IIF and CSV exports.
+
+**IIF parsing rules:**
+- Tab-delimited; detect record type from `!` prefix rows: `!ACCNT`, `!CUST`, `!VEND`, `!TRNS`, `!SPL`
+- Column headers are defined by the `!` row immediately preceding the data rows — do not assume fixed column positions
+- Unknown row types (not in the expected set) are silently skipped with a count logged to import audit
+- Each data row is validated against its header row: missing required columns produce a named validation error, not a crash
 
 QuickBooks account types to Relentify ranges:
 | QB Type | Relentify range |
@@ -171,6 +195,43 @@ Consumes `MigrationData` and calls existing services:
 
 **GL strategy during migration:** Individual invoice/bill records are created without posting individual GL entries (to avoid double-counting). The trial balance is imported as a single set of opening balance journal entries. This correctly represents the financial position at cutoff without creating phantom transactions.
 
+**Atomicity guarantee:** If GL posting of opening balances fails, the entire import transaction rolls back. A partial import (records created but no GL entries) must never be committed — it would leave an inconsistent state.
+
+---
+
+## Import Audit Log
+
+Every migration run creates a structured log stored in a new `migration_runs` table:
+
+```sql
+CREATE TABLE migration_runs (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  entity_id     UUID NOT NULL REFERENCES entities(id),
+  user_id       UUID NOT NULL,
+  source        TEXT NOT NULL,  -- 'xero' | 'quickbooks'
+  cutoff_date   DATE NOT NULL,
+  files_uploaded JSONB NOT NULL, -- [{name, size, type}]
+  auto_mappings  JSONB NOT NULL, -- [{sourceCode, targetCode, confidence}]
+  validation_warnings JSONB,
+  batches        JSONB NOT NULL, -- [{type, status, count, error?}]
+  import_report  TEXT,           -- CSV content of imported records
+  created_at    TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+This log is queryable by support to diagnose failed imports. It is also used by the "Resume import" feature to replay only failed batches.
+
+---
+
+## Server-Side Security
+
+The `app/api/migration/import/route.ts` endpoint performs full server-side validation before committing any data to the database:
+
+- **Type validation:** every field in every `NormalisedAccount`, `NormalisedContact`, `NormalisedInvoice`, `NormalisedBill` is checked against expected types and ranges
+- **SQL injection prevention:** all DB writes go through parameterised queries via existing service layer — no raw string interpolation
+- **Input sanitisation:** string fields trimmed and stripped of null bytes; numeric fields parsed with `parseFloat` and validated as finite numbers
+- **Rollback safety:** import route wraps all batch inserts in a single transaction with an explicit `ROLLBACK` on any error; the response will never indicate success unless the transaction committed
+
 ---
 
 ## Error Handling
@@ -178,12 +239,28 @@ Consumes `MigrationData` and calls existing services:
 | Scenario | Behaviour |
 |----------|-----------|
 | File format not recognised | Step 3: red error, list expected files |
+| Unknown IIF row type | Skip row, increment unknown-row counter, surface total in validation summary |
 | Trial balance does not balance | Step 5: blocked, show discrepancy amount |
 | Duplicate customer name | Auto-merge: use existing customer record |
 | Account code already exists | Auto-merge: map to existing account |
 | Invoice references unknown customer | Create customer from invoice data, warn user |
-| Import batch fails mid-way | Show which batches succeeded, offer retry for failed batch |
+| Import batch fails mid-way | Show which batches succeeded, offer "Resume import" for failed batch |
 | User navigates away mid-wizard | Session state preserved in localStorage for 24h |
+| Large file (>5MB) | Parse via Web Worker with progress indicator |
+| Very large export (>20MB total) | Offer server-side parsing fallback |
+
+---
+
+## Testing
+
+**Unit tests — `src/lib/migration/__tests__/`:**
+- `xero.parser.test.ts`: valid Xero CSVs, missing columns, extra whitespace, duplicate contacts, invoices outside cutoff range
+- `quickbooks.parser.test.ts`: valid IIF (older and newer formats), valid CSV, unknown row types, missing header rows, malformed numeric fields
+- `validation.test.ts`: balanced trial balance, unbalanced trial balance (within/outside tolerance), empty dataset
+
+**End-to-end tests — `playwright/scripts/migrate-xero.ts` and `migrate-quickbooks.ts`:**
+- Upload sample export files → complete wizard → verify trial balance matches → verify GL entries created → verify records imported correctly
+- Runs against staging as part of CI validation suite
 
 ---
 
@@ -192,12 +269,15 @@ Consumes `MigrationData` and calls existing services:
 | File | Change |
 |------|--------|
 | `app/dashboard/migrate/page.tsx` | New: 6-step wizard page |
+| `src/lib/migration/types.ts` | New: `MigrationSource` interface + all normalised types |
 | `src/lib/migration/xero.parser.ts` | New: Xero CSV parser |
 | `src/lib/migration/quickbooks.parser.ts` | New: QuickBooks IIF/CSV parser |
 | `src/lib/migration/import.service.ts` | New: normalised data → Relentify records |
 | `src/lib/migration/validation.ts` | New: trial balance checker, warning/error classifier |
+| `src/lib/migration/worker.ts` | New: Web Worker for large file parsing |
 | `app/api/migration/validate/route.ts` | New: server-side validation endpoint |
 | `app/api/migration/import/route.ts` | New: commit import endpoint (streams progress) |
+| `database/migrations/026_migration_runs.sql` | New: `migration_runs` audit table |
 | `public/migration-guides/xero-export.pdf` | New: static instruction guide |
 | `public/migration-guides/quickbooks-export.pdf` | New: static instruction guide |
 | `app/dashboard/layout.tsx` | Add "Migrate" link to sidebar (under Settings group) |
