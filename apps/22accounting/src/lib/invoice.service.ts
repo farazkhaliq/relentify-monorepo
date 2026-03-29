@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/nextjs';
-import { query } from './db';
+import { query, withTransaction } from './db';
 import {
   postJournalEntry,
   reverseJournalEntry,
@@ -23,6 +23,7 @@ export async function createInvoice(data: {
   notes?: string; terms?: string; currency: string;
   items: Array<{ description: string; quantity: number; unitPrice: number; taxRate: number }>;
 }) {
+  // generateInvoiceNumber uses nextval — must run outside the transaction
   const num = await generateInvoiceNumber();
   let subtotal = 0;
   const processedItems = data.items.map((item, idx) => {
@@ -34,25 +35,30 @@ export async function createInvoice(data: {
   const total = subtotal + taxAmount;
   const fee = total * 0.025;
 
-  // if customerId supplied we include that column, otherwise insert null
-  const r = await query(
-    `INSERT INTO invoices (user_id,entity_id,customer_id,project_id,invoice_number,client_name,client_email,client_address,issue_date,due_date,subtotal,tax_rate,tax_amount,total,currency,relentify_fee_amount,notes,terms,payment_terms)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) RETURNING *`,
-    [data.userId, data.entityId, data.customerId||null, data.projectId||null, num, data.clientName, data.clientEmail||null, data.clientAddress||null,
-     data.issueDate || new Date().toISOString().split('T')[0], data.dueDate,
-     subtotal.toFixed(2), data.taxRate, taxAmount.toFixed(2), total.toFixed(2), data.currency, fee.toFixed(2),
-     data.notes||null, data.terms||null, data.paymentTerms||'net_30']
-  );
-  const inv = r.rows[0];
-  for (const item of processedItems) {
-    await query(
-      'INSERT INTO invoice_items (invoice_id,description,quantity,unit_price,amount,tax_rate,tax_amount,line_order) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
-      [inv.id, item.description, item.quantity, item.unitPrice, item.amount, item.taxRate, item.taxAmount, item.lineOrder]
+  return withTransaction(async (client) => {
+    const r = await client.query(
+      `INSERT INTO invoices (user_id,entity_id,customer_id,project_id,invoice_number,client_name,client_email,client_address,issue_date,due_date,subtotal,tax_rate,tax_amount,total,currency,relentify_fee_amount,notes,terms,payment_terms)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) RETURNING *`,
+      [data.userId, data.entityId, data.customerId ?? null, data.projectId ?? null, num,
+       data.clientName, data.clientEmail ?? null, data.clientAddress ?? null,
+       data.issueDate || new Date().toISOString().split('T')[0], data.dueDate,
+       subtotal.toFixed(2), data.taxRate, taxAmount.toFixed(2), total.toFixed(2),
+       data.currency, fee.toFixed(2), data.notes ?? null, data.terms ?? null,
+       data.paymentTerms ?? 'net_30']
     );
-  }
+    const inv = r.rows[0];
 
-  // Post double-entry journal: Dr Debtors / Cr Sales / Cr VAT Output
-  try {
+    for (const item of processedItems) {
+      await client.query(
+        `INSERT INTO invoice_items
+           (invoice_id,description,quantity,unit_price,amount,tax_rate,tax_amount,line_order)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+        [inv.id, item.description, item.quantity, item.unitPrice,
+         item.amount, item.taxRate, item.taxAmount, item.lineOrder]
+      );
+    }
+
+    // GL posting is inside the transaction — failure rolls back the invoice too
     const glLines = await buildInvoiceCreationLines(
       data.entityId,
       parseFloat(total.toFixed(2)),
@@ -68,14 +74,10 @@ export async function createInvoice(data: {
       sourceType:  'invoice',
       sourceId:    inv.id,
       lines:       glLines,
-    });
-  } catch (_glErr) {
-    // GL posting failure is non-blocking — invoice still created
-    console.error('[GL] Failed to post invoice creation entry:', _glErr);
-    Sentry.captureException(_glErr, { tags: { gl_operation: 'invoice_creation' } });
-  }
+    }, client);
 
-  return inv;
+    return inv;
+  });
 }
 
 export async function getInvoicesByUser(userId: string, entityId?: string) {
@@ -108,11 +110,13 @@ export async function getInvoiceByCheckoutSession(sessionId: string) {
 }
 
 export async function markInvoicePaid(invoiceId: string, paymentIntentId: string) {
-  await query('UPDATE invoices SET status=$1, paid_at=NOW(), stripe_payment_intent_id=$2, payment_method=$3 WHERE id=$4', ['paid', paymentIntentId, 'stripe', invoiceId]);
+  return withTransaction(async (client) => {
+    await client.query(
+      `UPDATE invoices SET status=$1, paid_at=NOW(), stripe_payment_intent_id=$2, payment_method=$3 WHERE id=$4`,
+      ['paid', paymentIntentId, 'stripe', invoiceId]
+    );
 
-  // Post GL: Dr Bank / Cr Debtors
-  try {
-    const inv = await query('SELECT * FROM invoices WHERE id=$1', [invoiceId]);
+    const inv = await client.query('SELECT * FROM invoices WHERE id=$1', [invoiceId]);
     if (inv.rows[0]) {
       const invoice = inv.rows[0];
       const glLines = await buildInvoicePaymentLines(
@@ -128,12 +132,9 @@ export async function markInvoicePaid(invoiceId: string, paymentIntentId: string
         sourceType:  'payment',
         sourceId:    invoiceId,
         lines:       glLines,
-      });
+      }, client);
     }
-  } catch (_glErr) {
-    console.error('[GL] Failed to post invoice payment entry:', _glErr);
-    Sentry.captureException(_glErr, { tags: { gl_operation: 'invoice_payment' } });
-  }
+  });
 }
 
 export async function markInvoicePaidManually(
@@ -149,6 +150,7 @@ export async function markInvoicePaidManually(
 ) {
   const paymentDate = options?.paymentDate || new Date().toISOString().split('T')[0];
 
+  // Read invoice outside transaction — we need it to validate before starting tx
   const invRes = await query('SELECT * FROM invoices WHERE id=$1 AND entity_id=$2', [invoiceId, entityId]);
   const invoice = invRes.rows[0];
   if (!invoice) throw new Error('Invoice not found');
@@ -156,14 +158,13 @@ export async function markInvoicePaidManually(
 
   const amount = options?.amount ?? parseFloat(invoice.total);
 
-  await query(
-    `UPDATE invoices SET status='paid', paid_at=$1::timestamptz, payment_method='bank_transfer' WHERE id=$2`,
-    [paymentDate, invoiceId]
-  );
+  return withTransaction(async (client) => {
+    await client.query(
+      `UPDATE invoices SET status='paid', paid_at=$1::timestamptz, payment_method='bank_transfer' WHERE id=$2`,
+      [paymentDate, invoiceId]
+    );
 
-  // Create a bank transaction record
-  try {
-    await query(
+    await client.query(
       `INSERT INTO bank_transactions
          (user_id, entity_id, transaction_date, description, amount, type, matched_invoice_id, status, category, categorisation_type)
        VALUES ($1, $2, $3, $4, $5, 'credit', $6, 'matched', 'income', 'manual')`,
@@ -173,13 +174,7 @@ export async function markInvoicePaidManually(
         amount.toFixed(2), invoiceId,
       ]
     );
-  } catch (_txErr) {
-    console.error('[BankTx] Failed to create bank transaction for invoice payment:', _txErr);
-    Sentry.captureException(_txErr, { tags: { gl_operation: 'invoice_bank_tx' } });
-  }
 
-  // Post GL: Dr Bank / Cr Debtors
-  try {
     const glLines = await buildInvoicePaymentLines(entityId, amount, options?.bankAccountId);
     await postJournalEntry({
       entityId,
@@ -190,33 +185,36 @@ export async function markInvoicePaidManually(
       sourceType:  'payment',
       sourceId:    invoiceId,
       lines:       glLines,
-    });
-  } catch (_glErr) {
-    console.error('[GL] Failed to post manual invoice payment entry:', _glErr);
-    Sentry.captureException(_glErr, { tags: { gl_operation: 'invoice_manual_payment' } });
-  }
+    }, client);
 
-  return await query('SELECT * FROM invoices WHERE id=$1', [invoiceId]).then(r => r.rows[0]);
+    const updated = await client.query('SELECT * FROM invoices WHERE id=$1', [invoiceId]);
+    return updated.rows[0];
+  });
 }
 
 export async function voidInvoice(invoiceId: string, userId: string) {
   const inv = await query('SELECT * FROM invoices WHERE id=$1', [invoiceId]);
   if (!inv.rows[0]) throw new Error('Invoice not found');
-  await query("UPDATE invoices SET status='void' WHERE id=$1", [invoiceId]);
 
-  // Reverse the original journal entry for this invoice
-  try {
-    const entry = await query(
-      "SELECT id FROM journal_entries WHERE source_type='invoice' AND source_id=$1 AND is_locked=FALSE ORDER BY created_at ASC LIMIT 1",
+  return withTransaction(async (client) => {
+    await client.query(`UPDATE invoices SET status='void' WHERE id=$1`, [invoiceId]);
+
+    // Find and reverse the original GL entry (no is_locked filter — reversal creates a new entry)
+    const entry = await client.query(
+      `SELECT id FROM journal_entries
+       WHERE source_type='invoice' AND source_id=$1
+       ORDER BY created_at ASC LIMIT 1`,
       [invoiceId]
     );
     if (entry.rows[0]) {
-      await reverseJournalEntry(entry.rows[0].id, userId, new Date().toISOString().split('T')[0]);
+      await reverseJournalEntry(
+        entry.rows[0].id,
+        userId,
+        new Date().toISOString().split('T')[0],
+        client
+      );
     }
-  } catch (_glErr) {
-    console.error('[GL] Failed to reverse voided invoice entry:', _glErr);
-    Sentry.captureException(_glErr, { tags: { gl_operation: 'invoice_void_reversal' } });
-  }
+  });
 }
 
 export async function getDashboardStats(userId: string, entityId?: string) {
