@@ -1,3 +1,42 @@
+# PLATFORM CONTEXT (INHERITED FROM MONOREPO)
+
+This app is part of the Relentify monorepo.
+
+You MUST follow all platform-level rules defined in the monorepo claude.md, especially:
+
+- All UI must come from @relentify/ui (no local UI components)
+- No hardcoded colours or styling outside theme tokens
+- Shared auth, database, and architecture must be respected
+- Apps must feel like a single unified product
+
+If there is any conflict between this file and the monorepo claude.md:
+→ The monorepo claude.md takes precedence
+
+---
+
+## PLATFORM THINKING REQUIREMENT
+
+When implementing features in this app, always consider:
+
+- Could this logic be reused by other apps (CRM, inventory, etc.)?
+- Should this live in a shared package instead of this app?
+- Does this break consistency across the platform?
+
+Avoid app-specific hacks that limit reuse.
+
+---
+
+## SCOPE
+
+This file contains:
+- App-specific architecture
+- Accounting domain rules
+- Feature roadmap and implementation status
+
+It does NOT override platform-wide standards.
+
+---
+
 # 22accounting
 
 The main Relentify SaaS app. Accounting software for UK small businesses.
@@ -309,9 +348,9 @@ Plan: `docs/superpowers/plans/2026-03-28-accounting-engine.md` (17 tasks)
 | 5 | Audit service — workspaceEntityId param | 🔴 Pending |
 | 6 | Invoice service — atomic createInvoice + recordPayment | 🔴 Pending |
 | 7 | Bill service — atomic createBill + recordBillPayment | 🔴 Pending |
-| 8 | Credit note, expense, approval services — atomic | 🔴 Pending |
-| 9 | Quote, PO, opening balance, intercompany — atomic | 🔴 Pending |
-| 10 | VAT engine service — explicit UK rules | 🔴 Pending |
+| 8 | Credit note, expense, approval services — atomic | ✅ Done |
+| 9 | Quote, PO, opening balance, intercompany — atomic | ✅ Done |
+| 10 | VAT engine service — explicit UK rules | ✅ Done |
 | 11 | Cron monitoring — `cron_runs` table, Telegram alert | 🔴 Pending |
 | 12 | Team roles — admin/accountant/staff, GL permission checks | 🔴 Pending |
 | 13 | Accrual journals — draft mode, balance warning, auto-reversal cron | 🔴 Pending |
@@ -338,6 +377,39 @@ Plan: `docs/superpowers/plans/2026-03-28-accounting-engine.md` (17 tasks)
 
 ---
 
+## All Remaining Work — Master Summary
+
+> To work on any item: read the plan file listed, then implement task by task using subagent-driven development. One task at a time.
+
+| # | Workstream | Tasks remaining | Plan file | Status |
+|---|------------|----------------|-----------|--------|
+| 1 | **Accounting Engine** | 13 of 17 (tasks 5–17) | `docs/superpowers/plans/2026-03-28-accounting-engine.md` | 🔄 In progress |
+| 2 | **UI Animations** | 11 of 11 | `docs/superpowers/plans/2026-03-28-ui-animations.md` | 🔴 Not started |
+| 3 | **Help System** | 15 of 15 | `docs/superpowers/plans/2026-03-28-help-system.md` | 🔴 Not started |
+| 4 | **Migration Tool** | 17 of 17 | `docs/superpowers/plans/2026-03-28-migration-tool.md` | 🔴 Not started |
+| 5 | **Recording System** | 8 of 8 | `docs/superpowers/plans/2026-03-28-recording-system.md` | 🔴 Not started |
+| 6 | **Developer API** | 15 of 15 | `docs/superpowers/plans/2026-03-28-developer-api.md` | 🔴 Not started |
+
+### Accounting Engine — remaining tasks (next up: Task 5)
+
+| # | Task | Status |
+|---|------|--------|
+| 5 | Audit service — add `workspaceEntityId` 7th param | ✅ Done |
+| 6 | Invoice service — atomic `createInvoice` + `recordPayment` + `voidInvoice` | ✅ Done |
+| 7 | Bill service — atomic `createBill` + `recordBillPayment` | ✅ Done |
+| 8 | Credit note, expense, approval services — atomic | ✅ Done |
+| 9 | Quote, PO, opening balance, intercompany — atomic | ✅ Done |
+| 10 | VAT engine service — explicit UK rules | ✅ Done |
+| 11 | Cron monitoring — `cron_runs` table, Telegram alert on failure | ✅ Done |
+| 12 | Team roles — `getMemberRole`, `requireGLRole` permission checks | 🔴 |
+| 13 | Accrual journals — draft mode, balance warning, auto-reversal cron | 🔴 |
+| 14 | Prepayment tracking — Dr Prepayments 1300, monthly release cron | 🔴 |
+| 15 | GL integrity diagnostic in health report | 🔴 |
+| 16 | Journal UI — Reverse button, Draft badge + Post action | 🔴 |
+| 17 | Build & deploy | 🔴 |
+
+---
+
 ## All Feature Plans & Specs
 
 **Specs** (design docs): `docs/superpowers/specs/`
@@ -351,6 +423,222 @@ Plan: `docs/superpowers/plans/2026-03-28-accounting-engine.md` (17 tasks)
 | Migration Tool (Xero/QB import) | `2026-03-26-migration-tool-design.md` | `2026-03-28-migration-tool.md` | 🔴 Not started |
 | Recording System (screen capture) | `2026-03-26-recording-system-design.md` | `2026-03-28-recording-system.md` | 🔴 Not started |
 | Developer API + Webhooks | `2026-03-26-developer-api-design.md` | `2026-03-28-developer-api.md` | 🔴 Not started |
+
+---
+
+## Developer API + Webhooks Workstream
+
+**Plan:** `docs/superpowers/plans/2026-03-28-developer-api.md` — **15 tasks, all remaining**
+**Spec:** `docs/superpowers/specs/2026-03-26-developer-api-design.md`
+**To implement:** Read the plan file and work through tasks 1–15 using subagent-driven development.
+
+Opens 22accounting to external callers via an authenticated REST API and webhook delivery system.
+
+### What it builds
+
+- **API key auth layer:** Bearer token → SHA-256 hash → `api_keys` table lookup. No JWT/cookie required for external callers. Key format: `rly_` + 64 hex chars (32 random bytes). First 8 chars stored as `key_prefix` for display.
+- **Versioned public API:** `/api/v1/` route surface wraps existing service logic. Routes rewrite `/api/v1/*` → `/api/*` internally; handlers read `x-api-entity-id`, `x-api-user-id`, `x-api-scopes` headers set by middleware.
+- **Scoped access:** Each key has a scopes array (e.g. `invoices:read`, `invoices:write`). IP allowlist optional per key.
+- **Sandbox/test mode:** Keys with `is_test_mode=TRUE` run full validation but skip GL/DB writes; response includes `"test": true`.
+- **Tier-based rate limiting:** In-memory sliding window per API key, limits vary by subscription tier.
+- **Webhook delivery:** `dispatchWebhookEvent(entityId, 'invoice.paid', payload)` inserts `webhook_deliveries` rows and fires async delivery. Cron at `/api/cron/webhooks` retries with exponential backoff. Dead-lettered after 5 failures; endpoint deactivated + email alert sent.
+- **Settings UI:** API Keys panel (list/create/revoke/rotate) + Webhooks panel (endpoints + event subscriptions) added to `/dashboard/settings`.
+
+### New DB tables (migration 026_developer_api.sql)
+
+| Table | Purpose |
+|-------|---------|
+| `api_keys` | `key_hash` (SHA-256), `key_prefix`, `entity_id`, `user_id`, `scopes[]`, `ip_allowlist[]`, `is_test_mode`, `revoked_at`, `rotated_key_id` |
+| `webhook_endpoints` | `url`, `entity_id`, `events[]`, `signing_secret`, `is_active` |
+| `webhook_deliveries` | `endpoint_id`, `event`, `payload`, `status`, `retry_count`, `next_retry_at`, `dead_lettered_at` |
+| `api_requests` | Async-logged per-request audit: `key_id`, `path`, `method`, `status_code`, `duration_ms` |
+
+### New files
+
+| File | Purpose |
+|------|---------|
+| `src/lib/api-key.service.ts` | `createApiKey`, `validateApiKey`, `revokeKey`, `rotateKey` |
+| `src/lib/webhook.service.ts` | `dispatchWebhookEvent`, `processDelivery`, `signPayload` (HMAC-SHA256) |
+| `app/api/v1/invoices/route.ts` | Public GET invoices, POST create invoice |
+| `app/api/v1/bills/route.ts` | Public GET bills, POST create bill |
+| `app/api/v1/customers/route.ts` | Public CRUD customers |
+| `app/api/cron/webhooks/route.ts` | Webhook retry cron (every minute) |
+
+### Key technical decisions
+
+- SHA-256 hash storage: raw token never stored, only the hash — same pattern as HMRC tokens
+- Webhook HMAC: `Relentify-Signature: sha256=<hex>` header, signed with per-endpoint secret
+- Delivery headers: `Relentify-Delivery-Id`, `Relentify-Retry-Count`, `Relentify-Event`
+- Dead-letter: after 5 failures status=`dead_lettered`, endpoint `is_active=FALSE`, email to owner
+- Rate limits do NOT use the same in-process IP throttle as `middleware.ts` — separate per-key counter
+
+---
+
+## Migration Tool Workstream
+
+**Plan:** `docs/superpowers/plans/2026-03-28-migration-tool.md` — **17 tasks, all remaining**
+**Spec:** `docs/superpowers/specs/2026-03-26-migration-tool-design.md`
+**To implement:** Read the plan file and work through tasks 1–17 using subagent-driven development.
+
+Allows businesses migrating from Xero or QuickBooks to import financial history via a 6-step wizard.
+
+### What it builds
+
+- **6-step wizard** at `/dashboard/migrate`: Source select → File upload → Account mapping → Trial balance review → Confirm → Progress
+- **Client-side parsing:** Papa Parse in-browser. Files >5MB offloaded to a Web Worker (`src/lib/migration/worker.ts`). Files >20MB offered server-side parse via R2 presigned URL.
+- **Normalised interface:** `MigrationSource` interface — both `XeroParser` and `QuickBooksParser` return the same `MigrationData` shape.
+- **Levenshtein fuzzy account matching** with 3 confidence tiers: HIGH (auto-accepted), MEDIUM (review suggested), LOW (manual required). Matching logic in `src/lib/migration/matcher.ts`.
+- **`skipGLPosting` flag** added to `createInvoice` and `createBill`: historical transactions import without creating duplicate GL entries. Trial balance figures imported via `importOpeningBalances()` as the single GL truth at cutoff date.
+- **Transactional import:** All DB writes wrapped in `withTransaction()`. Partial success supported via batch state in `migration_runs.batches` (completed batches skipped on resume).
+- **Tier gate:** `small_business` and above. New feature key `platform_migration` added to `tiers.ts`.
+
+### New DB tables (migration 026_migration_runs.sql)
+
+| Table | Purpose |
+|-------|---------|
+| `migration_runs` | `entity_id`, `user_id`, `source` (xero/quickbooks), `cutoff_date`, `files_uploaded` (JSONB), `auto_mappings` (JSONB), `validation_warnings` (JSONB), `status`, `batches` (JSONB progress per batch), `completed_at` |
+
+### New files
+
+| File | Purpose |
+|------|---------|
+| `src/lib/migration/types.ts` | `MigrationSource` interface, `MigrationData`, confidence enum |
+| `src/lib/migration/xero.parser.ts` | Xero CSV parser |
+| `src/lib/migration/quickbooks.parser.ts` | QuickBooks IIF/CSV parser |
+| `src/lib/migration/matcher.ts` | Levenshtein fuzzy account matcher |
+| `src/lib/migration/validation.ts` | Trial balance checker |
+| `src/lib/migration/import.service.ts` | `MigrationData` → Relentify records |
+| `src/lib/migration/worker.ts` | Web Worker entry point for large files |
+| `app/api/migration/import/route.ts` | SSE streaming progress endpoint |
+| `app/dashboard/migrate/page.tsx` | 6-step wizard |
+
+### Key technical decisions
+
+- `skipGLPosting: true` is the critical flag — without it, importing 3 years of invoices would create 3 years of duplicate GL entries on top of the imported opening balance
+- SSE (Server-Sent Events) for real-time import progress — not WebSocket
+- Migration 026 may conflict with recording system's 026 migration — one of these must be renumbered to 027 when both are implemented
+
+---
+
+## UI Animations Workstream (Framer Motion)
+
+**Plan:** `docs/superpowers/plans/2026-03-28-ui-animations.md` — **11 tasks, all remaining**
+**To implement:** Read the plan file and work through tasks 1–11 using subagent-driven development.
+
+Replaces all CSS-only transitions in `@relentify/ui` with a physically-natural Framer Motion spring system.
+
+### What it builds
+
+- **`packages/ui/src/animations.ts`** — single source of truth for all spring presets and motion variants. Components must import from here; no hardcoded animation values anywhere.
+- **Spring presets** (4 named presets):
+  - `spring.snappy` — buttons, toggles, dropdowns (stiffness 500, damping 34, mass 0.7)
+  - `spring.smooth` — modals, sheets, panels (stiffness 360, damping 32, mass 1.0)
+  - `spring.gentle` — page transitions, overlays (stiffness 260, damping 28, mass 1.1)
+  - `spring.bounce` — success states, checkbox tick (stiffness 420, damping 22, mass 0.8)
+- **`motion()` wrapping Radix primitives:** Dialog, AlertDialog, Sheet, DropdownMenu, Popover — spring entrance, instant CSS exit (no remount flash).
+- **Full Framer Motion** on: Button (whileTap y:1 press depth, opacity layering), Toast (AnimatePresence + slideUp), Switch (spring thumb x), Checkbox (bounce scale on tick), Card/StatsCard (whileHover y:-2 lift), ThemeToggleButton (icon rotation).
+- **`MotionProvider`** wrapper — required in dashboard layout to enable AnimatePresence for page transitions.
+- **Page transitions** added to `apps/22accounting/app/dashboard/layout.tsx`.
+
+### Scope: `packages/ui` only
+
+All changes are in `packages/ui` (and 22accounting layout). No other app needs changes — the animation system is inherited by all apps that use `@relentify/ui`.
+
+### Key technical decisions
+
+- Press depth: `y: 1` on whileTap (physical push feel) — not just scale
+- Radix overlays use CSS `display:none` on exit; we cannot use AnimatePresence for exit animation on Radix-controlled components. Solution: instant CSS exit, spring entrance only.
+- `layoutId` on TabsNav active indicator enables spring-animated indicator sliding between tabs without remount.
+- `MotionProvider` must be a `"use client"` component at layout level — required for AnimatePresence to work across RSC boundaries.
+
+---
+
+## Help System Workstream
+
+**Plan:** `docs/superpowers/plans/2026-03-28-help-system.md` — **15 tasks, all remaining**
+**To implement:** Read the plan file and work through tasks 1–15 using subagent-driven development.
+
+New standalone help site at `help.relentify.com` with contextual in-app help integrated into 22accounting.
+
+### What it builds
+
+- **New monorepo app `apps/26help`** — Next.js 15 with `output: 'export'` (fully static). Deployed as Docker container on port 3026.
+- **MDX content source:** 20 help articles in `apps/26help/content/accounting/*.mdx`. Each article has Zod-validated frontmatter (`title`, `description`, `appRoute`, `category`, `order`).
+- **Pagefind search:** `npx pagefind --site out` runs post-build to index the static export. Search UI at top of help home page via `HelpSearch.tsx`.
+- **Playwright video guides:** Recording scripts in `apps/26help/playwright/scripts/*.ts` capture Playwright automation of 22accounting UI, compressed via ffmpeg. `VideoGuide.tsx` lazy-loads them.
+- **In-app integration in 22accounting:**
+  - `HelpButton` — `?` icon in top nav, links to help article for current page (resolved via `helpUrlMap`)
+  - `HelpTooltip` — `ⓘ` inline tooltip on form fields, text sourced from `apps/26help/content/fields.ts`
+  - `helpUrlMap` — auto-generated from MDX `appRoute` frontmatter; maps `/dashboard/invoices` → `help.relentify.com/accounting/create-invoice`
+
+### New files
+
+| File | Purpose |
+|------|---------|
+| `apps/26help/` | Entire new app (package.json, tsconfig, next.config.js, Dockerfile, docker-compose.yml) |
+| `apps/26help/src/lib/content.ts` | Zod schema + MDX loader |
+| `apps/26help/content/accounting/*.mdx` | 20 help articles |
+| `apps/26help/content/fields.ts` | Field key → tooltip text |
+| `apps/22accounting/app/components/HelpButton.tsx` | `?` nav button |
+| `apps/22accounting/app/components/HelpTooltip.tsx` | Inline field tooltip |
+| `apps/22accounting/app/lib/help-urls.ts` | `helpUrlMap` (auto-generated from MDX frontmatter) |
+
+### Key technical decisions
+
+- Static export (`output: 'export'`) means no server-side rendering. Pagefind runs on the built `out/` directory. The help site is pure HTML/CSS/JS served by `serve` in Docker.
+- `helpUrlMap` is generated at build time from MDX frontmatter — no manual maintenance of URL-to-article mapping
+- Field tooltip text lives in `fields.ts` in `apps/26help/content/` (single source for both help site context and 22accounting tooltips)
+- Caddy block needed: `help.relentify.com → 26help:3026`
+- Container: `26help` on port 3026, `infra_default` network
+
+---
+
+## Recording System Workstream
+
+**Plan:** `docs/superpowers/plans/2026-03-28-recording-system.md` — **8 tasks, all remaining**
+**Spec:** `docs/superpowers/specs/2026-03-26-recording-system-design.md`
+**To implement:** Read the plan file and work through tasks 1–8 using subagent-driven development.
+
+A "Report Issue" screen recording system built into the 22accounting dashboard.
+
+### What it builds
+
+- **`RecordingManager` interface** — platform-agnostic API for start/stop/discard. `WebRecordingManager` implements it using `getDisplayMedia()` + `MediaRecorder`. Future: `NativeRecordingManager` for React Native.
+- **`RecordingContext`** — React context in `app/dashboard/layout.tsx` that holds state machine: idle → recording → reviewing → uploading.
+- **4 UI components:** `RecordingButton` (camera icon in top nav, browser support check, audio toggle), `RecordingIndicator` (fixed floating pill with live timer + stop button), `RecordingPanel` (slide-up panel with description field, progress bar, Discard/Send), `RecordingContext.tsx`.
+- **Chunked upload:** 5MB chunks, each POSTed to `/api/recordings/upload`. Progress percentage exposed via context for the progress bar.
+- **Storage:** Uses existing `getStorageProvider()` factory — R2 or Postgres bytea, same as attachments.
+- **Audit log:** `recording_uploads` table via `recording.service.ts` — mirrors `attachment.service.ts` pattern.
+- **Support email:** Resend email to `SUPPORT_EMAIL` env var with recording link + description, via existing `src/lib/email.ts` pattern.
+- **PostHog analytics:** events `recording_started`, `recording_sent`, `recording_discarded` — via existing `Analytics.tsx` pattern.
+- **beforeunload warning:** Prevents accidental tab close during active recording.
+
+### New DB tables (migration 026_recording_uploads.sql)
+
+| Table | Purpose |
+|-------|---------|
+| `recording_uploads` | `id`, `user_id`, `entity_id`, `filename`, `size_bytes`, `mime_type`, `storage_key`, `description`, `created_at` |
+
+### New files
+
+| File | Purpose |
+|------|---------|
+| `src/lib/recording/types.ts` | `RecordingManager` interface + shared types |
+| `src/lib/recording/web.ts` | `WebRecordingManager` (getDisplayMedia + MediaRecorder) |
+| `src/lib/recording/index.ts` | `getRecordingManager()` factory |
+| `src/lib/recording.service.ts` | `logRecordingUpload`, `uploadRecordingToStorage`, `sendSupportEmail` |
+| `app/api/recordings/upload/route.ts` | Chunked upload handler |
+| `app/components/recording/RecordingContext.tsx` | State machine + provider |
+| `app/components/recording/RecordingButton.tsx` | Nav button |
+| `app/components/recording/RecordingIndicator.tsx` | Floating pill timer |
+| `app/components/recording/RecordingPanel.tsx` | Send/discard panel |
+
+### Key technical decisions
+
+- Chunked upload: 5MB per chunk, not streaming — simpler retry logic
+- `RecordingManager` interface designed for future React Native parity — don't call `getDisplayMedia` directly anywhere except `WebRecordingManager`
+- New env var: `SUPPORT_EMAIL` — add to `.env.example`
+- Migration 026 note: both migration tool and recording system use 026 — one must be renumbered to 027 when both are implemented in sequence
 
 ---
 

@@ -151,9 +151,44 @@ Migrate DB: `docker exec 23inventory npx prisma migrate deploy --schema prisma/s
 
 ## Launch readiness assessment
 
-**Current state: ✅ Launched (March 2026) — monorepo rebuild complete**
+**Current state: ✅ Ready to launch (2026-03-25) — all pre-launch checks passed**
 
-Rebuilt from standalone app to monorepo pattern (March 2026):
+### Pre-launch checks (2026-03-25)
+
+| Check | Result | Notes |
+|-------|--------|-------|
+| Next.js version | ✅ 15.5.14 | Above vulnerable 15.2.3 (CVE GHSA-9qr9-h5gf-34mp) |
+| `pnpm audit` | ✅ Pass | 1 moderate `yaml` vuln in dev/build dep — no production exposure |
+| Health endpoint `GET /api/health` | ✅ 200 | |
+| Dashboard `GET /` | ✅ 200 | Inventory list + stats render |
+| New inventory `GET /inventory/new` | ✅ 200 | Create form renders |
+| Inventory detail `GET /inventory/[id]` | ✅ 200 | Photos, edit/delete buttons present |
+| Edit page `GET /inventory/[id]/edit` | ✅ 200 | PATCH form renders |
+| Report page `GET /report/[id]` | ✅ 200 | **Was 500 — fixed (see below)** |
+| Inventory CRUD (create/list/get/update/delete) | ✅ Pass | MCP test suite |
+| Photo upload (multipart, 3 rooms) | ✅ Pass | Living Room/Good, Kitchen/Fair, Bedroom/Poor |
+| Photo delete | ✅ Pass | |
+| Tenant confirm flow (GET → POST → 409 duplicate) | ✅ Pass | Public endpoint, no auth |
+| Cascade delete (photos removed with inventory) | ✅ Pass | |
+| MCP test suite total | ✅ **16/16 passed** | `/opt/infra/mcp/23inventory-mcp/run_tests.py` |
+
+### Bug fixed: report page 500 (2026-03-25)
+
+**Root cause:** `app/report/[id]/page.tsx` is a Server Component. It was rendering:
+```tsx
+<Button onClick={() => window.print()}>🖨 Print / Save PDF</Button>
+```
+`Button` from `@relentify/ui` is a Client Component. Next.js 15 rejects passing event handlers
+(`onClick`) across the Server→Client boundary at render time → HTTP 500.
+
+**Fix:** Extracted the button into a dedicated `'use client'` component:
+- **New file:** `src/components/PrintButton.tsx` — wraps the button with `'use client'` and calls `window.print()`
+- **Edited:** `app/report/[id]/page.tsx` — removed `Button` import, replaced with `<PrintButton />`
+- **Rebuilt:** container from scratch, `16/16` tests confirmed passing
+
+### Monorepo rebuild history (March 2026)
+
+Rebuilt from standalone app to monorepo pattern:
 - Dockerfile: turbo prune + pnpm (from monorepo root context)
 - next.config.js: `output: 'standalone'` + `outputFileTracingRoot` pointing to monorepo root
 - postcss.config.js: `@tailwindcss/postcss` for Tailwind v4 utility class generation
@@ -169,9 +204,8 @@ The core workflow is fully working end-to-end. Real agents can:
 4. Email the tenant a confirmation link directly from the detail page
 5. Generate and print a PDF report
 
-**What's holding back a full launch:**
-1. ~~**Inventory editing**~~ — ✅ done (edit page + PATCH API wired up)
-2. ~~**Report page security**~~ — ✅ fixed (2026-03-10): added `getAuthUser()` + `userId` scope to `/report/[id]` — previously any authenticated user could view any inventory by UUID
-3. **Mobile layout** (medium) — agents are often on-site with a phone; a hamburger sidebar would help a lot
+### Remaining known gaps (deferred post-launch)
 
-Everything else is either cosmetic or a future-scale concern.
+- **Mobile layout** — no hamburger menu; agents on phones will find it awkward (tablet landscape is fine)
+- **Dark mode gaps** — some hardcoded `text-gray-`/`bg-gray-` classes remain on detail + new form pages
+- **Base64 image storage** — will need S3 migration at scale

@@ -30,13 +30,29 @@ export function TaskDashboard({ initialTasks, user, listId, workspaceId }: any) 
   );
 
   const handleCreateTask = async (data: any) => {
-    const newTask = { ...data, id: Math.random().toString(), created_at: new Date() };
+    const res = await fetch('/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const newTask = await res.json();
     setTasks([newTask, ...tasks]);
     setShowForm(false);
   };
 
   const handleUpdateTask = async (id: string, data: any) => {
+    await fetch(`/api/tasks/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
     setTasks(tasks.map((t: any) => t.id === id ? { ...t, ...data } : t));
+    setEditingTask(null);
+  };
+
+  const handleDeleteTask = async (id: string) => {
+    await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+    setTasks(tasks.filter((t: any) => t.id !== id));
     setEditingTask(null);
   };
 
@@ -111,6 +127,7 @@ export function TaskDashboard({ initialTasks, user, listId, workspaceId }: any) 
           task={editingTask} 
           onClose={() => { setShowForm(false); setEditingTask(null); }}
           onSubmit={editingTask ? (d: any) => handleUpdateTask(editingTask.id, d) : handleCreateTask}
+          onDelete={handleDeleteTask}
           workspaceId={workspaceId}
           listId={listId}
         />

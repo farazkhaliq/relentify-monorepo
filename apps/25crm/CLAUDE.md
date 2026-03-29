@@ -29,7 +29,124 @@ See `21auth` and `22accounting` for the correct PostgreSQL + JWT auth pattern. D
 
 ## Status
 
-As of 2026-03-21: Firebase is still present in the codebase. Removal has not yet been done — it is a pending task for the next dedicated session.
+As of 2026-03-29: Firebase still present. Migration plan below is the authorised approach — execute in one dedicated session.
+
+---
+
+## Migration Plan: Firebase → PostgreSQL
+
+### Context
+
+- The vulnerability audit flagged 4 HIGH CVEs in `node-forge@1.3.3`, pulled in by `firebase-admin`. The correct fix is not a pnpm override — it is full Firebase removal.
+- PostgreSQL tables (`crm_contacts`, `crm_properties`, `crm_tenancies`, `crm_tenancy_tenants`, `crm_maintenance_requests`, `crm_tasks`, `crm_notifications`) already exist.
+- API routes under `/api/` already read from PostgreSQL via `crm.service.ts`.
+- `@relentify/auth` JWT auth is already wired for staff (server-side).
+- The only thing still using Firebase is: real-time client subscriptions (`useDoc`/`useCollection`), portal auth (email+password login/signup), and audit logging.
+
+### Step 1 — Remove packages and config files
+
+```bash
+pnpm remove firebase firebase-admin --filter 25crm
+```
+
+Delete these files:
+- `src/firebase/` (entire directory — 11 files)
+- `src/components/FirebaseErrorListener.tsx`
+- `firestore.rules`
+- `storage.rules`
+- `apphosting.yaml`
+
+### Step 2 — Replace real-time subscriptions with polling
+
+Every page that uses `useDoc()` or `useCollection()` must switch to standard `fetch` + `useEffect` or SWR. The existing API routes already serve the data. Pattern:
+
+```tsx
+// Before (Firebase)
+const { data } = useCollection<Contact>(`organizations/${orgId}/contacts`)
+
+// After (API polling — 30s interval is fine for CRM data)
+const [contacts, setContacts] = useState([])
+useEffect(() => {
+  const load = () => fetch('/api/contacts').then(r => r.json()).then(setContacts)
+  load()
+  const id = setInterval(load, 30_000)
+  return () => clearInterval(id)
+}, [])
+```
+
+If true real-time push is needed for a specific view later, use Server-Sent Events (SSE) from a `/api/stream/[resource]` route — but do not add this now unless a page requires it. Polling is sufficient for MVP.
+
+### Step 3 — Replace portal auth (tenant/landlord login)
+
+The portal currently uses Firebase `signInWithEmailAndPassword` / `createUserWithEmailAndPassword`.
+
+Replace with a dedicated portal auth flow backed by PostgreSQL:
+
+1. Add a `portal_users` table (or reuse `crm_contacts` with a `portal_password_hash` + `portal_role` column — check which fits better at the time).
+2. Create API routes:
+   - `POST /api/portal/login` — bcrypt verify, return JWT via `@relentify/auth`
+   - `POST /api/portal/signup` — create portal user record, link to `contactId`, return JWT
+3. Replace `src/portal/login` and `src/portal/signup` pages to POST to those routes.
+4. Portal middleware: validate JWT cookie using `@relentify/auth` (same pattern as staff auth in `src/lib/auth.ts`).
+
+See `21auth` for the canonical login/signup page pattern.
+
+### Step 4 — Replace audit logging
+
+`src/firebase/audit.ts` writes to Firestore. Replace with a direct PostgreSQL insert.
+
+Add a `crm_audit_logs` table if it does not already exist:
+```sql
+CREATE TABLE crm_audit_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID NOT NULL,
+  user_id UUID NOT NULL,
+  action TEXT NOT NULL,          -- 'Created' | 'Updated' | 'Deleted'
+  entity_type TEXT NOT NULL,
+  entity_id TEXT NOT NULL,
+  entity_name TEXT,
+  changes JSONB,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+Replace `logAuditEvent()` calls with a direct `pool.query(INSERT ...)` call. Keep the fire-and-forget pattern (no await, catch silently).
+
+### Step 5 — Remove FirebaseClientProvider from layout
+
+In `src/app/layout.tsx` (or wherever `<FirebaseClientProvider>` wraps the tree), remove it and the import. The `<SharedAuthProvider>` and `<ThemeProvider>` stay.
+
+### Step 6 — Run pnpm install and verify
+
+```bash
+cd /opt/relentify-monorepo
+pnpm install
+pnpm audit   # must return: No known vulnerabilities found
+```
+
+Then rebuild and redeploy:
+```bash
+cd /opt/25crm
+docker compose down
+docker compose build --no-cache
+docker compose up -d
+docker logs 25crm --tail 50
+```
+
+### Files to touch (summary)
+
+| Action | Target |
+|--------|--------|
+| Delete | `src/firebase/` (all 11 files) |
+| Delete | `src/components/FirebaseErrorListener.tsx` |
+| Delete | `firestore.rules`, `storage.rules`, `apphosting.yaml` |
+| Edit | `package.json` — remove `firebase`, `firebase-admin` |
+| Edit | `src/app/layout.tsx` — remove `FirebaseClientProvider` |
+| Edit | 30+ pages/components — replace `useDoc`/`useCollection` with fetch |
+| Create | `src/lib/audit.ts` — PostgreSQL-backed audit logger |
+| Create | `src/app/api/portal/login/route.ts` + `signup/route.ts` |
+| Edit | `src/app/portal/login/page.tsx` + `signup/page.tsx` — use new API |
+| Edit | Portal middleware — switch to `@relentify/auth` JWT |
 
 ---
 

@@ -11,16 +11,19 @@
     "db:studio": "pnpm --filter @relentify/database db:studio"
   },
   "devDependencies": {
-    "turbo": "latest",
-    "prettier": "latest",
-    "typescript": "latest",
-    "eslint": "latest"
+    "eslint": "^10.0.3",
+    "prettier": "^3.8.1",
+    "turbo": "^2.8.17",
+    "typescript": "^5.9.3"
   },
   "packageManager": "pnpm@9.0.0",
   "pnpm": {
     "overrides": {
       "fast-xml-parser": ">=5.5.7",
-      "@tootallnate/once": ">=3.0.1"
+      "@tootallnate/once": ">=3.0.1",
+      "yaml": ">=2.8.3",
+      "picomatch@>=4.0.0 <4.0.4": ">=4.0.4",
+      "brace-expansion@<5.0.5": ">=5.0.5"
     }
   }
 }

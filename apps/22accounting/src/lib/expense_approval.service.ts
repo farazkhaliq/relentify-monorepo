@@ -1,5 +1,4 @@
-import * as Sentry from '@sentry/nextjs';
-import { query } from './db';
+import { query, withTransaction } from './db';
 import { postJournalEntry, buildExpenseLines, buildMileageLines } from './general_ledger.service';
 import { getAccountByCode } from './chart_of_accounts.service';
 
@@ -52,44 +51,41 @@ export async function approveExpense(
   approverId: string,
   entityId: string
 ): Promise<boolean> {
-  const r = await query(
-    `UPDATE expenses SET
-       status = 'approved',
-       approved_by_id = $2,
-       approved_at = NOW()
-     WHERE id = $1 AND status = 'pending_approval'
-     RETURNING *`,
-    [expenseId, approverId]
-  );
-  const expense = r.rows[0];
-  if (!expense) return false;
+  return withTransaction(async (client) => {
+    const r = await client.query(
+      `UPDATE expenses SET
+         status = 'approved',
+         approved_by_id = $2,
+         approved_at = NOW()
+       WHERE id = $1 AND status = 'pending_approval'
+       RETURNING *`,
+      [expenseId, approverId]
+    );
+    const expense = r.rows[0];
+    if (!expense) return false;
 
-  // Post GL on approval (deferred from creation)
-  try {
+    // Post GL on approval — deferred from creation when approval flow is active
     let expenseAccountId = expense.coa_account_id;
     if (!expenseAccountId) {
       const code = EXPENSE_CATEGORY_TO_CODE[expense.category || ''] || 7900;
       const acct = await getAccountByCode(entityId, code);
       expenseAccountId = acct?.id;
     }
-    if (expenseAccountId) {
-      const glLines = await buildExpenseLines(entityId, parseFloat(expense.gross_amount), expenseAccountId);
-      await postJournalEntry({
-        entityId,
-        userId: approverId,
-        date: expense.date,
-        description: `Expense approved: ${expense.description}`,
-        sourceType: 'expense',
-        sourceId: expenseId,
-        lines: glLines,
-      });
-    }
-  } catch (err) {
-    console.error('[GL] Failed to post approved expense entry:', err);
-    Sentry.captureException(err, { tags: { gl_operation: 'expense_approval' } });
-  }
+    if (!expenseAccountId) throw new Error('Could not resolve expense account for GL entry');
 
-  return true;
+    const glLines = await buildExpenseLines(entityId, parseFloat(expense.gross_amount), expenseAccountId);
+    await postJournalEntry({
+      entityId,
+      userId:      approverId,
+      date:        expense.date,
+      description: `Expense approved: ${expense.description}`,
+      sourceType:  'expense',
+      sourceId:    expenseId,
+      lines:       glLines,
+    }, client);
+
+    return true;
+  });
 }
 
 export async function rejectExpense(
@@ -115,36 +111,33 @@ export async function approveMileage(
   approverId: string,
   entityId: string
 ): Promise<boolean> {
-  const r = await query(
-    `UPDATE mileage_claims SET
-       status = 'approved',
-       approved_by_id = $2,
-       approved_at = NOW()
-     WHERE id = $1 AND status = 'pending_approval'
-     RETURNING *`,
-    [claimId, approverId]
-  );
-  const claim = r.rows[0];
-  if (!claim) return false;
+  return withTransaction(async (client) => {
+    const r = await client.query(
+      `UPDATE mileage_claims SET
+         status = 'approved',
+         approved_by_id = $2,
+         approved_at = NOW()
+       WHERE id = $1 AND status = 'pending_approval'
+       RETURNING *`,
+      [claimId, approverId]
+    );
+    const claim = r.rows[0];
+    if (!claim) return false;
 
-  // Post GL on approval
-  try {
+    // Post GL on approval — deferred from creation
     const glLines = await buildMileageLines(entityId, parseFloat(claim.amount), claim.coa_account_id);
     await postJournalEntry({
       entityId,
-      userId: approverId,
-      date: claim.date,
+      userId:      approverId,
+      date:        claim.date,
       description: `Mileage approved: ${claim.description}`,
-      sourceType: 'mileage',
-      sourceId: claimId,
-      lines: glLines,
-    });
-  } catch (err) {
-    console.error('[GL] Failed to post approved mileage entry:', err);
-    Sentry.captureException(err, { tags: { gl_operation: 'mileage_approval' } });
-  }
+      sourceType:  'mileage',
+      sourceId:    claimId,
+      lines:       glLines,
+    }, client);
 
-  return true;
+    return true;
+  });
 }
 
 export async function rejectMileage(

@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { getAuthUser } from '@/lib/auth'
 import { notFound, redirect } from 'next/navigation'
-import { Button, Badge } from '@relentify/ui'
+import PrintButton from '@/components/PrintButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -79,14 +79,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
 
       <div className="topbar">
         <span>Preview — use Print to save as PDF (Ctrl+P / Cmd+P)</span>
-        <Button 
-          variant="secondary" 
-          size="sm" 
-          onClick={() => window.print()}
-          className="rounded-lg h-9 px-4 font-bold"
-        >
-          🖨 Print / Save PDF
-        </Button>
+        <PrintButton />
       </div>
       <div className="header">
         <h1>{inventory.propertyAddress}</h1>

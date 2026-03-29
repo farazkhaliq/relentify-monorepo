@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/src/lib/db';
 import { getApproverForStaff } from '@/src/lib/po_approver_mapping.service';
 import { sendPOApprovalRequestEmail } from '@/src/lib/email';
+import { startCronRun, finishCronRun } from '@/src/lib/cron-monitor.service';
 
 export async function POST(req: NextRequest) {
-  // Verify cron secret
   const secret = req.headers.get('x-cron-secret');
   if (!secret || secret !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const runId = await startCronRun('po-escalation');
   try {
     // Find POs pending approval for over 24h with no escalation yet
     const stalePos = await query(`
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest) {
     `);
 
     if (stalePos.rows.length === 0) {
+      await finishCronRun(runId, 'success', 0);
       return NextResponse.json({ escalated: 0 });
     }
 
@@ -37,7 +39,6 @@ export async function POST(req: NextRequest) {
         const approver = await getApproverForStaff(po.entity_id, po.user_id);
         if (!approver?.approverEmail) continue;
 
-        // Send reminder email
         await sendPOApprovalRequestEmail({
           to: approver.approverEmail,
           approverName: approver.approverName,
@@ -51,7 +52,6 @@ export async function POST(req: NextRequest) {
           rejectUrl: `${appUrl}/api/po/approve-link?token=${po.approval_token}&action=reject`,
         });
 
-        // Mark as escalated
         await query(`UPDATE purchase_orders SET escalated_at = NOW() WHERE id = $1`, [po.id]);
         escalatedCount++;
       } catch (err) {
@@ -59,9 +59,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    await finishCronRun(runId, 'success', escalatedCount);
     return NextResponse.json({ escalated: escalatedCount });
   } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
     console.error('[PO escalation] Error:', e);
+    await finishCronRun(runId, 'failed', 0, msg);
     return NextResponse.json({ error: 'Failed' }, { status: 500 });
   }
 }

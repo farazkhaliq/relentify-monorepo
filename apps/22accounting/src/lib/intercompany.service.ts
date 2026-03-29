@@ -1,4 +1,4 @@
-import pool, { query } from './db';
+import { query, withTransaction } from './db';
 
 export async function createIntercompanyTransaction(
   initiatingEntityId: string,
@@ -6,7 +6,7 @@ export async function createIntercompanyTransaction(
   invoiceId: string,
   userId: string
 ): Promise<{ link: Record<string, unknown>; mirrorBill: Record<string, unknown> } | null> {
-  // Fetch the invoice
+  // Read invoice and validate receiving entity — outside transaction
   const invRes = await query(
     `SELECT * FROM invoices WHERE id = $1 AND entity_id = $2 AND user_id = $3`,
     [invoiceId, initiatingEntityId, userId]
@@ -14,17 +14,13 @@ export async function createIntercompanyTransaction(
   const invoice = invRes.rows[0];
   if (!invoice) return null;
 
-  // Verify receiving entity belongs to same user
   const recvRes = await query(
     `SELECT * FROM entities WHERE id = $1 AND user_id = $2`,
     [receivingEntityId, userId]
   );
   if (!recvRes.rows[0]) return null;
 
-  const client = await pool.connect();
-  try {
-    await client.query('BEGIN');
-
+  return withTransaction(async (client) => {
     // Create mirror bill in the receiving entity
     const billRes = await client.query(
       `INSERT INTO bills (user_id, entity_id, supplier_name, amount, vat_rate, vat_amount, currency, due_date, category, notes, reference)
@@ -53,14 +49,8 @@ export async function createIntercompanyTransaction(
     );
     const link = linkRes.rows[0];
 
-    await client.query('COMMIT');
     return { link, mirrorBill };
-  } catch (e) {
-    await client.query('ROLLBACK');
-    throw e;
-  } finally {
-    client.release();
-  }
+  });
 }
 
 export async function getIntercompanyLinks(entityId: string): Promise<Record<string, unknown>[]> {

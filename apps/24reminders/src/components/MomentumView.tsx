@@ -22,16 +22,33 @@ export function MomentumView({ initialTasks, user }: any) {
 
   const currentTask = tasks[currentIndex];
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
+    if (!currentTask) return;
+    await fetch(`/api/tasks/${currentTask.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'Completed' }),
+    });
     setPoints(prev => prev + 10);
     setStreak(prev => prev + 1);
-    
+
     const newTasks = [...tasks];
     newTasks.splice(currentIndex, 1);
     setTasks(newTasks);
     if (currentIndex >= newTasks.length) {
       setCurrentIndex(Math.max(0, newTasks.length - 1));
     }
+  };
+
+  const handleSnooze = async () => {
+    if (!currentTask) return;
+    const newDueDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    await fetch(`/api/tasks/${currentTask.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ due_date: newDueDate }),
+    });
+    setCurrentIndex((prev) => (prev + 1) % tasks.length);
   };
 
   const handleSkip = () => {
@@ -138,8 +155,9 @@ export function MomentumView({ initialTasks, user }: any) {
           <CheckCircle2 className="h-8 w-8" />
           <span className="text-xs font-black uppercase tracking-widest">Done</span>
         </Button>
-        <Button 
+        <Button
           variant="outline"
+          onClick={handleSnooze}
           className="h-24 flex-col gap-2 bg-[var(--theme-background)] text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] transition-all active:scale-95 rounded-cinematic flex items-center justify-center"
         >
           <Clock className="h-8 w-8" />

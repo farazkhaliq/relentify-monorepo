@@ -1,5 +1,4 @@
-import * as Sentry from '@sentry/nextjs';
-import { query } from './db';
+import { query, withTransaction } from './db';
 import {
   postJournalEntry,
   buildExpenseLines,
@@ -70,51 +69,51 @@ export async function createExpense(userId: string, data: {
   notes?: string;
   skipGL?: boolean; // Set true when approval is required (GL posts on approval instead)
 }) {
-  const r = await query(
-    `INSERT INTO expenses (user_id, date, description, category, coa_account_id, gross_amount, vat_amount, notes)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-    [
-      userId,
-      data.date,
-      data.description,
-      data.category || 'general',
-      data.coaAccountId || null,
-      data.grossAmount,
-      data.vatAmount ?? 0,
-      data.notes || null,
-    ]
-  );
-  const expense = r.rows[0] as Expense;
+  const insertParams = [
+    userId,
+    data.date,
+    data.description,
+    data.category || 'general',
+    data.coaAccountId || null,
+    data.grossAmount,
+    data.vatAmount ?? 0,
+    data.notes || null,
+  ];
+  const insertSql = `INSERT INTO expenses (user_id, date, description, category, coa_account_id, gross_amount, vat_amount, notes)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`;
 
-  // Post GL: Dr Expense / Cr Employee Reimbursements Payable (2110)
-  // Skipped when approval is required (GL posts on approval instead)
+  // When GL posting is required, wrap INSERT + GL in one transaction
   if (data.entityId && !data.skipGL) {
-    try {
+    return withTransaction(async (client) => {
+      const r = await client.query(insertSql, insertParams);
+      const expense = r.rows[0] as Expense;
+
       let expenseAccountId = data.coaAccountId;
       if (!expenseAccountId) {
         const code = EXPENSE_CATEGORY_TO_CODE[data.category || ''] || 7900;
-        const acct = await getAccountByCode(data.entityId, code);
+        const acct = await getAccountByCode(data.entityId!, code);
         expenseAccountId = acct?.id;
       }
-      if (expenseAccountId) {
-        const glLines = await buildExpenseLines(data.entityId, data.grossAmount, expenseAccountId);
-        await postJournalEntry({
-          entityId:    data.entityId,
-          userId,
-          date:        data.date,
-          description: `Expense: ${data.description}`,
-          sourceType:  'expense',
-          sourceId:    expense.id,
-          lines:       glLines,
-        });
-      }
-    } catch (_glErr) {
-      console.error('[GL] Failed to post expense entry:', _glErr);
-      Sentry.captureException(_glErr, { tags: { gl_operation: 'expense_creation' } });
-    }
+      if (!expenseAccountId) throw new Error('Could not resolve expense account for GL entry');
+
+      const glLines = await buildExpenseLines(data.entityId!, data.grossAmount, expenseAccountId);
+      await postJournalEntry({
+        entityId:    data.entityId!,
+        userId,
+        date:        data.date,
+        description: `Expense: ${data.description}`,
+        sourceType:  'expense',
+        sourceId:    expense.id,
+        lines:       glLines,
+      }, client);
+
+      return expense;
+    });
   }
 
-  return expense;
+  // No GL posting (skipGL=true or no entityId) — single INSERT is already atomic
+  const r = await query(insertSql, insertParams);
+  return r.rows[0] as Expense;
 }
 
 export async function markExpenseReimbursed(userId: string, id: string) {
@@ -150,34 +149,35 @@ export async function createMileageClaim(userId: string, data: {
 }) {
   const rate = data.rate ?? 0.45;
   const amount = Math.round(data.miles * rate * 100) / 100;
-  const r = await query(
-    `INSERT INTO mileage_claims (user_id, date, description, from_location, to_location, miles, rate, amount, coa_account_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-    [userId, data.date, data.description, data.fromLocation || null, data.toLocation || null, data.miles, rate, amount, data.coaAccountId || null]
-  );
-  const claim = r.rows[0] as MileageClaim;
 
-  // Post GL: Dr Motor Expenses & Mileage (7304 default) / Cr Employee Reimbursements Payable (2110)
-  // Skipped when approval is required (GL posts on approval instead)
+  const insertParams = [userId, data.date, data.description, data.fromLocation || null, data.toLocation || null, data.miles, rate, amount, data.coaAccountId || null];
+  const insertSql = `INSERT INTO mileage_claims (user_id, date, description, from_location, to_location, miles, rate, amount, coa_account_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`;
+
+  // When GL posting is required, wrap INSERT + GL in one transaction
   if (data.entityId && !data.skipGL) {
-    try {
-      const glLines = await buildMileageLines(data.entityId, amount, data.coaAccountId);
+    return withTransaction(async (client) => {
+      const r = await client.query(insertSql, insertParams);
+      const claim = r.rows[0] as MileageClaim;
+
+      const glLines = await buildMileageLines(data.entityId!, amount, data.coaAccountId);
       await postJournalEntry({
-        entityId:    data.entityId,
+        entityId:    data.entityId!,
         userId,
         date:        data.date,
         description: `Mileage: ${data.description}`,
         sourceType:  'mileage',
         sourceId:    claim.id,
         lines:       glLines,
-      });
-    } catch (_glErr) {
-      console.error('[GL] Failed to post mileage entry:', _glErr);
-      Sentry.captureException(_glErr, { tags: { gl_operation: 'mileage_creation' } });
-    }
+      }, client);
+
+      return claim;
+    });
   }
 
-  return claim;
+  // No GL posting (skipGL=true or no entityId)
+  const r = await query(insertSql, insertParams);
+  return r.rows[0] as MileageClaim;
 }
 
 export async function deleteMileageClaim(userId: string, id: string) {

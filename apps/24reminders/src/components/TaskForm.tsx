@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { X, Repeat, Settings2, Trash2 } from 'lucide-react';
 import { Button, Input, Label, Textarea, NativeSelect as Select } from '@relentify/ui';
 
-export function TaskForm({ task, onClose, onSubmit, workspaceId, listId }: any) {
+export function TaskForm({ task, onClose, onSubmit, onDelete, workspaceId, listId }: any) {
   const [formData, setFormData] = useState({
     title: task?.title || '',
     description: task?.description || '',
@@ -157,10 +157,12 @@ export function TaskForm({ task, onClose, onSubmit, workspaceId, listId }: any) 
 
           <footer className="mt-auto border-t border-[var(--theme-border)] bg-[var(--theme-background)] p-6 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Button variant="ghost" type="button" className="text-[var(--theme-text-10)] font-black text-[var(--theme-text-muted)] hover:text-[var(--theme-destructive)] transition-colors uppercase tracking-widest px-2 h-8 rounded-cinematic flex items-center">
-                <Trash2 className="mr-2 h-3 w-3" />
-                Delete Task
-              </Button>
+              {task && onDelete && (
+                <Button variant="ghost" type="button" onClick={() => { onDelete(task.id); onClose(); }} className="text-[var(--theme-text-10)] font-black text-[var(--theme-text-muted)] hover:text-[var(--theme-destructive)] transition-colors uppercase tracking-widest px-2 h-8 rounded-cinematic flex items-center">
+                  <Trash2 className="mr-2 h-3 w-3" />
+                  Delete Task
+                </Button>
+              )}
             </div>
             <p className="text-[var(--theme-text-10)] font-medium text-[var(--theme-text-muted)] uppercase tracking-widest">Created by {task?.created_by || 'Me'}</p>
           </footer>

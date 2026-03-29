@@ -1,4 +1,4 @@
-import { query } from './db';
+import { query, withTransaction } from './db';
 import { createInvoice } from './invoice.service';
 
 export async function generateQuoteNumber() {
@@ -80,14 +80,16 @@ export async function deleteQuote(quoteId: string, userId: string) {
 }
 
 export async function convertQuoteToInvoice(quoteId: string, userId: string, entityId: string) {
+  // Read outside transaction — needed before we start any writes
   const qt = await getQuoteById(quoteId, userId);
   if (!qt) throw new Error('Quote not found');
   if (qt.converted_invoice_id) throw new Error('Already converted');
 
-  // Find a due date 30 days from now
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + 30);
 
+  // createInvoice is atomic in its own transaction.
+  // Call it first: if it throws, the quote status stays unchanged.
   const inv = await createInvoice({
     userId,
     entityId,
@@ -107,9 +109,13 @@ export async function convertQuoteToInvoice(quoteId: string, userId: string, ent
     })),
   });
 
-  await query(
-    `UPDATE quotes SET status='accepted', converted_invoice_id=$1, updated_at=NOW() WHERE id=$2`,
-    [inv.id, quoteId]
-  );
+  // Mark quote as accepted — wrap in transaction so the two UPDATEs are atomic
+  await withTransaction(async (client) => {
+    await client.query(
+      `UPDATE quotes SET status='accepted', converted_invoice_id=$1, updated_at=NOW() WHERE id=$2`,
+      [inv.id, quoteId]
+    );
+  });
+
   return inv;
 }

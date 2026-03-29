@@ -1,7 +1,8 @@
 // lib/services/opening_balance.service.ts
-import { query } from './db';
+import { query, withTransaction } from './db';
 import { getAccountByCode } from './chart_of_accounts.service';
 import { postJournalEntry } from './general_ledger.service';
+import { logAudit } from './audit.service';
 
 export interface OpeningBalanceLine {
   accountCode: number;
@@ -28,14 +29,12 @@ export async function getExistingOpeningBalanceEntry(entityId: string) {
 
 /** Void an existing opening balance entry by reversing it */
 export async function voidOpeningBalanceEntry(entryId: string, userId: string) {
-  // Fetch entry
   const entryRes = await query('SELECT * FROM journal_entries WHERE id=$1', [entryId]);
   const entry = entryRes.rows[0];
   if (!entry) throw new Error('Opening balance entry not found');
 
   const linesRes = await query('SELECT * FROM journal_lines WHERE entry_id=$1', [entryId]);
 
-  // Post reversal
   const reversedLines = linesRes.rows.map((l: any) => ({
     accountId: l.account_id,
     description: `Void opening balance`,
@@ -55,18 +54,18 @@ export async function voidOpeningBalanceEntry(entryId: string, userId: string) {
   });
 }
 
-/** Post opening balance lines as a single journal entry */
+/** Post opening balance lines as a single atomic journal entry */
 export async function importOpeningBalances(
   entityId: string,
   userId: string,
   asOfDate: string,        // YYYY-MM-DD
   lines: OpeningBalanceLine[]
 ): Promise<ImportOpeningBalancesResult> {
-  // Resolve account IDs
+  // Resolve account IDs — pool reads, outside transaction
   const resolvedLines: { accountId: string; debit: number; credit: number; description: string }[] = [];
 
   for (const line of lines) {
-    if (line.debit === 0 && line.credit === 0) continue; // skip zeroes
+    if (line.debit === 0 && line.credit === 0) continue;
 
     const acct = await getAccountByCode(entityId, line.accountCode);
     if (!acct) throw new Error(`Account code ${line.accountCode} not found in your chart of accounts`);
@@ -81,36 +80,39 @@ export async function importOpeningBalances(
 
   if (resolvedLines.length === 0) throw new Error('No non-zero lines found in upload');
 
-  // Check balance
+  // Check balance and add suspense line if needed
   const totalDebit  = resolvedLines.reduce((s, l) => s + l.debit,  0);
   const totalCredit = resolvedLines.reduce((s, l) => s + l.credit, 0);
   const diff = parseFloat((totalDebit - totalCredit).toFixed(2));
 
   let suspenseAmount = 0;
   if (Math.abs(diff) > 0.005) {
-    // Auto-balance via suspense 9999
     const suspense = await getAccountByCode(entityId, 9999);
     if (!suspense) throw new Error('Suspense account (9999) not found — run COA seed');
 
     suspenseAmount = Math.abs(diff);
     if (diff > 0) {
-      // Debits exceed credits → credit suspense
       resolvedLines.push({ accountId: suspense.id, debit: 0, credit: diff, description: 'Opening balance suspense' });
     } else {
-      // Credits exceed debits → debit suspense
       resolvedLines.push({ accountId: suspense.id, debit: Math.abs(diff), credit: 0, description: 'Opening balance suspense' });
     }
   }
 
-  const journalEntryId = await postJournalEntry({
-    entityId,
-    userId,
-    date: asOfDate,
-    reference: 'OB',
-    description: 'Opening balances',
-    sourceType: 'opening_balance',
-    lines: resolvedLines,
-  });
+  // Wrap the GL post in a transaction so any failure is fully atomic
+  return withTransaction(async (client) => {
+    const journalEntryId = await postJournalEntry({
+      entityId,
+      userId,
+      date: asOfDate,
+      reference: 'OB',
+      description: 'Opening balances',
+      sourceType: 'opening_balance',
+      lines: resolvedLines,
+    }, client);
 
-  return { journalEntryId, linesImported: resolvedLines.length, suspenseAmount };
+    await logAudit(userId, 'OPENING_BALANCES_IMPORTED', 'entity', entityId,
+      { count: resolvedLines.length }, undefined, entityId);
+
+    return { journalEntryId, linesImported: resolvedLines.length, suspenseAmount };
+  });
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/src/lib/db';
 import { sendReminderEmail } from '@/src/lib/email';
+import { startCronRun, finishCronRun } from '@/src/lib/cron-monitor.service';
 
 type TriggerType = '3_days_before' | 'due_date' | '7_days_after';
 
@@ -17,13 +18,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  const runId = await startCronRun('reminders');
   const today = new Date().toISOString().split('T')[0];
   const triggers: TriggerType[] = ['3_days_before', 'due_date', '7_days_after'];
   let sent = 0;
   let skipped = 0;
 
   try {
-    // Get all sent/overdue invoices with client email, where user has reminders enabled
     const invoices = await query(
       `SELECT i.id, i.invoice_number, i.client_name, i.client_email,
               i.total, i.currency, i.due_date, i.stripe_payment_link,
@@ -41,7 +42,6 @@ export async function GET(req: NextRequest) {
         const triggerDate = getTriggerDate(inv.due_date, trigger);
         if (triggerDate !== today) continue;
 
-        // Check if already logged
         const already = await query(
           `SELECT id FROM reminder_logs WHERE invoice_id=$1 AND trigger_type=$2`,
           [inv.id, trigger]
@@ -72,9 +72,12 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    await finishCronRun(runId, 'success', sent);
     return NextResponse.json({ ok: true, sent, skipped });
   } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
     console.error('Cron reminders error:', e);
+    await finishCronRun(runId, 'failed', 0, msg);
     return NextResponse.json({ error: 'Cron failed' }, { status: 500 });
   }
 }
