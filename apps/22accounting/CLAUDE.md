@@ -15,12 +15,12 @@ Cron container: none currently — escalation cron runs via `/api/cron/po-escala
 - **App router** — all pages under `app/dashboard/`, APIs under `app/api/`
 - **Feature gating** — `lib/tiers.ts` is the single source of truth. Use `canAccess(tier, feature)` to gate
 - **Services** — all DB logic lives in `lib/services/*.service.ts` — never write raw queries in routes
-- **Double-entry GL** — every financial transaction posts a balanced journal entry via `postJournalEntry()` in `general_ledger.service.ts`. GL posting is non-blocking (try/catch) — the transaction still saves if GL fails. Do not bypass this.
+- **Double-entry GL** — every financial transaction posts a balanced journal entry via `postJournalEntry()` in `general_ledger.service.ts`. GL posting is **BLOCKING and ATOMIC** — `createInvoice`, `createBill`, `createCreditNote`, `createExpense`, `approveExpense`, `convertToInvoice`, `approvePurchaseOrder`, `importOpeningBalances`, and `createIntercompanyTransaction` all use `withTransaction()` so a GL failure rolls back the parent record too. Never use try/catch to make GL non-blocking.
 - **Email** — Resend via `lib/email.ts`. All `from:` addresses use `invoices@relentify.com` (production domain — do not change back to resend.dev).
 - **Auth** — `getAuthUser()` from `src/lib/auth.ts` returns JWT payload (userId, actorId, email, subscriptionPlan?, isAccountantAccess?). Checks `relentify_client_token` first (accountant impersonation), falls through to `relentify_token`. Does NOT include entity_id or tier — call `getActiveEntity(auth.userId)` and `getUserById(auth.userId)` separately in routes.
 - **Accountant access** — When `auth.isAccountantAccess === true`, `auth.userId` = client, `auth.actorId` = accountant. `checkPermission()` grants full access. `logAudit()` accepts optional 6th param `actorId` to record who made the change.
 - **Import paths** — ALWAYS use `@/src/lib/` (not `@/lib/`). The tsconfig maps `@/` → app root, so `@/lib/` resolves to a non-existent directory.
-- **Audit** — `logAudit()` from `src/lib/audit.service.ts` — signature: `logAudit(userId, action, entityType, entityId?, metadata?, actorId?)`
+- **Audit** — `logAudit()` from `src/lib/audit.service.ts` — signature: `logAudit(userId, action, entityType, entityId?, metadata?, actorId?, workspaceEntityId?)`. The `actor_id` and `workspace_entity_id` columns now exist in `audit_log` (migration 025). Previously, every `logAudit` call was silently failing because `actor_id` was missing from the DB.
 
 ---
 
@@ -227,7 +227,7 @@ Several pages haven't been updated to match the dark-mode `@relentify/ui` style.
 
 ## GL / Chart of Accounts
 
-**Migrations applied:** 013 (chart_of_accounts), 014 (journal_entries + journal_lines), 015 (coa_account_id on bills/expenses/mileage_claims), 016 (credit_notes + credit_note_items), 017 (period_locks: `locked_through_date` on entities, `period_lock_history`, `period_lock_overrides`), 018 (`last_fy_end_date` on entities), 019 (approval workflows: `po_approver_mappings`, `expense_approval_settings`, approval columns on `expenses`/`mileage_claims`, `escalated_at` on `purchase_orders`), 020 (`attachments` metadata table + `attachment_data` bytea table)
+**Migrations applied:** 013 (chart_of_accounts), 014 (journal_entries + journal_lines), 015 (coa_account_id on bills/expenses/mileage_claims), 016 (credit_notes + credit_note_items), 017 (period_locks: `locked_through_date` on entities, `period_lock_history`, `period_lock_overrides`), 018 (`last_fy_end_date` on entities), 019 (approval workflows: `po_approver_mappings`, `expense_approval_settings`, approval columns on `expenses`/`mileage_claims`, `escalated_at` on `purchase_orders`), 020 (`attachments` metadata table + `attachment_data` bytea table), 021 (company details: `registered_address`, `bank_account_name`, `sort_code`, `account_number` on `users`), 022 (accountant multi-client: `accountant_clients`, `accountant_referral_earnings`), 023 (comments/threads: `transaction_comments`), 024 (HMRC client info), **025 (accounting engine: `idempotency_keys`, `cron_runs` tables; UNIQUE constraint on `journal_entries(entity_id, source_type, source_id)`; `status`/`is_accrual`/`reversal_date`/`reversed_by` on `journal_entries`; `is_prepayment`/`prepayment_months`/`prepayment_exp_acct` on `bank_transactions`; `is_control_account`/`control_type` on `chart_of_accounts`; `actor_id`/`workspace_entity_id` on `audit_log`; `role` on `workspace_members`; 4 performance indexes)**
 
 **COA ranges:** ASSET 1000–1999 | LIABILITY 2000–2999 | EQUITY 3000–3999 | INCOME 4000–4999 | COGS 5000–6999 | EXPENSE 7000–9998 | SUSPENSE 9999
 
@@ -269,7 +269,7 @@ Several pages haven't been updated to match the dark-mode `@relentify/ui` style.
 | `lib/email.ts` | All transactional emails. All `from:` use `invoices@relentify.com`. |
 | `lib/stripe.ts` | Stripe Connect checkout, webhooks |
 | `lib/auth.ts` | Auth helpers. `getAuthUser()` returns JWT payload only — no entity_id or tier. |
-| `lib/db.ts` | Postgres query wrapper |
+| `src/lib/db.ts` | Postgres query wrapper. Exports: `query`, `pool` (default), `DbClient` type (`Pool \| PoolClient`), `withTransaction<T>(fn)` helper (BEGIN/COMMIT/ROLLBACK, pool max=20). |
 | `lib/services/period_lock.service.ts` | `isDateLocked(entityId, date, userId)`, `lockPeriod()`, `unlockPeriod()`, override grant/revoke |
 | `lib/hooks/usePeriodLock.ts` | Client hook — fetches earliest open date, provides `isDateLocked()` + `lockedMessage()` for form date inputs |
 | `lib/period-lock-helpers.ts` | `parsePeriodLockedResponse(res)` — parses 403 PERIOD_LOCKED from any fetch response |
@@ -291,6 +291,66 @@ Several pages haven't been updated to match the dark-mode `@relentify/ui` style.
 - `chart_of_accounts` — scoped by `entity_id`. System accounts (`is_system=TRUE`) cannot be deactivated.
 - `journal_entries` + `journal_lines` — every financial event posts here. `source_type` + `source_id` link back to the originating record.
 - `credit_notes` — linked to `invoices.id` (optional) and `customers.id` (optional). Sequence: `credit_note_number_seq`.
+
+---
+
+## Accounting Engine Workstream (2026-03-28, in progress)
+
+Plan: `docs/superpowers/plans/2026-03-28-accounting-engine.md` (17 tasks)
+
+### Task status
+
+| # | Task | Status |
+|---|------|--------|
+| 1 | Migration 025 | ✅ Done |
+| 2 | `db.ts` — withTransaction, DbClient, pool max=20 | ✅ Done |
+| 3 | `idempotency.service.ts` — check/store/clean 24h keys | ✅ Done |
+| 4 | GL service — PoolClient, period lock, control accounts, audit | ✅ Done |
+| 5 | Audit service — workspaceEntityId param | 🔴 Pending |
+| 6 | Invoice service — atomic createInvoice + recordPayment | 🔴 Pending |
+| 7 | Bill service — atomic createBill + recordBillPayment | 🔴 Pending |
+| 8 | Credit note, expense, approval services — atomic | 🔴 Pending |
+| 9 | Quote, PO, opening balance, intercompany — atomic | 🔴 Pending |
+| 10 | VAT engine service — explicit UK rules | 🔴 Pending |
+| 11 | Cron monitoring — `cron_runs` table, Telegram alert | 🔴 Pending |
+| 12 | Team roles — admin/accountant/staff, GL permission checks | 🔴 Pending |
+| 13 | Accrual journals — draft mode, balance warning, auto-reversal cron | 🔴 Pending |
+| 14 | Prepayment tracking — Dr Prepayments 1300, monthly release cron | 🔴 Pending |
+| 15 | GL integrity diagnostic in health report | 🔴 Pending |
+| 16 | Journal UI — Reverse button, Draft badge + Post action | 🔴 Pending |
+| 17 | Build & deploy | 🔴 Pending |
+
+### New services added by this workstream
+
+| File | Purpose |
+|------|---------|
+| `src/lib/idempotency.service.ts` | `checkIdempotencyKey`, `storeIdempotencyKey`, `cleanExpiredKeys` — 24h TTL, entity-scoped |
+| `src/lib/vat.service.ts` | Explicit UK VAT functions: `calcStandardRated`, `calcZeroRated`, `calcExempt`, `calcReverseCharge`, `calcPartialExemption`, `vatPeriodDate` |
+| `src/lib/cron-monitor.service.ts` | `startCronRun(jobName)`, `finishCronRun(runId, status, count?, error?)` — logs to `cron_runs`, Telegram alert on failure |
+
+### Key GL rules added
+
+- `postJournalEntry` enforces period lock internally (cannot be bypassed)
+- Invoice journal entries must have `isControlAR: true` on the Debtors line
+- Bill journal entries must have `isControlAP: true` on the Creditors line
+- All entries written with `status='posted'` and `is_locked=TRUE`
+- `workspace_members.role` — `admin | accountant | staff` (default `staff`). Manual journals require `admin` or `accountant`.
+
+---
+
+## All Feature Plans & Specs
+
+**Specs** (design docs): `docs/superpowers/specs/`
+**Plans** (implementation plans): `docs/superpowers/plans/`
+
+| Workstream | Spec | Plan | Status |
+|------------|------|------|--------|
+| Accounting Engine | `2026-03-26-accounting-engine-design.md` | `2026-03-28-accounting-engine.md` | 🔄 In progress (tasks 1–4 done) |
+| UI Animations (Framer Motion) | — | `2026-03-28-ui-animations.md` | 🔴 Not started |
+| Help System (apps/26help) | — | `2026-03-28-help-system.md` | 🔴 Not started |
+| Migration Tool (Xero/QB import) | `2026-03-26-migration-tool-design.md` | `2026-03-28-migration-tool.md` | 🔴 Not started |
+| Recording System (screen capture) | `2026-03-26-recording-system-design.md` | `2026-03-28-recording-system.md` | 🔴 Not started |
+| Developer API + Webhooks | `2026-03-26-developer-api-design.md` | `2026-03-28-developer-api.md` | 🔴 Not started |
 
 ---
 
