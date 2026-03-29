@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/nextjs';
-import { query } from './db';
+import { query, withTransaction } from './db';
 import {
   postJournalEntry,
   buildBillCreationLines,
@@ -65,59 +65,44 @@ export async function createBill(userId: string, data: {
   poId?: string;
   poVarianceReason?: string;
 }) {
-  const r = await query(
-    `INSERT INTO bills (user_id, entity_id, supplier_name, amount, vat_rate, vat_amount, currency, invoice_date, due_date, category, coa_account_id, notes, reference, project_id, po_id, po_variance_reason)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *`,
-    [
-      userId,
-      data.entityId,
-      data.supplierName,
-      data.amount,
-      data.vatRate ?? 0,
-      data.vatAmount ?? 0,
-      data.currency || 'GBP',
-      data.invoiceDate || null,
-      data.dueDate,
-      data.category || 'general',
-      data.coaAccountId || null,
-      data.notes || null,
-      data.reference || null,
-      data.projectId || null,
-      data.poId || null,
-      data.poVarianceReason || null,
-    ]
-  );
-  const bill = r.rows[0] as Bill;
+  return withTransaction(async (client) => {
+    const r = await client.query(
+      `INSERT INTO bills (user_id, entity_id, supplier_name, amount, vat_rate, vat_amount, currency, invoice_date, due_date, category, coa_account_id, notes, reference, project_id, po_id, po_variance_reason)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *`,
+      [
+        userId, data.entityId, data.supplierName, data.amount,
+        data.vatRate ?? 0, data.vatAmount ?? 0, data.currency || 'GBP',
+        data.invoiceDate ?? null, data.dueDate, data.category ?? 'general',
+        data.coaAccountId ?? null, data.notes ?? null, data.reference ?? null,
+        data.projectId ?? null, data.poId ?? null, data.poVarianceReason ?? null,
+      ]
+    );
+    const bill = r.rows[0] as Bill;
 
-  // Post double-entry GL entry: Dr Expense / Dr VAT Input / Cr Creditors
-  try {
+    // Resolve expense account — must happen inside tx so failure rolls back the bill
     let expenseAccountId = data.coaAccountId;
     if (!expenseAccountId) {
-      // Fall back to category → code mapping, then 7900 General
-      const code = CATEGORY_TO_CODE[data.category || ''] || 7900;
+      const code = CATEGORY_TO_CODE[data.category ?? ''] ?? 7900;
       const acct = await getAccountByCode(data.entityId, code);
       expenseAccountId = acct?.id;
     }
-    if (expenseAccountId) {
-      const vatAmt = data.vatAmount ?? 0;
-      const glLines = await buildBillCreationLines(data.entityId, data.amount, vatAmt, expenseAccountId);
-      await postJournalEntry({
-        entityId:    data.entityId,
-        userId,
-        date:        data.invoiceDate || data.dueDate,
-        reference:   data.reference || undefined,
-        description: `Bill from ${data.supplierName}`,
-        sourceType:  'bill',
-        sourceId:    bill.id,
-        lines:       glLines,
-      });
-    }
-  } catch (_glErr) {
-    console.error('[GL] Failed to post bill creation entry:', _glErr);
-    Sentry.captureException(_glErr, { tags: { gl_operation: 'bill_creation' } });
-  }
+    if (!expenseAccountId) throw new Error('Could not resolve expense account for bill GL entry');
 
-  return bill;
+    const vatAmt = data.vatAmount ?? 0;
+    const glLines = await buildBillCreationLines(data.entityId, data.amount, vatAmt, expenseAccountId);
+    await postJournalEntry({
+      entityId:    data.entityId,
+      userId,
+      date:        data.invoiceDate ?? data.dueDate,
+      reference:   data.reference ?? undefined,
+      description: `Bill from ${data.supplierName}`,
+      sourceType:  'bill',
+      sourceId:    bill.id,
+      lines:       glLines,
+    }, client);
+
+    return bill;
+  });
 }
 
 export async function getAllBills(userId: string, entityId?: string): Promise<Bill[]> {
@@ -196,53 +181,52 @@ export async function markBillPaid(
   }
 ): Promise<Bill | null> {
   const paymentDate = options?.paymentDate || new Date().toISOString().split('T')[0];
-  const entityClause = entityId ? 'AND entity_id=$3' : '';
-  const args = entityId ? [id, userId, entityId] : [id, userId];
-  const r = await query(
-    `UPDATE bills SET status = 'paid', paid_at = $${args.length + 1}::timestamptz WHERE id = $1 AND user_id = $2 ${entityClause} RETURNING *`,
-    [...args, paymentDate]
+
+  // Read the bill first so we have supplier_name + amount for the GL description
+  const existing = await query(
+    `SELECT * FROM bills WHERE id=$1 AND user_id=$2${entityId ? ' AND entity_id=$3' : ''}`,
+    entityId ? [id, userId, entityId] : [id, userId]
   );
-  const bill = r.rows[0] as Bill || null;
+  const existingBill = existing.rows[0] as Bill | undefined;
+  if (!existingBill) return null;
 
-  if (bill && entityId) {
-    // Create a bank transaction record for the payment
-    try {
-      await query(
-        `INSERT INTO bank_transactions
-           (user_id, entity_id, transaction_date, description, amount, type, matched_bill_id, status, category, categorisation_type)
-         VALUES ($1, $2, $3, $4, $5, 'debit', $6, 'matched', $7, 'manual')`,
-        [
-          userId, entityId, paymentDate,
-          `Payment to ${bill.supplier_name}${options?.reference ? ` (${options.reference})` : ''}`,
-          bill.amount, bill.id,
-          bill.category || 'general',
-        ]
-      );
-    } catch (_txErr) {
-      console.error('[BankTx] Failed to create bank transaction for bill payment:', _txErr);
-      Sentry.captureException(_txErr, { tags: { gl_operation: 'bill_bank_tx' } });
-    }
-
-    // Post GL: Dr Creditors / Cr Bank
-    try {
-      const glLines = await buildBillPaymentLines(entityId, parseFloat(bill.amount), options?.bankAccountId);
-      await postJournalEntry({
-        entityId,
-        userId,
-        date:        paymentDate,
-        description: `Payment to ${bill.supplier_name}`,
-        reference:   options?.reference,
-        sourceType:  'payment',
-        sourceId:    id,
-        lines:       glLines,
-      });
-    } catch (_glErr) {
-      console.error('[GL] Failed to post bill payment entry:', _glErr);
-      Sentry.captureException(_glErr, { tags: { gl_operation: 'bill_payment' } });
-    }
+  if (!entityId) {
+    // No entity context — just mark paid, no GL
+    await query(`UPDATE bills SET status='paid', paid_at=$1::timestamptz WHERE id=$2`, [paymentDate, id]);
+    return (await query('SELECT * FROM bills WHERE id=$1', [id])).rows[0] as Bill;
   }
 
-  return bill;
+  return withTransaction(async (client) => {
+    await client.query(
+      `UPDATE bills SET status='paid', paid_at=$1::timestamptz WHERE id=$2`,
+      [paymentDate, id]
+    );
+
+    await client.query(
+      `INSERT INTO bank_transactions
+         (user_id, entity_id, transaction_date, description, amount, type, matched_bill_id, status, category, categorisation_type)
+       VALUES ($1, $2, $3, $4, $5, 'debit', $6, 'matched', $7, 'manual')`,
+      [
+        userId, entityId, paymentDate,
+        `Payment to ${existingBill.supplier_name}${options?.reference ? ` (${options.reference})` : ''}`,
+        existingBill.amount, id, existingBill.category || 'general',
+      ]
+    );
+
+    const glLines = await buildBillPaymentLines(entityId, parseFloat(existingBill.amount), options?.bankAccountId);
+    await postJournalEntry({
+      entityId,
+      userId,
+      date:        paymentDate,
+      description: `Payment to ${existingBill.supplier_name}`,
+      reference:   options?.reference,
+      sourceType:  'payment',
+      sourceId:    id,
+      lines:       glLines,
+    }, client);
+
+    return (await client.query('SELECT * FROM bills WHERE id=$1', [id])).rows[0] as Bill;
+  });
 }
 
 export async function getBillStats(userId: string, entityId?: string) {
