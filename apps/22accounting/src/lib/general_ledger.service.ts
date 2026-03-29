@@ -1,11 +1,15 @@
-import { query } from './db';
+import { query, DbClient } from './db';
 import { getAccountByCode } from './chart_of_accounts.service';
+import { isDateLocked } from './period_lock.service';
+import { logAudit } from './audit.service';
 
 export interface JournalLine {
   accountId: string;
   description?: string;
   debit: number;
   credit: number;
+  isControlAR?: boolean;  // set to true on the 1100 debit line
+  isControlAP?: boolean;  // set to true on the 2100 credit line
 }
 
 export interface PostJournalEntryParams {
@@ -19,14 +23,24 @@ export interface PostJournalEntryParams {
   lines: JournalLine[];
 }
 
-export async function postJournalEntry(params: PostJournalEntryParams): Promise<string> {
+export async function postJournalEntry(
+  params: PostJournalEntryParams,
+  client?: DbClient
+): Promise<string> {
   const { entityId, userId, date, reference, description, sourceType, sourceId, lines } = params;
 
-  // Validate balance: sum(debit) must equal sum(credit)
+  // Period lock: enforced here regardless of caller
+  const lockCheck = await isDateLocked(entityId, date, userId);
+  if (lockCheck.locked) {
+    throw new Error(
+      `PERIOD_LOCKED: Cannot post to ${date}. Period locked through ${lockCheck.lockedThrough}.`
+    );
+  }
+
+  // Balance check
   const totalDebit  = lines.reduce((s, l) => s + (l.debit  || 0), 0);
   const totalCredit = lines.reduce((s, l) => s + (l.credit || 0), 0);
-  const diff = Math.abs(totalDebit - totalCredit);
-  if (diff > 0.005) {
+  if (Math.abs(totalDebit - totalCredit) > 0.005) {
     throw new Error(
       `Journal entry does not balance: debits £${totalDebit.toFixed(2)} ≠ credits £${totalCredit.toFixed(2)}`
     );
@@ -34,25 +48,45 @@ export async function postJournalEntry(params: PostJournalEntryParams): Promise<
 
   if (lines.length < 2) throw new Error('Journal entry must have at least 2 lines');
 
-  // Insert entry
-  const entryRes = await query(
+  // Control account validation
+  if (sourceType === 'invoice') {
+    const hasAR = lines.some(l => l.isControlAR);
+    if (!hasAR) throw new Error('Invoice entries must include a debit to the AR control account (1100)');
+  }
+  if (sourceType === 'bill') {
+    const hasAP = lines.some(l => l.isControlAP);
+    if (!hasAP) throw new Error('Bill entries must include a credit to the AP control account (2100)');
+  }
+
+  // Use provided client (for atomic transactions) or fall back to pool
+  const exec = client
+    ? (sql: string, p: unknown[]) => (client as import('pg').PoolClient).query(sql, p as any[])
+    : (sql: string, p: unknown[]) => query(sql, p);
+
+  const entryRes = await exec(
     `INSERT INTO journal_entries
-       (entity_id, user_id, entry_date, reference, description, source_type, source_id)
-     VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
-    [entityId, userId, date, reference || null, description || null, sourceType || null, sourceId || null]
+       (entity_id, user_id, entry_date, reference, description, source_type, source_id, status, is_locked)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,'posted',TRUE) RETURNING id`,
+    [entityId, userId, date, reference ?? null, description ?? null, sourceType ?? null, sourceId ?? null]
   );
   const entryId = entryRes.rows[0].id as string;
 
-  // Insert lines
   for (const line of lines) {
-    await query(
+    await exec(
       `INSERT INTO journal_lines (entry_id, account_id, description, debit, credit)
        VALUES ($1,$2,$3,$4,$5)`,
-      [entryId, line.accountId, line.description || null,
-       parseFloat((line.debit  || 0).toFixed(2)),
-       parseFloat((line.credit || 0).toFixed(2))]
+      [
+        entryId, line.accountId, line.description ?? null,
+        parseFloat((line.debit  || 0).toFixed(2)),
+        parseFloat((line.credit || 0).toFixed(2)),
+      ]
     );
   }
+
+  // Audit (non-blocking — don't let audit failure roll back the GL entry)
+  logAudit(userId, 'JOURNAL_POSTED', 'journal_entry', entryId,
+    { sourceType, sourceId, reference }
+  ).catch(console.error);
 
   return entryId;
 }
@@ -60,7 +94,8 @@ export async function postJournalEntry(params: PostJournalEntryParams): Promise<
 export async function reverseJournalEntry(
   originalEntryId: string,
   userId: string,
-  date: string
+  date: string,
+  client?: DbClient
 ): Promise<string> {
   // Fetch original entry + lines
   const entryRes = await query(
@@ -81,7 +116,7 @@ export async function reverseJournalEntry(
     credit:      parseFloat(l.debit),
   }));
 
-  return postJournalEntry({
+  const reversalId = await postJournalEntry({
     entityId:    original.entity_id,
     userId,
     date,
@@ -90,7 +125,13 @@ export async function reverseJournalEntry(
     sourceType:  'manual',
     sourceId:    originalEntryId,
     lines:       reversedLines,
-  });
+  }, client);
+
+  logAudit(userId, 'JOURNAL_REVERSED', 'journal_entry', originalEntryId,
+    { reversalEntryId: reversalId }
+  ).catch(console.error);
+
+  return reversalId;
 }
 
 export async function getJournalEntries(
@@ -279,7 +320,7 @@ export async function buildInvoiceCreationLines(
   if (!salesAcct) throw new Error('Sales account (4000) not found — run COA seed');
 
   const lines: JournalLine[] = [
-    { accountId: debtors.id, description: 'Debtors Control',  debit: invoiceTotal, credit: 0 },
+    { accountId: debtors.id, description: 'Debtors Control',  debit: invoiceTotal, credit: 0, isControlAR: true },
     { accountId: salesAcct.id, description: 'Sales',          debit: 0, credit: subtotal },
   ];
 
@@ -323,7 +364,7 @@ export async function buildBillCreationLines(
   const billTotal = netAmount + vatAmount;
   const lines: JournalLine[] = [
     { accountId: expenseAccountId, description: 'Purchase',         debit: netAmount,  credit: 0 },
-    { accountId: creditors.id,     description: 'Creditors Control', debit: 0, credit: billTotal },
+    { accountId: creditors.id,     description: 'Creditors Control', debit: 0, credit: billTotal, isControlAP: true },
   ];
 
   if (vatAmount > 0) {
