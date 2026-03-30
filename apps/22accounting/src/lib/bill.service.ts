@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/nextjs';
 import { query, withTransaction } from './db';
 import {
   postJournalEntry,
@@ -64,6 +63,7 @@ export async function createBill(userId: string, data: {
   projectId?: string;
   poId?: string;
   poVarianceReason?: string;
+  skipGLPosting?: boolean; // set true during migration — GL handled by opening balances import
 }) {
   return withTransaction(async (client) => {
     const r = await client.query(
@@ -79,27 +79,29 @@ export async function createBill(userId: string, data: {
     );
     const bill = r.rows[0] as Bill;
 
-    // Resolve expense account — must happen inside tx so failure rolls back the bill
-    let expenseAccountId = data.coaAccountId;
-    if (!expenseAccountId) {
-      const code = CATEGORY_TO_CODE[data.category ?? ''] ?? 7900;
-      const acct = await getAccountByCode(data.entityId, code);
-      expenseAccountId = acct?.id;
-    }
-    if (!expenseAccountId) throw new Error('Could not resolve expense account for bill GL entry');
+    if (!data.skipGLPosting) {
+      // Resolve expense account — must happen inside tx so failure rolls back the bill
+      let expenseAccountId = data.coaAccountId;
+      if (!expenseAccountId) {
+        const code = CATEGORY_TO_CODE[data.category ?? ''] ?? 7900;
+        const acct = await getAccountByCode(data.entityId, code);
+        expenseAccountId = acct?.id;
+      }
+      if (!expenseAccountId) throw new Error('Could not resolve expense account for bill GL entry');
 
-    const vatAmt = data.vatAmount ?? 0;
-    const glLines = await buildBillCreationLines(data.entityId, data.amount, vatAmt, expenseAccountId);
-    await postJournalEntry({
-      entityId:    data.entityId,
-      userId,
-      date:        data.invoiceDate ?? data.dueDate,
-      reference:   data.reference ?? undefined,
-      description: `Bill from ${data.supplierName}`,
-      sourceType:  'bill',
-      sourceId:    bill.id,
-      lines:       glLines,
-    }, client);
+      const vatAmt = data.vatAmount ?? 0;
+      const glLines = await buildBillCreationLines(data.entityId, data.amount, vatAmt, expenseAccountId);
+      await postJournalEntry({
+        entityId:    data.entityId,
+        userId,
+        date:        data.invoiceDate ?? data.dueDate,
+        reference:   data.reference ?? undefined,
+        description: `Bill from ${data.supplierName}`,
+        sourceType:  'bill',
+        sourceId:    bill.id,
+        lines:       glLines,
+      }, client);
+    }
 
     return bill;
   });
@@ -178,6 +180,9 @@ export async function markBillPaid(
     paymentDate?: string;
     bankAccountId?: string;
     reference?: string;
+    isPrepayment?: boolean;
+    prepaymentMonths?: number;
+    prepaymentExpAcctId?: string;
   }
 ): Promise<Bill | null> {
   const paymentDate = options?.paymentDate || new Date().toISOString().split('T')[0];
@@ -196,34 +201,61 @@ export async function markBillPaid(
     return (await query('SELECT * FROM bills WHERE id=$1', [id])).rows[0] as Bill;
   }
 
+  const isPrepayment = options?.isPrepayment ?? false;
+
   return withTransaction(async (client) => {
     await client.query(
       `UPDATE bills SET status='paid', paid_at=$1::timestamptz WHERE id=$2`,
       [paymentDate, id]
     );
 
-    await client.query(
+    const btR = await client.query(
       `INSERT INTO bank_transactions
-         (user_id, entity_id, transaction_date, description, amount, type, matched_bill_id, status, category, categorisation_type)
-       VALUES ($1, $2, $3, $4, $5, 'debit', $6, 'matched', $7, 'manual')`,
+         (user_id, entity_id, transaction_date, description, amount, type, matched_bill_id, status,
+          category, categorisation_type, is_prepayment, prepayment_months, prepayment_exp_acct)
+       VALUES ($1, $2, $3, $4, $5, 'debit', $6, 'matched', $7, 'manual', $8, $9, $10)
+       RETURNING id`,
       [
         userId, entityId, paymentDate,
         `Payment to ${existingBill.supplier_name}${options?.reference ? ` (${options.reference})` : ''}`,
         existingBill.amount, id, existingBill.category || 'general',
+        isPrepayment, options?.prepaymentMonths ?? null, options?.prepaymentExpAcctId ?? null,
       ]
     );
 
-    const glLines = await buildBillPaymentLines(entityId, parseFloat(existingBill.amount), options?.bankAccountId);
-    await postJournalEntry({
-      entityId,
-      userId,
-      date:        paymentDate,
-      description: `Payment to ${existingBill.supplier_name}`,
-      reference:   options?.reference,
-      sourceType:  'payment',
-      sourceId:    id,
-      lines:       glLines,
-    }, client);
+    if (isPrepayment) {
+      // Dr Prepayments (1300) / Cr Bank — defer expense to future releases
+      const prepayAcct = await getAccountByCode(entityId, 1300);
+      const bankAcct = options?.bankAccountId
+        ? { id: options.bankAccountId }
+        : await getAccountByCode(entityId, 1200);
+      if (!prepayAcct || !bankAcct) throw new Error('Prepayments (1300) or Bank account not found');
+      await postJournalEntry({
+        entityId,
+        userId,
+        date:        paymentDate,
+        description: `Prepayment — ${existingBill.supplier_name}`,
+        reference:   options?.reference,
+        sourceType:  'prepayment',
+        sourceId:    btR.rows[0].id,
+        lines: [
+          { accountId: prepayAcct.id, description: 'Prepayments asset', debit: parseFloat(existingBill.amount), credit: 0 },
+          { accountId: bankAcct.id,   description: 'Bank payment',       debit: 0, credit: parseFloat(existingBill.amount) },
+        ],
+      }, client);
+    } else {
+      const glLines = await buildBillPaymentLines(entityId, parseFloat(existingBill.amount), options?.bankAccountId);
+      await postJournalEntry({
+        entityId,
+        userId,
+        date:        paymentDate,
+        description: `Payment to ${existingBill.supplier_name}`,
+        reference:   options?.reference,
+        sourceType:  'payment',
+        sourceId:    id,
+        lines:       glLines,
+      }, client);
+    }
 
     return (await client.query('SELECT * FROM bills WHERE id=$1', [id])).rows[0] as Bill;
   });

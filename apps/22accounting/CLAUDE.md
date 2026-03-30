@@ -345,19 +345,19 @@ Plan: `docs/superpowers/plans/2026-03-28-accounting-engine.md` (17 tasks)
 | 2 | `db.ts` — withTransaction, DbClient, pool max=20 | ✅ Done |
 | 3 | `idempotency.service.ts` — check/store/clean 24h keys | ✅ Done |
 | 4 | GL service — PoolClient, period lock, control accounts, audit | ✅ Done |
-| 5 | Audit service — workspaceEntityId param | 🔴 Pending |
-| 6 | Invoice service — atomic createInvoice + recordPayment | 🔴 Pending |
-| 7 | Bill service — atomic createBill + recordBillPayment | 🔴 Pending |
+| 5 | Audit service — workspaceEntityId param | ✅ Done |
+| 6 | Invoice service — atomic createInvoice + recordPayment | ✅ Done |
+| 7 | Bill service — atomic createBill + recordBillPayment | ✅ Done |
 | 8 | Credit note, expense, approval services — atomic | ✅ Done |
 | 9 | Quote, PO, opening balance, intercompany — atomic | ✅ Done |
 | 10 | VAT engine service — explicit UK rules | ✅ Done |
-| 11 | Cron monitoring — `cron_runs` table, Telegram alert | 🔴 Pending |
-| 12 | Team roles — admin/accountant/staff, GL permission checks | 🔴 Pending |
-| 13 | Accrual journals — draft mode, balance warning, auto-reversal cron | 🔴 Pending |
-| 14 | Prepayment tracking — Dr Prepayments 1300, monthly release cron | 🔴 Pending |
-| 15 | GL integrity diagnostic in health report | 🔴 Pending |
-| 16 | Journal UI — Reverse button, Draft badge + Post action | 🔴 Pending |
-| 17 | Build & deploy | 🔴 Pending |
+| 11 | Cron monitoring — `cron_runs` table, Telegram alert | ✅ Done |
+| 12 | Team roles — admin/accountant/staff, GL permission checks | ✅ Done |
+| 13 | Accrual journals — draft mode, balance warning, auto-reversal cron | ✅ Done |
+| 14 | Prepayment tracking — Dr Prepayments 1300, monthly release cron | ✅ Done |
+| 15 | GL integrity diagnostic in health report | ✅ Done |
+| 16 | Journal UI — Reverse button, Draft badge + Post action | ✅ Done |
+| 17 | Build & deploy | ✅ Done (2026-03-29, 48/48 MCP tests pass) |
 
 ### New services added by this workstream
 
@@ -384,7 +384,7 @@ Plan: `docs/superpowers/plans/2026-03-28-accounting-engine.md` (17 tasks)
 | # | Workstream | Tasks remaining | Plan file | Status |
 |---|------------|----------------|-----------|--------|
 | 1 | **Accounting Engine** | 13 of 17 (tasks 5–17) | `docs/superpowers/plans/2026-03-28-accounting-engine.md` | 🔄 In progress |
-| 2 | **UI Animations** | 11 of 11 | `docs/superpowers/plans/2026-03-28-ui-animations.md` | 🔴 Not started |
+| 2 | **UI Animations** | 0 of 11 | `docs/superpowers/plans/2026-03-28-ui-animations.md` | ✅ Complete (2026-03-30) |
 | 3 | **Help System** | 15 of 15 | `docs/superpowers/plans/2026-03-28-help-system.md` | 🔴 Not started |
 | 4 | **Migration Tool** | 17 of 17 | `docs/superpowers/plans/2026-03-28-migration-tool.md` | 🔴 Not started |
 | 5 | **Recording System** | 8 of 8 | `docs/superpowers/plans/2026-03-28-recording-system.md` | 🔴 Not started |
@@ -401,12 +401,12 @@ Plan: `docs/superpowers/plans/2026-03-28-accounting-engine.md` (17 tasks)
 | 9 | Quote, PO, opening balance, intercompany — atomic | ✅ Done |
 | 10 | VAT engine service — explicit UK rules | ✅ Done |
 | 11 | Cron monitoring — `cron_runs` table, Telegram alert on failure | ✅ Done |
-| 12 | Team roles — `getMemberRole`, `requireGLRole` permission checks | 🔴 |
-| 13 | Accrual journals — draft mode, balance warning, auto-reversal cron | 🔴 |
-| 14 | Prepayment tracking — Dr Prepayments 1300, monthly release cron | 🔴 |
-| 15 | GL integrity diagnostic in health report | 🔴 |
-| 16 | Journal UI — Reverse button, Draft badge + Post action | 🔴 |
-| 17 | Build & deploy | 🔴 |
+| 12 | Team roles — `getMemberRole`, `requireGLRole` permission checks | ✅ Done |
+| 13 | Accrual journals — draft mode, balance warning, auto-reversal cron | ✅ Done |
+| 14 | Prepayment tracking — Dr Prepayments 1300, monthly release cron | ✅ Done |
+| 15 | GL integrity diagnostic in health report | ✅ Done |
+| 16 | Journal UI — Reverse button, Draft badge + Post action | ✅ Done |
+| 17 | Build & deploy | ✅ Done |
 
 ---
 
@@ -418,7 +418,7 @@ Plan: `docs/superpowers/plans/2026-03-28-accounting-engine.md` (17 tasks)
 | Workstream | Spec | Plan | Status |
 |------------|------|------|--------|
 | Accounting Engine | `2026-03-26-accounting-engine-design.md` | `2026-03-28-accounting-engine.md` | 🔄 In progress (tasks 1–4 done) |
-| UI Animations (Framer Motion) | — | `2026-03-28-ui-animations.md` | 🔴 Not started |
+| UI Animations (Framer Motion) | — | `2026-03-28-ui-animations.md` | ✅ Complete (2026-03-30) |
 | Help System (apps/26help) | — | `2026-03-28-help-system.md` | 🔴 Not started |
 | Migration Tool (Xero/QB import) | `2026-03-26-migration-tool-design.md` | `2026-03-28-migration-tool.md` | 🔴 Not started |
 | Recording System (screen capture) | `2026-03-26-recording-system-design.md` | `2026-03-28-recording-system.md` | 🔴 Not started |
@@ -543,6 +543,10 @@ Replaces all CSS-only transitions in `@relentify/ui` with a physically-natural F
 ### Scope: `packages/ui` only
 
 All changes are in `packages/ui` (and 22accounting layout). No other app needs changes — the animation system is inherited by all apps that use `@relentify/ui`.
+
+**Status: ✅ Complete (2026-03-30)** — 48/48 MCP tests pass after fix.
+
+**Critical fix applied:** `Card.tsx` and `Progress.tsx` needed `'use client'` added — any component that imports from `framer-motion` must be a client component or Next.js throws `createMotionComponent() from the server`.
 
 ### Key technical decisions
 

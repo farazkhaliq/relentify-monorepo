@@ -22,6 +22,7 @@ export async function createInvoice(data: {
   issueDate?: string; dueDate: string; taxRate: number; paymentTerms?: string;
   notes?: string; terms?: string; currency: string;
   items: Array<{ description: string; quantity: number; unitPrice: number; taxRate: number }>;
+  skipGLPosting?: boolean; // set true during migration — GL handled by opening balances import
 }) {
   // generateInvoiceNumber uses nextval — must run outside the transaction
   const num = await generateInvoiceNumber();
@@ -59,22 +60,24 @@ export async function createInvoice(data: {
     }
 
     // GL posting is inside the transaction — failure rolls back the invoice too
-    const glLines = await buildInvoiceCreationLines(
-      data.entityId,
-      parseFloat(total.toFixed(2)),
-      parseFloat(subtotal.toFixed(2)),
-      parseFloat(taxAmount.toFixed(2))
-    );
-    await postJournalEntry({
-      entityId:    data.entityId,
-      userId:      data.userId,
-      date:        data.issueDate || new Date().toISOString().split('T')[0],
-      reference:   num,
-      description: `Invoice to ${data.clientName}`,
-      sourceType:  'invoice',
-      sourceId:    inv.id,
-      lines:       glLines,
-    }, client);
+    if (!data.skipGLPosting) {
+      const glLines = await buildInvoiceCreationLines(
+        data.entityId,
+        parseFloat(total.toFixed(2)),
+        parseFloat(subtotal.toFixed(2)),
+        parseFloat(taxAmount.toFixed(2))
+      );
+      await postJournalEntry({
+        entityId:    data.entityId,
+        userId:      data.userId,
+        date:        data.issueDate || new Date().toISOString().split('T')[0],
+        reference:   num,
+        description: `Invoice to ${data.clientName}`,
+        sourceType:  'invoice',
+        sourceId:    inv.id,
+        lines:       glLines,
+      }, client);
+    }
 
     return inv;
   });

@@ -1,0 +1,3 @@
+AccountCode,Name,Type,TaxType
+1100,Trade Debtors,CURRENT,NONE
+4000,Sales Revenue,REVENUE,OUTPUT

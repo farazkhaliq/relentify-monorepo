@@ -14,8 +14,10 @@ import {
   DropdownItem,
   DropdownSeparator,
   Logo,
+  MotionProvider,
 } from '@relentify/ui';
 import AccountantBanner from '@/app/components/AccountantBanner';
+import { PageTransition } from '@/src/components/layout/PageTransition';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -75,6 +77,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const isReportsActive = reportsItems.some(i => isActive(i.href));
 
   return (
+    <MotionProvider>
     <NavShell
       topbar={
           <TopBar
@@ -114,6 +117,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   items={reportsItems}
                   active={isReportsActive}
                 />
+                <TopBarLink href="/dashboard/migrate" active={isActive('/dashboard/migrate')}>
+                  Migrate
+                </TopBarLink>
                 <TopBarLink href="/dashboard/settings" active={isActive('/dashboard/settings')} aria-label="Settings">
                   <Settings size={14} />
                 </TopBarLink>
@@ -145,8 +151,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             actorId={accountantCtx?.actorId || ''}
             isAccountantAccess={!!accountantCtx?.isAccountantAccess}
           />
-          {children}
+          <PageTransition>
+            {children}
+          </PageTransition>
         </>
       </NavShell>
+    </MotionProvider>
   );
 }

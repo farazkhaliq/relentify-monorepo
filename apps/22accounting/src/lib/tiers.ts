@@ -37,6 +37,7 @@ export type Feature =
   | 'multi_entity_reporting'
   | 'cashflow_forecast'
   | 'excel_import'
+  | 'platform_migration'
   | 'audit_log'
   | 'payroll'
   | 'project_tracking'
@@ -86,6 +87,7 @@ const FEATURE_ACCESS: Record<Feature, Tier[]> = {
   multi_entity_reporting: ['corporate'],
   cashflow_forecast:      ['corporate'],
   excel_import:           ['small_business', 'medium_business', 'corporate'],
+  platform_migration:     ['small_business', 'medium_business', 'corporate'],
   audit_log:              ['corporate'],
 
   // Add-ons
