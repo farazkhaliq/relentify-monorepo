@@ -386,7 +386,7 @@ Plan: `docs/superpowers/plans/2026-03-28-accounting-engine.md` (17 tasks)
 | 1 | **Accounting Engine** | 13 of 17 (tasks 5–17) | `docs/superpowers/plans/2026-03-28-accounting-engine.md` | 🔄 In progress |
 | 2 | **UI Animations** | 0 of 11 | `docs/superpowers/plans/2026-03-28-ui-animations.md` | ✅ Complete (2026-03-30) |
 | 3 | **Help System** | 15 of 15 | `docs/superpowers/plans/2026-03-28-help-system.md` | 🔴 Not started |
-| 4 | **Migration Tool** | 17 of 17 | `docs/superpowers/plans/2026-03-28-migration-tool.md` | 🔴 Not started |
+| 4 | **Migration Tool** | 0 of 17 | `docs/superpowers/plans/2026-03-28-migration-tool.md` | ✅ Complete (2026-03-30) |
 | 5 | **Recording System** | 8 of 8 | `docs/superpowers/plans/2026-03-28-recording-system.md` | 🔴 Not started |
 | 6 | **Developer API** | 15 of 15 | `docs/superpowers/plans/2026-03-28-developer-api.md` | 🔴 Not started |
 
@@ -420,7 +420,7 @@ Plan: `docs/superpowers/plans/2026-03-28-accounting-engine.md` (17 tasks)
 | Accounting Engine | `2026-03-26-accounting-engine-design.md` | `2026-03-28-accounting-engine.md` | 🔄 In progress (tasks 1–4 done) |
 | UI Animations (Framer Motion) | — | `2026-03-28-ui-animations.md` | ✅ Complete (2026-03-30) |
 | Help System (apps/26help) | — | `2026-03-28-help-system.md` | 🔴 Not started |
-| Migration Tool (Xero/QB import) | `2026-03-26-migration-tool-design.md` | `2026-03-28-migration-tool.md` | 🔴 Not started |
+| Migration Tool (Xero/QB import) | `2026-03-26-migration-tool-design.md` | `2026-03-28-migration-tool.md` | ✅ Complete (2026-03-30) |
 | Recording System (screen capture) | `2026-03-26-recording-system-design.md` | `2026-03-28-recording-system.md` | 🔴 Not started |
 | Developer API + Webhooks | `2026-03-26-developer-api-design.md` | `2026-03-28-developer-api.md` | 🔴 Not started |
 
