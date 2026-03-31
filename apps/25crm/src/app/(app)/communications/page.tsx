@@ -1,13 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from "react";
-import { collection, query, where, orderBy, Timestamp, doc, limit } from 'firebase/firestore';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Mail, Phone, MessageSquare, Archive, Trash2, PlusSquare, Link as LinkIcon, User, Home, FileText, Lightbulb, Reply, ReplyAll, Forward, MailOpen, Sparkles } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@relentify/ui";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@relentify/ui";
-import { useCollection, useFirestore, useMemoFirebase, useDoc, useAuth, updateDocumentNonBlocking } from '@/firebase';
+import { useApiCollection, useApiDoc, apiUpdate } from '@/hooks/use-api';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { Skeleton } from "@relentify/ui";
 import { Separator } from "@relentify/ui";
@@ -19,7 +18,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Badge } from "@relentify/ui";
 import Link from "next/link";
 import { AddTaskDialog } from "@/components/add-task-dialog";
-import { LinkEntityDialog } from "@/components/link-entity-dialog";
 import { useSearchParams } from "next/navigation";
 import { LogCommunicationDialog } from "@/components/log-communication-dialog";
 import { Table, TableBody, TableCell, TableHeader, TableRow, TableHead } from "@relentify/ui";
@@ -31,21 +29,18 @@ interface Communication {
     id: string;
     subject?: string;
     body?: string;
-    fromAddress?: string;
-    toAddresses?: string[];
+    contact_id?: string;
+    contact_name?: string;
     direction: 'Inbound' | 'Outbound';
-    timestamp: any; // Can be Timestamp or string
+    sent_at?: string;
     status: 'Sent' | 'Received' | 'Read' | 'Archived' | 'Trashed';
-    communicationType: 'Email' | 'Call' | 'WhatsApp';
-    relatedContactIds?: string[];
-    relatedPropertyId?: string;
-    relatedTenancyId?: string;
+    type: 'Email' | 'Call' | 'WhatsApp';
+    related_property_id?: string;
+    related_tenancy_id?: string;
 }
 
 export default function CommunicationsPage() {
-  const firestore = useFirestore();
   const { toast } = useToast();
-  const auth = useAuth();
   const searchParams = useSearchParams();
   const emailId = searchParams.get('emailId');
 
@@ -63,71 +58,53 @@ export default function CommunicationsPage() {
   const organizationId = currentUserProfile?.organizationId;
 
   // --- Data Fetching for all communication types ---
-  const emailsQuery = useMemoFirebase(() => (firestore && organizationId) ? query(collection(firestore, `organizations/${organizationId}/communications`), where('communicationType', '==', 'Email'), where('status', 'in', ['Sent', 'Received', 'Read']), orderBy('timestamp', 'desc')) : null, [firestore, organizationId]);
-  const { data: emails, isLoading: loadingEmails } = useCollection<Communication>(emailsQuery);
-  
-  const callsQuery = useMemoFirebase(() => (firestore && organizationId) ? query(collection(firestore, `organizations/${organizationId}/communications`), where('communicationType', '==', 'Call'), orderBy('timestamp', 'desc')) : null, [firestore, organizationId]);
-  const { data: calls, isLoading: loadingCalls } = useCollection<Communication>(callsQuery);
+  const { data: emails, isLoading: loadingEmails } = useApiCollection<Communication>('/api/communications?type=Email');
+  const { data: calls, isLoading: loadingCalls } = useApiCollection<Communication>('/api/communications?type=Call');
+  const { data: whatsappMessages, isLoading: loadingWhatsapp } = useApiCollection<Communication>('/api/communications?type=WhatsApp');
 
-  const whatsappQuery = useMemoFirebase(() => (firestore && organizationId) ? query(collection(firestore, `organizations/${organizationId}/communications`), where('communicationType', '==', 'WhatsApp'), orderBy('timestamp', 'desc')) : null, [firestore, organizationId]);
-  const { data: whatsappMessages, isLoading: loadingWhatsapp } = useCollection<Communication>(whatsappQuery);
-  
-  // --- Data for linked entities and suggestions ---
-  const allPropertiesQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/properties`) : null, [firestore, organizationId]);
-  const { data: allProperties, isLoading: loadingAllProperties } = useCollection<any>(allPropertiesQuery);
-  
-  const linkedContactsQuery = useMemoFirebase(() => {
-    if (!firestore || !organizationId || !selectedEmail?.relatedContactIds || selectedEmail.relatedContactIds.length === 0) return null;
-    return query(collection(firestore, `organizations/${organizationId}/contacts`), where('__name__', 'in', selectedEmail.relatedContactIds));
-  }, [firestore, organizationId, selectedEmail?.relatedContactIds]);
-  const { data: linkedContacts, isLoading: isLoadingLinkedContacts } = useCollection<any>(linkedContactsQuery);
-  
-  const allContactsQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/contacts`) : null, [firestore, organizationId]);
-  const { data: allContacts, isLoading: loadingAllContacts } = useCollection<any>(allContactsQuery);
-  const contactNameMap = React.useMemo(() => new Map(allContacts?.map(c => [c.id, `${c.firstName} ${c.lastName}`]) || []), [allContacts]);
+  // --- Data for linked entities ---
+  const { data: allContacts, isLoading: loadingAllContacts } = useApiCollection<any>('/api/contacts');
+  const { data: allProperties, isLoading: loadingAllProperties } = useApiCollection<any>('/api/properties');
 
-  const linkedPropertyRef = useMemoFirebase(() => {
-    if (!firestore || !organizationId || !selectedEmail?.relatedPropertyId) return null;
-    return doc(firestore, `organizations/${organizationId}/properties`, selectedEmail.relatedPropertyId);
-  }, [firestore, organizationId, selectedEmail?.relatedPropertyId]);
-  const { data: linkedProperty, isLoading: isLoadingLinkedProperty } = useDoc<any>(linkedPropertyRef);
+  const contactNameMap = React.useMemo(() => new Map(allContacts?.map((c: any) => [c.id, `${c.first_name} ${c.last_name}`]) || []), [allContacts]);
 
-  const linkedTenancyRef = useMemoFirebase(() => {
-    if (!firestore || !organizationId || !selectedEmail?.relatedTenancyId) return null;
-    return doc(firestore, `organizations/${organizationId}/tenancies`, selectedEmail.relatedTenancyId);
-  }, [firestore, organizationId, selectedEmail?.relatedTenancyId]);
-  const { data: linkedTenancy, isLoading: isLoadingLinkedTenancy } = useDoc<any>(linkedTenancyRef);
-  
-  const suggestedContactQuery = useMemoFirebase(() => {
-    if (!firestore || !organizationId || !selectedEmail?.fromAddress) return null;
-    if (linkedContacts && linkedContacts.some(c => c.email === selectedEmail.fromAddress)) return null;
-    return query(collection(firestore, `organizations/${organizationId}/contacts`), where('email', '==', selectedEmail.fromAddress), limit(1));
-  }, [firestore, organizationId, selectedEmail?.fromAddress, linkedContacts]);
-  const { data: suggestedContacts, isLoading: isLoadingSuggestedContacts } = useCollection<any>(suggestedContactQuery);
-  const suggestedContact = (suggestedContacts && suggestedContacts.length > 0) ? suggestedContacts[0] : null;
+  // Fetch linked entities for selected email
+  const linkedContact = useMemo(() => {
+    if (!selectedEmail?.contact_id || !allContacts) return null;
+    return allContacts.find((c: any) => c.id === selectedEmail.contact_id) || null;
+  }, [selectedEmail?.contact_id, allContacts]);
+
+  const linkedProperty = useMemo(() => {
+    if (!selectedEmail?.related_property_id || !allProperties) return null;
+    return allProperties.find((p: any) => p.id === selectedEmail.related_property_id) || null;
+  }, [selectedEmail?.related_property_id, allProperties]);
+
+  const { data: linkedTenancy } = useApiDoc<any>(
+    selectedEmail?.related_tenancy_id ? `/api/tenancies/${selectedEmail.related_tenancy_id}` : null
+  );
 
   const suggestedPropertyFromAI = useMemo(() => {
     if (!aiSuggestions?.potentialPropertyName || !allProperties) return null;
     const searchString = aiSuggestions.potentialPropertyName.toLowerCase();
-    return allProperties.find(p => p.addressLine1.toLowerCase().includes(searchString) || searchString.includes(p.addressLine1.toLowerCase()));
+    return allProperties.find((p: any) => p.address?.toLowerCase().includes(searchString) || searchString.includes(p.address?.toLowerCase()));
   }, [aiSuggestions, allProperties]);
 
 
   const getTimestampAsDate = (timestamp: any): Date => {
     if (!timestamp) return new Date();
-    if (timestamp instanceof Timestamp) { return timestamp.toDate(); }
     if (typeof timestamp === 'string') { return new Date(timestamp); }
+    if (timestamp instanceof Date) { return timestamp; }
     return new Date();
   };
-  
+
   useEffect(() => {
     if (!emails || emails.length === 0) {
         setSelectedEmail(null);
         return;
     }
-    
+
     const emailToSelect = emailId ? emails.find(e => e.id === emailId) : emails[0];
-    
+
     if (emailToSelect) {
         setSelectedEmail(emailToSelect);
     } else if (!selectedEmail || !emails.find(e => e.id === selectedEmail.id)) {
@@ -137,9 +114,8 @@ export default function CommunicationsPage() {
 
   useEffect(() => {
     if (selectedEmail) {
-        if (selectedEmail.status === 'Received' && firestore && auth && organizationId) {
-            const emailRef = doc(firestore, `organizations/${organizationId}/communications`, selectedEmail.id);
-            updateDocumentNonBlocking(firestore, auth, organizationId, emailRef, { status: 'Read' }, selectedEmail.subject);
+        if (selectedEmail.status === 'Received') {
+            apiUpdate(`/api/communications/${selectedEmail.id}`, { status: 'Read' }).catch(() => {});
         }
 
         if (organization?.aiEnabled) {
@@ -161,36 +137,40 @@ export default function CommunicationsPage() {
             runAnalysis();
         }
     }
-  }, [selectedEmail, firestore, auth, organizationId, organization?.aiEnabled]);
+  }, [selectedEmail?.id, organization?.aiEnabled]);
 
 
-  const handleUpdateStatus = (status: 'Archived' | 'Trashed') => {
-    if (!selectedEmail || !firestore || !auth || !organizationId) return;
-    const emailRef = doc(firestore, `organizations/${organizationId}/communications`, selectedEmail.id);
-    updateDocumentNonBlocking(firestore, auth, organizationId, emailRef, { status: status }, selectedEmail.subject);
-    toast({ title: `Email moved to ${status === 'Trashed' ? 'trash' : 'archive'}` });
+  const handleUpdateStatus = async (status: 'Archived' | 'Trashed') => {
+    if (!selectedEmail) return;
+    try {
+      await apiUpdate(`/api/communications/${selectedEmail.id}`, { status });
+      toast({ title: `Email moved to ${status === 'Trashed' ? 'trash' : 'archive'}` });
+    } catch {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to update status.' });
+    }
   }
-  
-  const handleMarkUnread = () => {
-    if (!selectedEmail || !firestore || !auth || !organizationId || !emails) return;
+
+  const handleMarkUnread = async () => {
+    if (!selectedEmail || !emails) return;
 
     const currentIndex = emails.findIndex(e => e.id === selectedEmail.id);
     const nextIndex = currentIndex !== -1 && currentIndex < emails.length - 1 ? currentIndex + 1 : currentIndex - 1;
     const nextEmail = emails[nextIndex] || null;
 
-    const emailRef = doc(firestore, `organizations/${organizationId}/communications`, selectedEmail.id);
-    updateDocumentNonBlocking(firestore, auth, organizationId, emailRef, { status: 'Received' }, selectedEmail.subject);
-    
-    toast({ title: "Marked as unread" });
-    setSelectedEmail(nextEmail);
+    try {
+      await apiUpdate(`/api/communications/${selectedEmail.id}`, { status: 'Received' });
+      toast({ title: "Marked as unread" });
+      setSelectedEmail(nextEmail);
+    } catch {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to mark as unread.' });
+    }
   }
 
   const handleCreateTask = () => {
     if (!selectedEmail) return;
     setAddTaskDefaults({
       title: `Follow up on: ${selectedEmail.subject}`,
-      description: `Task related to email from ${selectedEmail.fromAddress}.\n\n--- Email Body ---\n${selectedEmail.body}`,
-      relatedCommunicationId: selectedEmail.id,
+      description: `Task related to email.\n\n--- Email Body ---\n${selectedEmail.body}`,
     });
     setAddTaskOpen(true);
   };
@@ -200,33 +180,37 @@ export default function CommunicationsPage() {
     setAddTaskDefaults({
       title: `Maintenance: ${aiSuggestions.summary || selectedEmail.subject}`,
       description: `Task automatically suggested from email.\n\n--- Email Body ---\n${selectedEmail.body}`,
-      relatedCommunicationId: selectedEmail.id,
       relatedPropertyId: suggestedPropertyFromAI?.id,
       priority: 'Medium',
     });
     setAddTaskOpen(true);
   };
-  
-  const handleLinkContact = (contactId: string) => {
-    if (!selectedEmail || !firestore || !auth || !organizationId) return;
-    const communicationRef = doc(firestore, `organizations/${organizationId}/communications`, selectedEmail.id);
-    const updatedContactIds = Array.from(new Set([...(selectedEmail.relatedContactIds || []), contactId]));
-    updateDocumentNonBlocking(firestore, auth, organizationId, communicationRef, { relatedContactIds: updatedContactIds }, selectedEmail.subject);
-    toast({ title: 'Contact Linked', description: 'The contact has been successfully linked to this email.' });
+
+  const handleLinkContact = async (contactId: string) => {
+    if (!selectedEmail) return;
+    try {
+      await apiUpdate(`/api/communications/${selectedEmail.id}`, { contact_id: contactId });
+      toast({ title: 'Contact Linked', description: 'The contact has been successfully linked to this email.' });
+    } catch {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to link contact.' });
+    }
   }
 
-  const handleLinkProperty = (propertyId: string) => {
-    if (!selectedEmail || !firestore || !auth || !organizationId) return;
-    const communicationRef = doc(firestore, `organizations/${organizationId}/communications`, selectedEmail.id);
-    updateDocumentNonBlocking(firestore, auth, organizationId, communicationRef, { relatedPropertyId: propertyId }, selectedEmail.subject);
-    toast({ title: 'Property Linked', description: 'The property has been successfully linked to this email.' });
+  const handleLinkProperty = async (propertyId: string) => {
+    if (!selectedEmail) return;
+    try {
+      await apiUpdate(`/api/communications/${selectedEmail.id}`, { related_property_id: propertyId });
+      toast({ title: 'Property Linked', description: 'The property has been successfully linked to this email.' });
+    } catch {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to link property.' });
+    }
   }
 
   const handleLogCommClick = (type: 'Call' | 'WhatsApp') => {
     setCommTypeToLog(type);
     setLogCommDialogOpen(true);
   };
-  
+
   const handleDialogClose = (isOpen: boolean) => {
     if (!isOpen) {
         setLogCommDialogOpen(false);
@@ -234,13 +218,13 @@ export default function CommunicationsPage() {
     }
   }
 
-  const isRelatedLoading = isLoadingLinkedContacts || isLoadingLinkedProperty || isLoadingLinkedTenancy || isLoadingSuggestedContacts || (organization?.aiEnabled && isAnalyzing);
+  const isRelatedLoading = loadingAllContacts || loadingAllProperties || (organization?.aiEnabled && isAnalyzing);
   const isLoading = loadingEmails || loadingCurrentUser || loadingCalls || loadingWhatsapp || loadingAllContacts || loadingAllProperties || isLoadingOrg;
-  
+
   return (
     <>
     <AddTaskDialog open={isAddTaskOpen} onOpenChange={setAddTaskOpen} defaultValues={addTaskDefaults} />
-    {organizationId && <LogCommunicationDialog 
+    {organizationId && <LogCommunicationDialog
         open={isLogCommDialogOpen || !!editingLog}
         onOpenChange={handleDialogClose}
         communicationType={commTypeToLog}
@@ -281,8 +265,8 @@ export default function CommunicationsPage() {
                         {email.status === 'Received' && (<div className="h-2.5 w-2.5 shrink-0 rounded-full bg-[var(--theme-accent)] mt-1.5" />)}
                         <div className={cn("flex-1 grid gap-0.5", email.status !== 'Received' && 'pl-[14px]')}>
                             <div className="flex items-center justify-between">
-                                <p className={cn("font-semibold text-sm truncate", email.status === 'Received' && "font-bold")}>{email.fromAddress}</p>
-                                <p className="text-xs text-muted-foreground">{formatDistanceToNow(getTimestampAsDate(email.timestamp), { addSuffix: true })}</p>
+                                <p className={cn("font-semibold text-sm truncate", email.status === 'Received' && "font-bold")}>{email.contact_name || 'Unknown'}</p>
+                                <p className="text-xs text-muted-foreground">{formatDistanceToNow(getTimestampAsDate(email.sent_at), { addSuffix: true })}</p>
                             </div>
                             <p className={cn("font-medium text-sm truncate", email.status === 'Received' && "font-bold")}>{email.subject}</p>
                             <p className="text-xs text-muted-foreground truncate">{email.body}</p>
@@ -312,7 +296,6 @@ export default function CommunicationsPage() {
                                 <TooltipProvider>
                                     <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={handleMarkUnread} disabled={!selectedEmail || isLoading}><MailOpen className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Mark as unread</TooltipContent></Tooltip>
                                     <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={handleCreateTask} disabled={!selectedEmail || isLoading}><PlusSquare className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Create Task</TooltipContent></Tooltip>
-                                    <Tooltip><TooltipTrigger asChild>{selectedEmail ? <LinkEntityDialog communication={selectedEmail} /> : <Button variant="ghost" size="icon" disabled><LinkIcon className="h-4 w-4" /></Button>}</TooltipTrigger><TooltipContent>Link to Entity</TooltipContent></Tooltip>
                                     <Separator orientation="vertical" className="h-6 mx-1" />
                                     <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => handleUpdateStatus('Archived')} disabled={!selectedEmail || isLoading}><Archive className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Archive</TooltipContent></Tooltip>
                                     <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" onClick={() => handleUpdateStatus('Trashed')} disabled={!selectedEmail || isLoading}><Trash2 className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Delete</TooltipContent></Tooltip>
@@ -321,14 +304,14 @@ export default function CommunicationsPage() {
                         </div>
                         <Separator className="my-2" />
                         <div className="flex items-center gap-3 mt-4">
-                            {isLoading ? <Skeleton className="h-10 w-10 rounded-full" /> : <Avatar><AvatarFallback>{selectedEmail?.fromAddress?.substring(0, 2).toUpperCase()}</AvatarFallback></Avatar>}
+                            {isLoading ? <Skeleton className="h-10 w-10 rounded-full" /> : <Avatar><AvatarFallback>{(selectedEmail?.contact_name || 'U').substring(0, 2).toUpperCase()}</AvatarFallback></Avatar>}
                             <div className="grid gap-0.5">
-                                {isLoading ? (<><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-48" /></>) : (<><p className="font-semibold">{selectedEmail?.fromAddress}</p><p className="text-xs text-muted-foreground">To: {selectedEmail?.toAddresses?.join(', ')}</p></>)}
+                                {isLoading ? (<><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-48" /></>) : (<><p className="font-semibold">{selectedEmail?.contact_name || 'Unknown'}</p><p className="text-xs text-muted-foreground">{selectedEmail?.direction}</p></>)}
                             </div>
                         </div>
                         <div className="mt-4">
                             {isLoading ? <Skeleton className="h-6 w-3/4" /> : <h2 className="text-xl font-bold">{selectedEmail?.subject}</h2>}
-                            {isLoading ? <Skeleton className="h-4 w-24 mt-1" /> : <p className="text-sm text-muted-foreground">{format(getTimestampAsDate(selectedEmail?.timestamp), 'PPP p')}</p>}
+                            {isLoading ? <Skeleton className="h-4 w-24 mt-1" /> : <p className="text-sm text-muted-foreground">{format(getTimestampAsDate(selectedEmail?.sent_at), 'PPP p')}</p>}
                         </div>
 
                         {organization?.aiEnabled && aiSuggestions && aiSuggestions.suggestedAction !== 'None' && (
@@ -360,25 +343,23 @@ export default function CommunicationsPage() {
                                 </div>
                             </div>
                         )}
-                        
+
                         <Separator className="mt-4" />
                          <div className="flex flex-wrap items-center gap-2 mt-4">
                            {isRelatedLoading && organization?.aiEnabled && (<Badge variant="outline" className="font-normal border-dashed"><Sparkles className="h-3 w-3 mr-1.5 text-[var(--theme-warning)] animate-spin" />Analyzing...</Badge>)}
-                           {linkedContacts?.map(contact => (<Badge key={contact.id} variant="zinc" className="font-normal"><User className="h-3 w-3 mr-1.5" /><Link href={`/contacts/${contact.id}`} className="hover:underline">{contact.firstName} {contact.lastName}</Link></Badge>))}
-                           {linkedProperty && (<Badge variant="zinc" className="font-normal"><Home className="h-3 w-3 mr-1.5" /><Link href={`/properties/${linkedProperty.id}`} className="hover:underline">{linkedProperty.addressLine1}</Link></Badge>)}
+                           {linkedContact && (<Badge variant="zinc" className="font-normal"><User className="h-3 w-3 mr-1.5" /><Link href={`/contacts/${linkedContact.id}`} className="hover:underline">{linkedContact.first_name} {linkedContact.last_name}</Link></Badge>)}
+                           {linkedProperty && (<Badge variant="zinc" className="font-normal"><Home className="h-3 w-3 mr-1.5" /><Link href={`/properties/${linkedProperty.id}`} className="hover:underline">{linkedProperty.address}</Link></Badge>)}
                            {linkedTenancy && (<Badge variant="zinc" className="font-normal"><FileText className="h-3 w-3 mr-1.5" /><Link href={`/tenancies/${linkedTenancy.id}`} className="hover:underline">Tenancy Agreement</Link></Badge>)}
-                           
+
                            {organization?.aiEnabled && (
                             <>
-                                {suggestedContact && (<Badge variant="outline" className="font-normal border-dashed items-center"><Lightbulb className="h-3 w-3 mr-1.5 text-[var(--theme-warning)]" /><span>Suggestion: Link to {suggestedContact.firstName} {suggestedContact.lastName}</span><Button size="xs" variant="ghost" className="ml-2 h-auto px-1 py-0" onClick={() => handleLinkContact(suggestedContact.id)}>Link</Button></Badge>)}
-                                
                                 {suggestedPropertyFromAI && !linkedProperty && (
-                                        <Badge variant="outline" className="font-normal border-dashed items-center"><Lightbulb className="h-3 w-3 mr-1.5 text-[var(--theme-warning)]" /><span>AI Suggestion: Link to {suggestedPropertyFromAI.addressLine1}</span><Button size="xs" variant="ghost" className="ml-2 h-auto px-1 py-0" onClick={() => handleLinkProperty(suggestedPropertyFromAI.id)}>Link</Button></Badge>
+                                        <Badge variant="outline" className="font-normal border-dashed items-center"><Lightbulb className="h-3 w-3 mr-1.5 text-[var(--theme-warning)]" /><span>AI Suggestion: Link to {suggestedPropertyFromAI.address}</span><Button size="xs" variant="ghost" className="ml-2 h-auto px-1 py-0" onClick={() => handleLinkProperty(suggestedPropertyFromAI.id)}>Link</Button></Badge>
                                 )}
                             </>
                            )}
 
-                           {!isRelatedLoading && !linkedContacts?.length && !linkedProperty && !linkedTenancy && !suggestedContact && (<span className="text-sm text-muted-foreground">Not linked to any entities.</span>)}
+                           {!isRelatedLoading && !linkedContact && !linkedProperty && !linkedTenancy && (<span className="text-sm text-muted-foreground">Not linked to any entities.</span>)}
                         </div>
                     </CardHeader>
                     <CardContent className="p-6 flex-1 overflow-y-auto">
@@ -395,7 +376,7 @@ export default function CommunicationsPage() {
             </Card>
           </div>
         </TabsContent>
-        
+
         <TabsContent value="calls">
             <Card>
                 <CardHeader className="flex-row items-center justify-between">
@@ -407,15 +388,15 @@ export default function CommunicationsPage() {
                 </CardHeader>
                 <CardContent>
                    <Table>
-                    <TableHeader><TableRow><TableHead>Contact(s)</TableHead><TableHead>Summary</TableHead><TableHead>Direction</TableHead><TableHead className="text-right">Date</TableHead></TableRow></TableHeader>
+                    <TableHeader><TableRow><TableHead>Contact</TableHead><TableHead>Summary</TableHead><TableHead>Direction</TableHead><TableHead className="text-right">Date</TableHead></TableRow></TableHeader>
                     <TableBody>
                         {isLoading ? Array.from({length: 3}).map((_, i) => <TableRow key={i}><TableCell><Skeleton className="h-5 w-24" /></TableCell><TableCell><Skeleton className="h-5 w-48" /></TableCell><TableCell><Skeleton className="h-6 w-20" /></TableCell><TableCell><Skeleton className="h-5 w-24 ml-auto" /></TableCell></TableRow>) :
                         calls && calls.length > 0 ? calls.map(call => (
-                            <TableRow key={call.id} className="cursor-pointer" onClick={() => setEditingLog(call)}>
-                                <TableCell>{call.relatedContactIds?.map(id => contactNameMap.get(id)).join(', ') || 'N/A'}</TableCell>
+                            <TableRow key={call.id} className="cursor-pointer" onClick={() => { setCommTypeToLog('Call'); setEditingLog(call); }}>
+                                <TableCell>{call.contact_name || contactNameMap.get(call.contact_id || '') || 'N/A'}</TableCell>
                                 <TableCell className="font-medium">{call.subject || 'No Subject'}</TableCell>
                                 <TableCell><Badge variant={call.direction === 'Inbound' ? 'secondary' : 'default'}>{call.direction}</Badge></TableCell>
-                                <TableCell className="text-right text-sm text-muted-foreground">{formatDistanceToNow(getTimestampAsDate(call.timestamp), { addSuffix: true })}</TableCell>
+                                <TableCell className="text-right text-sm text-muted-foreground">{formatDistanceToNow(getTimestampAsDate(call.sent_at), { addSuffix: true })}</TableCell>
                             </TableRow>
                         )) : <TableRow><TableCell colSpan={4} className="text-center h-24">No calls logged.</TableCell></TableRow>}
                     </TableBody>
@@ -434,15 +415,15 @@ export default function CommunicationsPage() {
                 </CardHeader>
                 <CardContent>
                    <Table>
-                    <TableHeader><TableRow><TableHead>Contact(s)</TableHead><TableHead>Summary</TableHead><TableHead>Direction</TableHead><TableHead className="text-right">Date</TableHead></TableRow></TableHeader>
+                    <TableHeader><TableRow><TableHead>Contact</TableHead><TableHead>Summary</TableHead><TableHead>Direction</TableHead><TableHead className="text-right">Date</TableHead></TableRow></TableHeader>
                     <TableBody>
                         {isLoading ? Array.from({length: 3}).map((_, i) => <TableRow key={i}><TableCell><Skeleton className="h-5 w-24" /></TableCell><TableCell><Skeleton className="h-5 w-48" /></TableCell><TableCell><Skeleton className="h-6 w-20" /></TableCell><TableCell><Skeleton className="h-5 w-24 ml-auto" /></TableCell></TableRow>) :
                         whatsappMessages && whatsappMessages.length > 0 ? whatsappMessages.map(msg => (
-                            <TableRow key={msg.id} className="cursor-pointer" onClick={() => setEditingLog(msg)}>
-                                <TableCell>{msg.relatedContactIds?.map(id => contactNameMap.get(id)).join(', ') || 'N/A'}</TableCell>
+                            <TableRow key={msg.id} className="cursor-pointer" onClick={() => { setCommTypeToLog('WhatsApp'); setEditingLog(msg); }}>
+                                <TableCell>{msg.contact_name || contactNameMap.get(msg.contact_id || '') || 'N/A'}</TableCell>
                                 <TableCell className="font-medium">{msg.subject || 'No Subject'}</TableCell>
                                 <TableCell><Badge variant={msg.direction === 'Inbound' ? 'secondary' : 'default'}>{msg.direction}</Badge></TableCell>
-                                <TableCell className="text-right text-sm text-muted-foreground">{formatDistanceToNow(getTimestampAsDate(msg.timestamp), { addSuffix: true })}</TableCell>
+                                <TableCell className="text-right text-sm text-muted-foreground">{formatDistanceToNow(getTimestampAsDate(msg.sent_at), { addSuffix: true })}</TableCell>
                             </TableRow>
                         )) : <TableRow><TableCell colSpan={4} className="text-center h-24">No WhatsApp messages logged.</TableCell></TableRow>}
                     </TableBody>

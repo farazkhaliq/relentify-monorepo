@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, serverTimestamp, doc, Timestamp } from 'firebase/firestore';
 import { CalendarIcon, Phone, MessageSquare, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -43,8 +42,7 @@ import {
 } from '@relentify/ui';
 import { Input } from '@relentify/ui';
 import { Button } from '@relentify/ui';
-import { useCollection, useFirestore, useMemoFirebase, useAuth } from '@/firebase';
-import { addDocumentNonBlocking, deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useApiCollection, apiCreate, apiUpdate, apiDelete } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@relentify/ui';
 import { Popover, PopoverContent, PopoverTrigger } from '@relentify/ui';
@@ -55,7 +53,7 @@ import { Checkbox } from '@relentify/ui';
 import { ScrollArea } from '@relentify/ui';
 
 const logCommunicationSchema = z.object({
-  relatedContactIds: z.array(z.string()).min(1, 'At least one contact must be selected.'),
+  contact_id: z.string().optional(),
   direction: z.enum(['Inbound', 'Outbound']),
   timestamp: z.date({ required_error: "A date is required." }),
   subject: z.string().optional(),
@@ -66,12 +64,12 @@ type LogCommunicationFormValues = z.infer<typeof logCommunicationSchema>;
 
 interface Communication {
     id: string;
-    relatedContactIds?: string[];
+    contact_id?: string;
     direction: 'Inbound' | 'Outbound';
-    timestamp: any;
+    sent_at?: string;
     subject?: string;
     body: string;
-    communicationType: 'Call' | 'WhatsApp';
+    type: 'Call' | 'WhatsApp';
 }
 
 interface LogCommunicationDialogProps {
@@ -83,43 +81,30 @@ interface LogCommunicationDialogProps {
     isAdmin: boolean;
 }
 
-const getTimestampAsDate = (timestamp: any): Date | undefined => {
-  if (!timestamp) return undefined;
-  if (timestamp instanceof Timestamp) { return timestamp.toDate(); }
-  if (typeof timestamp === 'string' || timestamp instanceof Date) { return new Date(timestamp); }
-  return undefined;
-};
-
 export function LogCommunicationDialog({ open, onOpenChange, communicationType, organizationId, communication, isAdmin }: LogCommunicationDialogProps) {
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const firestore = useFirestore();
-  const auth = useAuth();
   const { toast } = useToast();
-  
+
   const isEditMode = !!communication;
 
-  const contactsQuery = useMemoFirebase(() =>
-    (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/contacts`) : null,
-    [firestore, organizationId]
-  );
-  const { data: contacts, isLoading: loadingContacts } = useCollection<any>(contactsQuery);
+  const { data: contacts, isLoading: loadingContacts } = useApiCollection<any>('/api/contacts');
 
   const form = useForm<LogCommunicationFormValues>({
     resolver: zodResolver(logCommunicationSchema),
   });
-  
+
   useEffect(() => {
     if (open) {
         if (isEditMode && communication) {
             form.reset({
                 ...communication,
                 subject: communication.subject || '',
-                relatedContactIds: communication.relatedContactIds || [],
-                timestamp: getTimestampAsDate(communication.timestamp),
+                contact_id: communication.contact_id || '',
+                timestamp: communication.sent_at ? new Date(communication.sent_at) : new Date(),
             });
         } else {
             form.reset({
-                relatedContactIds: [],
+                contact_id: '',
                 direction: 'Outbound',
                 timestamp: new Date(),
                 subject: '',
@@ -129,49 +114,49 @@ export function LogCommunicationDialog({ open, onOpenChange, communicationType, 
     }
   }, [open, communication, isEditMode, form]);
 
-  const commsCollectionRef = useMemoFirebase(() =>
-    (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/communications`) : null, 
-    [firestore, organizationId]
-  );
-
-  const commDocRef = useMemoFirebase(() =>
-    (firestore && organizationId && isEditMode) ? doc(firestore, `organizations/${organizationId}/communications`, communication.id) : null,
-    [firestore, organizationId, communication, isEditMode]
-  );
-
-  function onSubmit(data: LogCommunicationFormValues) {
-    if (!auth || !organizationId) {
+  async function onSubmit(data: LogCommunicationFormValues) {
+    if (!organizationId) {
       toast({ variant: 'destructive', title: 'Error', description: 'Could not log communication.' });
       return;
     }
-    
-    if (isEditMode) {
-        if (!commDocRef) return;
-        const entityName = data.subject || `Log for ${format(data.timestamp, 'PP')}`;
-        updateDocumentNonBlocking(firestore, auth, organizationId, commDocRef, { ...data, updatedAt: serverTimestamp() }, entityName);
-        toast({ title: 'Log Updated', description: 'The communication log has been updated.' });
-    } else {
-        if (!commsCollectionRef) return;
-        const newCommData = {
-          ...data,
-          organizationId,
-          communicationType: communicationType,
-          status: data.direction === 'Inbound' ? 'Received' : 'Sent',
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        };
-        const entityName = data.subject || `${communicationType} Log`;
-        addDocumentNonBlocking(firestore, auth, organizationId, commsCollectionRef, newCommData, entityName);
-        toast({ title: 'Communication Logged', description: `The ${communicationType.toLowerCase()} has been successfully logged.` });
+
+    try {
+      if (isEditMode) {
+          await apiUpdate(`/api/communications/${communication!.id}`, {
+            contact_id: data.contact_id || null,
+            direction: data.direction,
+            subject: data.subject || null,
+            body: data.body,
+            sent_at: data.timestamp.toISOString(),
+          });
+          toast({ title: 'Log Updated', description: 'The communication log has been updated.' });
+      } else {
+          await apiCreate('/api/communications', {
+            type: communicationType,
+            contact_id: data.contact_id || null,
+            direction: data.direction,
+            subject: data.subject || null,
+            body: data.body,
+            status: data.direction === 'Inbound' ? 'Received' : 'Sent',
+            sent_at: data.timestamp.toISOString(),
+          });
+          toast({ title: 'Communication Logged', description: `The ${communicationType.toLowerCase()} has been successfully logged.` });
+      }
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to save communication.' });
     }
     onOpenChange(false);
   }
 
-  const handleDelete = () => {
-    if (!commDocRef || !auth || !organizationId) return;
+  const handleDelete = async () => {
+    if (!communication) return;
 
-    deleteDocumentNonBlocking(firestore, auth, organizationId, commDocRef, communication?.subject);
-    toast({ title: 'Log Deleted', description: 'The communication log has been deleted.' });
+    try {
+      await apiDelete(`/api/communications/${communication.id}`);
+      toast({ title: 'Log Deleted', description: 'The communication log has been deleted.' });
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete communication.' });
+    }
 
     setDeleteDialogOpen(false);
     onOpenChange(false);
@@ -184,7 +169,7 @@ export function LogCommunicationDialog({ open, onOpenChange, communicationType, 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {communicationType === 'Call' ? <Phone className="h-5 w-5" /> : <MessageSquare className="h-5 w-5" />}
-            {isEditMode ? `Edit ${communication?.communicationType} Log` : `Log ${communicationType}`}
+            {isEditMode ? `Edit ${communication?.type} Log` : `Log ${communicationType}`}
           </DialogTitle>
           <DialogDescription>
             {isEditMode ? 'Update the details of this communication.' : 'Record the details of this communication for future reference.'}
@@ -194,26 +179,22 @@ export function LogCommunicationDialog({ open, onOpenChange, communicationType, 
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 py-4">
              <FormField
                 control={form.control}
-                name="relatedContactIds"
-                render={() => (
+                name="contact_id"
+                render={({ field }) => (
                     <FormItem>
-                        <FormLabel>Participants</FormLabel>
-                        {loadingContacts ? <Skeleton className="h-24 w-full" /> : (
-                            <ScrollArea className="h-24 w-full rounded-md border p-4">
-                                {contacts?.map((contact) => (
-                                    <FormField
-                                    key={contact.id}
-                                    control={form.control}
-                                    name="relatedContactIds"
-                                    render={({ field }) => (
-                                        <FormItem key={contact.id} className="flex flex-row items-start space-x-3 space-y-0 py-1">
-                                            <FormControl><Checkbox checked={field.value?.includes(contact.id)} onCheckedChange={(checked) => (checked ? field.onChange([...(field.value || []), contact.id]) : field.onChange(field.value?.filter((value) => value !== contact.id)))}/></FormControl>
-                                            <FormLabel className="font-normal">{contact.firstName} {contact.lastName}</FormLabel>
-                                        </FormItem>
-                                    )}
-                                    />
-                                ))}
-                            </ScrollArea>
+                        <FormLabel>Contact</FormLabel>
+                        {loadingContacts ? <Skeleton className="h-10 w-full" /> : (
+                            <Select onValueChange={field.onChange} value={field.value || ''}>
+                                <FormControl><SelectTrigger><SelectValue placeholder="Select a contact" /></SelectTrigger></FormControl>
+                                <SelectContent>
+                                    <SelectItem value="">None</SelectItem>
+                                    {contacts?.map((contact: any) => (
+                                        <SelectItem key={contact.id} value={contact.id}>
+                                            {contact.first_name} {contact.last_name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         )}
                         <FormMessage />
                     </FormItem>
