@@ -461,6 +461,9 @@ importers:
       '@relentify/utils':
         specifier: workspace:*
         version: link:../../packages/utils
+      bcryptjs:
+        specifier: ^3.0.3
+        version: 3.0.3
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -479,12 +482,18 @@ importers:
       next:
         specifier: 15.5.14
         version: 15.5.14(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      pg:
+        specifier: ^8.20.0
+        version: 8.20.0
       react:
         specifier: ^19.2.4
         version: 19.2.4
       react-dom:
         specifier: ^19.2.4
         version: 19.2.4(react@19.2.4)
+      swr:
+        specifier: ^2.4.1
+        version: 2.4.1(react@19.2.4)
       zod:
         specifier: ^3.25.76
         version: 3.25.76
@@ -492,9 +501,15 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4.2.1
         version: 4.2.1
+      '@types/bcryptjs':
+        specifier: ^3.0.0
+        version: 3.0.0
       '@types/node':
         specifier: ^22.19.15
         version: 22.19.15
+      '@types/pg':
+        specifier: ^8.20.0
+        version: 8.20.0
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.14
@@ -3698,6 +3713,10 @@ packages:
   '@types/bcryptjs@2.4.6':
     resolution: {integrity: sha512-9xlo6R2qDs5uixm0bcIqCeMCE6HiQsIyel9KQySStiyqNl2tnj2mP3DX1Nf56MD6KMenNNlBBsy3LJ7gUEQPXQ==}
 
+  '@types/bcryptjs@3.0.0':
+    resolution: {integrity: sha512-WRZOuCuaz8UcZZE4R5HXTco2goQSI2XxjGY3hbM/xDvwmqFWd4ivooImsMx65OKM6CtNKbnZ5YL+YwAwK7c1dg==}
+    deprecated: This is a stub types definition. bcryptjs provides its own type definitions, so you do not need this installed.
+
   '@types/caseless@0.12.5':
     resolution: {integrity: sha512-hWtVTC2q7hc7xZ/RLbxapMvDMgUnDvKvMOpKal4DrMyfGBUfB1oKaZlIRr6mJL+If3bAP6sV/QneGzF6tJjZDg==}
 
@@ -3805,6 +3824,9 @@ packages:
 
   '@types/pg@8.18.0':
     resolution: {integrity: sha512-gT+oueVQkqnj6ajGJXblFR4iavIXWsGAFCk3dP4Kki5+a9R4NMt0JARdk6s8cUKcfUoqP5dAtDSLU8xYUTFV+Q==}
+
+  '@types/pg@8.20.0':
+    resolution: {integrity: sha512-bEPFOaMAHTEP1EzpvHTbmwR8UsFyHSKsRisLIHVMXnpNefSbGA1bD6CVy+qKjGSqmZqNqBDV2azOBo8TgkcVow==}
 
   '@types/react-dom@19.2.3':
     resolution: {integrity: sha512-jp2L/eY6fn+KgVVQAOqYItbF0VY/YApe5Mz2F0aykSO8gx31bYCZyvSeYxCHKvzHG5eZjc+zyaS5BrBWya2+kQ==}
@@ -4186,6 +4208,10 @@ packages:
 
   bcryptjs@2.4.3:
     resolution: {integrity: sha512-V/Hy/X9Vt7f3BbPJEi8BdVFMByHi+jNXrYkW3huaybV/kQ0KJg0Y6PkEMbn+zeT+i+SiKZ/HMqJGIIt4LZDqNQ==}
+
+  bcryptjs@3.0.3:
+    resolution: {integrity: sha512-GlF5wPWnSa/X5LKM1o0wz0suXIINz1iHRLvTS+sLyi7XPbe5ycmYI3DlZqVGZZtDgl4DmasFg7gOB3JYbphV5g==}
+    hasBin: true
 
   big-integer@1.6.52:
     resolution: {integrity: sha512-QxD8cf2eVqJOOz63z6JIN9BzvVs/dlySa5HGSBH5xtR8dPteIRQnBxxKqkNTiT6jbDTF6jAfrd4oMcND9RGbQg==}
@@ -6770,6 +6796,11 @@ packages:
   supports-color@8.1.1:
     resolution: {integrity: sha512-MpUEN2OodtUzxvKQl72cUF7RQ5EiHsGvSsVG0ia9c5RbWGL2CI4C7EpPS8UTBIplnlzZiNuV56w+FuNxy3ty2Q==}
     engines: {node: '>=10'}
+
+  swr@2.4.1:
+    resolution: {integrity: sha512-2CC6CiKQtEwaEeNiqWTAw9PGykW8SR5zZX8MZk6TeAvEAnVS7Visz8WzphqgtQ8v2xz/4Q5K+j+SeMaKXeeQIA==}
+    peerDependencies:
+      react: ^16.11.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
   symbol-tree@3.2.4:
     resolution: {integrity: sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==}
@@ -10865,6 +10896,10 @@ snapshots:
 
   '@types/bcryptjs@2.4.6': {}
 
+  '@types/bcryptjs@3.0.0':
+    dependencies:
+      bcryptjs: 3.0.3
+
   '@types/caseless@0.12.5':
     optional: true
 
@@ -10977,7 +11012,7 @@ snapshots:
 
   '@types/pg-pool@2.0.7':
     dependencies:
-      '@types/pg': 8.18.0
+      '@types/pg': 8.20.0
 
   '@types/pg@8.15.6':
     dependencies:
@@ -10986,6 +11021,12 @@ snapshots:
       pg-types: 2.2.0
 
   '@types/pg@8.18.0':
+    dependencies:
+      '@types/node': 22.19.15
+      pg-protocol: 1.13.0
+      pg-types: 2.2.0
+
+  '@types/pg@8.20.0':
     dependencies:
       '@types/node': 22.19.15
       pg-protocol: 1.13.0
@@ -11401,6 +11442,8 @@ snapshots:
   baseline-browser-mapping@2.10.7: {}
 
   bcryptjs@2.4.3: {}
+
+  bcryptjs@3.0.3: {}
 
   big-integer@1.6.52: {}
 
@@ -14601,6 +14644,12 @@ snapshots:
   supports-color@8.1.1:
     dependencies:
       has-flag: 4.0.0
+
+  swr@2.4.1(react@19.2.4):
+    dependencies:
+      dequal: 2.0.3
+      react: 19.2.4
+      use-sync-external-store: 1.6.0(react@19.2.4)
 
   symbol-tree@3.2.4: {}
 
