@@ -3,9 +3,6 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@relentify/ui";
 import { formatDistanceToNow } from "date-fns";
-import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { useUserProfile } from "@/hooks/use-user-profile";
-import { collection, query, orderBy, limit, Timestamp, where } from "firebase/firestore";
 import { Skeleton } from "@relentify/ui";
 import { Wrench, UserPlus, ShieldAlert, FileText } from "lucide-react";
 import Link from "next/link";

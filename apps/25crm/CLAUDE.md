@@ -160,7 +160,7 @@ docker logs 25crm --tail 50
 |--------|------|------|---------|
 | GET | `/api/health` | No | Health check |
 | GET | `/api/me` | Yes | Current user info |
-| GET/POST | `/api/contacts` | Yes | List / create contacts |
+| GET/POST | `/api/contacts` | Yes | List (with ?type= filter) / create contacts |
 | GET/POST | `/api/properties` | Yes | List / create properties |
 | GET/PATCH | `/api/properties/[id]` | Yes | Get / update property |
 | GET/POST | `/api/tenancies` | Yes | List / create tenancies |
@@ -178,15 +178,25 @@ docker logs 25crm --tail 50
 | GET/POST | `/api/transactions` | Yes | List (with ?type= and ?contact_id= filters) / create transactions |
 | GET/PATCH/DELETE | `/api/transactions/[id]` | Yes | Get / update / delete transaction (PATCH supports { reconciled } toggle) |
 | GET/POST | `/api/listings` | Yes | List / create listings |
-| GET | `/api/notifications` | Yes | List notifications |
+| GET | `/api/notifications` | Yes | List notifications (filtered by user + entity) |
+| PATCH | `/api/notifications/[id]` | Yes | Mark notification as read |
+| GET | `/api/audit-logs` | Yes | List audit logs (read-only) |
+| GET | `/api/user-profiles` | Yes | List user profiles for entity |
+| PATCH | `/api/user-profiles/[id]` | Yes | Update user profile (role) |
 | GET | `/api/reports/dashboard-stats` | Yes | Dashboard KPI stats |
 | GET | `/api/reports/recent-activity` | Yes | Recent activity feed |
+| GET | `/api/reports/profit-loss` | Yes | P&L report (?from=&to= date range) |
+| GET | `/api/reports/vacancy` | Yes | Vacant properties report |
+| GET | `/api/reports/arrears` | Yes | Tenancies in arrears with tenant names |
+| GET | `/api/reports/maintenance-report` | Yes | Open maintenance summary + chart data |
+| GET | `/api/reports/landlord-statement` | Yes | Landlord financial statement (?landlord_id=&from=&to=) |
 | GET/POST | `/api/bank-accounts` | Yes | List / create bank accounts |
 | GET/PATCH/DELETE | `/api/bank-accounts/[id]` | Yes | Get / update / delete bank account |
 | GET/POST | `/api/workflow-rules` | Yes | List / create workflow rules |
 | GET/PATCH/DELETE | `/api/workflow-rules/[id]` | Yes | Get / update / delete workflow rule |
+| GET | `/api/search` | Yes | Global search across contacts, properties, tenancies (?q=term) |
 
-**Total**: 25 route files
+**Total**: 35 route files
 
 ## UI Pages
 
@@ -248,6 +258,9 @@ docker logs 25crm --tail 50
 | `src/lib/services/transactions.service.ts` | Transactions CRUD (list with type/contact filters, get, create, update, delete) |
 | `src/lib/services/bank-accounts.service.ts` | Bank accounts CRUD (list, get, create, update, delete) |
 | `src/lib/services/workflow-rules.service.ts` | Workflow rules CRUD (list, get, create, update, delete) |
+| `src/lib/services/audit-logs.service.ts` | Audit logs read-only (list with user_name join) |
+| `src/lib/services/notifications.service.ts` | Notifications (list by user+entity, mark-as-read) |
+| `src/lib/services/user-profiles.service.ts` | User profiles CRUD (list, get, update role) |
 | `src/lib/auth.ts` | JWT auth (staff) via `@relentify/auth` |
 | `src/app/api/*/route.ts` | API route handlers |
 | `docker-compose.yml` | Container config (port 3025) |
@@ -262,6 +275,9 @@ docker logs 25crm --tail 50
 - **Migrated to API + SWR**: contacts, tenancies, properties, maintenance, tasks, communications, documents, transactions, bank accounts, workflow rules (full CRUD + components)
 - **Maintenance**: service at `src/lib/services/maintenance.service.ts`, API at `/api/maintenance` + `/api/maintenance/[id]`, all 5 components migrated from Firebase to API calls
 - **Communications**: service at `src/lib/services/communications.service.ts`, API at `/api/communications` + `/api/communications/[id]`, page + log-communication-dialog migrated from Firebase to API calls
+- **Audit logs, notifications, user profiles, settings forms**: All migrated from Firebase to PostgreSQL API. Audit log page, notification bell, user management, org settings, profile settings, and password settings all use API routes instead of Firebase. Password change redirects to auth portal.
+- **Reports**: All 5 report components (P&L, vacancy, arrears, maintenance, landlord statement) migrated from Firebase to PostgreSQL API routes + SWR. Contacts API now supports `?type=` filter for landlord dropdown.
+- **Dashboard, search, remaining components**: Dashboard page was already clean. Recent activity had stale Firebase imports removed. Global search dialog rewritten to use `/api/search` with debounced fetch. Link entity dialog rewritten to use `useApiCollection` + `apiUpdate`. Settings page had missing `cn` import fixed. Search API route created at `/api/search`.
 
 ---
 

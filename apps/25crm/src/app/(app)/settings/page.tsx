@@ -14,6 +14,7 @@ import { PasswordSettingsForm } from '@/components/password-settings-form';
 import { OrganizationSettingsForm } from '@/components/organization-settings-form';
 import { UserManagement } from "@/components/settings/user-management";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@relentify/ui";
+import { cn } from "@/lib/utils";
 import { WorkflowSettings } from "@/components/settings/workflow-settings";
 import { BankAccountSettings } from "@/components/settings/bank-account-settings";
 

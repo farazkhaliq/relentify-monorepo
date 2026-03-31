@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { collection } from 'firebase/firestore';
 import { Building, FileText, Search, User } from 'lucide-react';
 
 import {
@@ -13,30 +12,24 @@ import {
   CommandItem,
   CommandList,
 } from '@relentify/ui';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { useUserProfile } from '@/hooks/use-user-profile';
 import { Button } from '@relentify/ui';
 import { Skeleton } from '@relentify/ui';
 
+interface SearchResults {
+  contacts: Array<{ id: string; first_name: string; last_name: string; email: string; contact_type: string }>;
+  properties: Array<{ id: string; address_line1: string; city: string; postcode: string; status: string }>;
+  tenancies: Array<{ id: string; property_address: string; status: string }>;
+}
+
+const emptyResults: SearchResults = { contacts: [], properties: [], tenancies: [] };
+
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<SearchResults>(emptyResults);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const firestore = useFirestore();
-  const { userProfile: currentUserProfile, isLoading: loadingCurrentUser } = useUserProfile();
-  const organizationId = currentUserProfile?.organizationId;
-
-  // --- Data Fetching ---
-  const contactsQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/contacts`) : null, [firestore, organizationId]);
-  const { data: contacts, isLoading: loadingContacts } = useCollection<any>(contactsQuery);
-
-  const propertiesQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/properties`) : null, [firestore, organizationId]);
-  const { data: properties, isLoading: loadingProperties } = useCollection<any>(propertiesQuery);
-  
-  const tenanciesQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/tenancies`) : null, [firestore, organizationId]);
-  const { data: tenancies, isLoading: loadingTenancies } = useCollection<any>(tenanciesQuery);
-
-
-  const isLoading = loadingContacts || loadingProperties || loadingTenancies || loadingCurrentUser;
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -48,11 +41,46 @@ export function GlobalSearch() {
     document.addEventListener('keydown', down);
     return () => document.removeEventListener('keydown', down);
   }, []);
-  
+
+  const doSearch = useCallback(async (term: string) => {
+    if (term.length < 2) {
+      setResults(emptyResults);
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/search?q=${encodeURIComponent(term)}`);
+      if (res.ok) {
+        setResults(await res.json());
+      }
+    } catch (err) {
+      console.error('Search error:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const handleSearch = useCallback((value: string) => {
+    setQuery(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => doSearch(value), 300);
+  }, [doSearch]);
+
+  // Reset when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setQuery('');
+      setResults(emptyResults);
+    }
+  }, [open]);
+
   const runCommand = (command: () => unknown) => {
     setOpen(false);
     command();
   };
+
+  const hasResults = results.contacts.length > 0 || results.properties.length > 0 || results.tenancies.length > 0;
 
   return (
     <>
@@ -65,64 +93,67 @@ export function GlobalSearch() {
         <span className="hidden lg:inline-flex">Search...</span>
         <span className="inline-flex lg:hidden">Search...</span>
         <kbd className="pointer-events-none absolute right-[0.3rem] top-[0.3rem] hidden h-6 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-          <span className="text-xs">⌘</span>K
+          <span className="text-xs">&#x2318;</span>K
         </kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Type a command or search..." />
+        <CommandInput placeholder="Type to search..." value={query} onValueChange={handleSearch} />
         <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
-          
-          {isLoading && (
-              <div className="p-4 space-y-4">
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-8 w-full" />
-                  <Skeleton className="h-8 w-full" />
-              </div>
+          {!isLoading && query.length >= 2 && !hasResults && (
+            <CommandEmpty>No results found.</CommandEmpty>
           )}
-          
-          {!isLoading && (
-            <>
-              <CommandGroup heading="Contacts">
-                {contacts?.map((contact) => (
-                  <CommandItem
-                    key={`contact-${contact.id}`}
-                    value={`contact-${contact.firstName} ${contact.lastName} ${contact.email}`}
-                    onSelect={() => runCommand(() => router.push(`/contacts/${contact.id}`))}
-                  >
-                    <User className="mr-2 h-4 w-4" />
-                    <span>{contact.firstName} {contact.lastName}</span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-              <CommandGroup heading="Properties">
-                {properties?.map((property) => (
-                  <CommandItem
-                    key={`property-${property.id}`}
-                    value={`property-${property.addressLine1} ${property.postcode}`}
-                    onSelect={() => runCommand(() => router.push(`/properties/${property.id}`))}
-                  >
-                    <Building className="mr-2 h-4 w-4" />
-                    <span>{property.addressLine1}</span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-              <CommandGroup heading="Tenancies">
-                 {tenancies?.map((tenancy) => {
-                    const property = properties?.find(p => p.id === tenancy.propertyId);
-                    return (
-                        <CommandItem
-                            key={`tenancy-${tenancy.id}`}
-                            value={`tenancy-${property?.addressLine1}`}
-                            onSelect={() => runCommand(() => router.push(`/tenancies/${tenancy.id}`))}
-                        >
-                            <FileText className="mr-2 h-4 w-4" />
-                            <span>Tenancy at {property?.addressLine1 || tenancy.propertyId}</span>
-                        </CommandItem>
-                    )
-                 })}
-              </CommandGroup>
-            </>
+
+          {isLoading && (
+            <div className="p-4 space-y-4">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          )}
+
+          {!isLoading && results.contacts.length > 0 && (
+            <CommandGroup heading="Contacts">
+              {results.contacts.map((contact) => (
+                <CommandItem
+                  key={`contact-${contact.id}`}
+                  value={`contact-${contact.first_name} ${contact.last_name} ${contact.email}`}
+                  onSelect={() => runCommand(() => router.push(`/contacts/${contact.id}`))}
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  <span>{contact.first_name} {contact.last_name}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+
+          {!isLoading && results.properties.length > 0 && (
+            <CommandGroup heading="Properties">
+              {results.properties.map((property) => (
+                <CommandItem
+                  key={`property-${property.id}`}
+                  value={`property-${property.address_line1} ${property.postcode}`}
+                  onSelect={() => runCommand(() => router.push(`/properties/${property.id}`))}
+                >
+                  <Building className="mr-2 h-4 w-4" />
+                  <span>{property.address_line1}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+
+          {!isLoading && results.tenancies.length > 0 && (
+            <CommandGroup heading="Tenancies">
+              {results.tenancies.map((tenancy) => (
+                <CommandItem
+                  key={`tenancy-${tenancy.id}`}
+                  value={`tenancy-${tenancy.property_address}`}
+                  onSelect={() => runCommand(() => router.push(`/tenancies/${tenancy.id}`))}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  <span>Tenancy at {tenancy.property_address || 'Unknown'}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
           )}
         </CommandList>
       </CommandDialog>
