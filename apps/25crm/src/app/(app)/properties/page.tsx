@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LayoutGrid, List } from 'lucide-react';
 import Image from 'next/image';
@@ -28,34 +27,13 @@ import {
   TabsContent,
 } from "@relentify/ui";
 import { Badge } from "@relentify/ui";
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { useUserProfile } from '@/hooks/use-user-profile';
 import { Skeleton } from '@relentify/ui';
+import { useApiCollection } from '@/hooks/use-api';
 import { AddPropertyDialog } from '@/components/add-property-dialog';
 
 export default function PropertiesPage() {
   const router = useRouter();
-  const [properties, setProperties] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchProperties = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetch('/api/properties');
-        if (res.ok) {
-          const data = await res.json();
-          setProperties(data);
-        }
-      } catch (error) {
-        console.error('Error fetching properties:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchProperties();
-  }, []);
+  const { data: properties, isLoading } = useApiCollection('/api/properties');
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {

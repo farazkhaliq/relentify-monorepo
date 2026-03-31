@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, query, where, serverTimestamp, doc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { Sparkles, Trash2 } from 'lucide-react';
 
@@ -45,8 +44,6 @@ import {
 import { Input } from '@relentify/ui';
 import { Button } from '@relentify/ui';
 import { Textarea } from '@relentify/ui';
-import { useFirestore, useMemoFirebase, useCollection, useAuth } from '@/firebase';
-import { deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@relentify/ui';
 import { ScrollArea } from '@relentify/ui';
@@ -55,6 +52,7 @@ import { Separator } from '@relentify/ui';
 import { generatePropertyDescription } from '@/ai/flows/generate-property-description';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { useOrganization } from '@/hooks/use-organization';
+import { apiUpdate, apiDelete, useApiCollection } from '@/hooks/use-api';
 
 const propertyFormSchema = z.object({
   addressLine1: z.string().min(1, 'Address is required'),
@@ -80,20 +78,15 @@ export function EditPropertyDialog({ property, isAdmin }: EditPropertyDialogProp
   const [open, setOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const firestore = useFirestore();
-  const auth = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
   const { userProfile } = useUserProfile();
   const { organization } = useOrganization();
-  const organizationId = userProfile?.organizationId;
 
-  // Fetch landlords for the checklist
-  const landlordsQuery = useMemoFirebase(() =>
-    (firestore && organizationId) ? query(collection(firestore, `organizations/${organizationId}/contacts`), where('contactType', '==', 'Landlord')) : null,
-    [firestore, organizationId]
-  );
-  const { data: landlords, isLoading: loadingLandlords } = useCollection<any>(landlordsQuery);
+  // Fetch landlord contacts via API
+  const { data: allContacts, isLoading: loadingLandlords } = useApiCollection<any>('/api/contacts');
+  const landlords = allContacts.filter((c: any) => c.contact_type === 'Landlord');
 
   const form = useForm<PropertyFormValues>({
     resolver: zodResolver(propertyFormSchema),
@@ -104,12 +97,8 @@ export function EditPropertyDialog({ property, isAdmin }: EditPropertyDialogProp
     form.reset(property);
   }, [property, form, open]);
 
-  const propertyDocRef = useMemoFirebase(() =>
-    (firestore && organizationId) ? doc(firestore, `organizations/${organizationId}/properties`, property.id) : null
-  , [firestore, organizationId, property.id]);
-
-  function onSubmit(data: PropertyFormValues) {
-    if (!propertyDocRef || !organizationId) {
+  async function onSubmit(data: PropertyFormValues) {
+    if (!userProfile?.activeEntityId) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -118,24 +107,36 @@ export function EditPropertyDialog({ property, isAdmin }: EditPropertyDialogProp
       return;
     }
 
-    const updatedPropertyData = {
-      ...data,
-      updatedAt: serverTimestamp(),
-    };
-    
-    const entityName = data.addressLine1;
-    updateDocumentNonBlocking(firestore, auth, organizationId, propertyDocRef, updatedPropertyData, entityName);
-    
-    toast({
-      title: 'Property Updated',
-      description: `Property at ${data.addressLine1} has been successfully updated.`,
-    });
+    setIsSaving(true);
+    try {
+      await apiUpdate('/api/properties/' + property.id, {
+        address_line1: data.addressLine1,
+        city: data.city,
+        postcode: data.postcode,
+        property_type: data.propertyType,
+        status: data.status,
+        number_of_bedrooms: data.numberOfBedrooms,
+        number_of_bathrooms: data.numberOfBathrooms,
+        rent_amount: data.rentAmount,
+        description: data.description,
+      });
 
-    setOpen(false);
+      toast({
+        title: 'Property Updated',
+        description: `Property at ${data.addressLine1} has been successfully updated.`,
+      });
+
+      setOpen(false);
+    } catch (error: any) {
+      console.error("Failed to update property:", error);
+      toast({ variant: 'destructive', title: 'Update Failed', description: error.message });
+    } finally {
+      setIsSaving(false);
+    }
   }
 
-  const handleDeleteProperty = () => {
-    if (!propertyDocRef || !organizationId || !auth) {
+  const handleDeleteProperty = async () => {
+    if (!userProfile?.activeEntityId) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -143,18 +144,22 @@ export function EditPropertyDialog({ property, isAdmin }: EditPropertyDialogProp
       });
       return;
     }
-    
-    const entityName = property.addressLine1;
-    deleteDocumentNonBlocking(firestore, auth, organizationId, propertyDocRef, entityName);
 
-    toast({
-      title: 'Property Deleted',
-      description: `The property has been deleted.`,
-    });
+    try {
+      await apiDelete('/api/properties/' + property.id);
 
-    setDeleteDialogOpen(false);
-    setOpen(false);
-    router.push('/properties');
+      toast({
+        title: 'Property Deleted',
+        description: `The property has been deleted.`,
+      });
+
+      setDeleteDialogOpen(false);
+      setOpen(false);
+      router.push('/properties');
+    } catch (error: any) {
+      console.error("Failed to delete property:", error);
+      toast({ variant: 'destructive', title: 'Delete Failed', description: error.message });
+    }
   }
 
   const handleGenerateDescription = async () => {
@@ -334,11 +339,11 @@ export function EditPropertyDialog({ property, isAdmin }: EditPropertyDialogProp
                         <div className="flex items-center justify-between">
                             <FormLabel>Description</FormLabel>
                             {organization?.aiEnabled && (
-                                <Button 
-                                    type="button" 
-                                    variant="outline" 
-                                    size="sm" 
-                                    onClick={handleGenerateDescription} 
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleGenerateDescription}
                                     disabled={isGenerating}
                                 >
                                     <Sparkles className="mr-2 h-4 w-4" />
@@ -353,7 +358,7 @@ export function EditPropertyDialog({ property, isAdmin }: EditPropertyDialogProp
             />
 
             <Separator />
-            
+
             <FormField
               control={form.control}
               name="landlordIds"
@@ -364,7 +369,7 @@ export function EditPropertyDialog({ property, isAdmin }: EditPropertyDialogProp
                   </div>
                   {loadingLandlords ? <Skeleton className="h-24 w-full" /> : (
                     <ScrollArea className="h-32 w-full rounded-md border p-4">
-                      {landlords?.map((landlord) => (
+                      {landlords?.map((landlord: any) => (
                         <FormField
                           key={landlord.id}
                           control={form.control}
@@ -383,21 +388,21 @@ export function EditPropertyDialog({ property, isAdmin }: EditPropertyDialogProp
                                         ? field.onChange([...(field.value || []), landlord.id])
                                         : field.onChange(
                                             field.value?.filter(
-                                              (value) => value !== landlord.id
+                                              (value: string) => value !== landlord.id
                                             )
                                           )
                                     }}
                                   />
                                 </FormControl>
                                 <FormLabel className="font-normal">
-                                  {landlord.firstName} {landlord.lastName}
+                                  {landlord.first_name} {landlord.last_name}
                                 </FormLabel>
                               </FormItem>
                             )
                           }}
                         />
                       ))}
-                      {!landlords || landlords.length === 0 && (
+                      {(!landlords || landlords.length === 0) && (
                         <p className="text-sm text-muted-foreground text-center py-4">No landlords found. Please add a landlord contact first.</p>
                       )}
                     </ScrollArea>
@@ -420,7 +425,9 @@ export function EditPropertyDialog({ property, isAdmin }: EditPropertyDialogProp
                         </Button>
                     )}
                 </div>
-              <Button type="submit" disabled={loadingLandlords || isGenerating || !organizationId}>Save Changes</Button>
+              <Button type="submit" disabled={isSaving || loadingLandlords || isGenerating || !userProfile?.activeEntityId}>
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

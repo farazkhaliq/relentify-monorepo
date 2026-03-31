@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/auth';
 import { getPropertyById, updateProperty, deleteProperty } from '@/lib/services/property.service';
+import { logAuditEvent } from '@/lib/audit';
 
 export async function GET(
   request: Request,
@@ -42,6 +43,7 @@ export async function PATCH(
     if (!property) {
       return NextResponse.json({ error: 'Property not found' }, { status: 404 });
     }
+    await logAuditEvent(auth.activeEntityId, auth.userId, 'Update', 'Property', id, property.address_line1);
     return NextResponse.json(property);
   } catch (error) {
     console.error('PATCH /api/properties/[id] error:', error);
@@ -65,6 +67,7 @@ export async function DELETE(
     if (!deleted) {
       return NextResponse.json({ error: 'Property not found' }, { status: 404 });
     }
+    await logAuditEvent(auth.activeEntityId, auth.userId, 'Delete', 'Property', id);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('DELETE /api/properties/[id] error:', error);
