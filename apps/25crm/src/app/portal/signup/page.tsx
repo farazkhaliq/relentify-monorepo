@@ -1,21 +1,19 @@
-'use client';
+'use client'
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { useRouter } from 'next/navigation';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, serverTimestamp, collection, writeBatch, query, where, getDocs, setDoc } from 'firebase/firestore';
-import Link from 'next/link';
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
-import { Button } from '@relentify/ui';
+import { Button } from '@relentify/ui'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@relentify/ui';
+} from '@relentify/ui'
 import {
   Form,
   FormControl,
@@ -23,96 +21,80 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@relentify/ui';
-import { Input } from '@relentify/ui';
-import { useAuth, useFirestore } from '@/firebase';
-import { useToast } from '@/hooks/use-toast';
+} from '@relentify/ui'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@relentify/ui'
+import { Input } from '@relentify/ui'
+import { useToast } from '@/hooks/use-toast'
 
 const signupFormSchema = z.object({
-  organizationId: z.string().min(1, 'Organization ID is required.'),
+  entityId: z.string().min(1, 'Organization ID is required.'),
+  fullName: z.string().min(1, 'Full name is required.'),
   email: z.string().email('Please enter a valid email.'),
   password: z.string().min(6, 'Password must be at least 6 characters.'),
-});
+  role: z.enum(['Tenant', 'Landlord'], {
+    required_error: 'Please select your role.',
+  }),
+})
 
-type SignupFormValues = z.infer<typeof signupFormSchema>;
+type SignupFormValues = z.infer<typeof signupFormSchema>
 
 export default function PortalSignupPage() {
-  const router = useRouter();
-  const auth = useAuth();
-  const firestore = useFirestore();
-  const { toast } = useToast();
+  const router = useRouter()
+  const { toast } = useToast()
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupFormSchema),
-    defaultValues: { organizationId: '', email: '', password: '' },
-  });
+    defaultValues: { entityId: '', fullName: '', email: '', password: '' },
+  })
 
   const onSubmit = async (data: SignupFormValues) => {
     try {
-      // 1. Verify that a contact exists with this email for the given organization.
-      const contactsRef = collection(firestore, `organizations/${data.organizationId}/contacts`);
-      const q = query(contactsRef, where('email', '==', data.email));
-      const contactSnap = await getDocs(q);
-
-      if (contactSnap.empty) {
-        toast({
-            variant: 'destructive',
-            title: 'Registration Failed',
-            description: 'No contact found with this email for the provided organization ID. Please check your details or contact the agency.',
-        });
-        return;
-      }
-      
-      const contactDoc = contactSnap.docs[0];
-      const contactData = contactDoc.data();
-      const contactId = contactDoc.id;
-
-      // 2. Create the user in Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-      const user = userCredential.user;
-      
-      // 3. Update their auth profile display name
-      await updateProfile(user, {
-        displayName: `${contactData.firstName} ${contactData.lastName}`,
-      });
-
-      // 4. Create the PortalUserProfile document to link auth to the contact record
-      const portalProfileRef = doc(firestore, `portalUserProfiles`, user.uid);
-      const portalProfileData = {
-          organizationId: data.organizationId,
-          contactId: contactId,
+      const res = await fetch('/api/portal/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          entityId: data.entityId,
+          fullName: data.fullName,
           email: data.email,
-          firstName: contactData.firstName,
-          lastName: contactData.lastName,
-          createdAt: serverTimestamp(),
-      };
-      
-      await setDoc(portalProfileRef, portalProfileData);
+          password: data.password,
+          role: data.role,
+        }),
+      })
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error || 'Sign-up failed.')
+      }
 
       toast({
         title: 'Account Created',
-        description: `Welcome! Your portal account has been created successfully.`,
-      });
+        description: 'Welcome! Your portal account has been created successfully.',
+      })
 
-      // 5. Redirect to the portal dashboard
-      router.push('/portal/dashboard');
-
+      router.push('/portal/dashboard')
     } catch (error: any) {
-      console.error('Portal sign-up failed:', error);
+      console.error('Portal sign-up failed:', error)
       toast({
         variant: 'destructive',
         title: 'Sign-up Failed',
         description: error.message || 'An unexpected error occurred.',
-      });
+      })
     }
-  };
+  }
 
   return (
     <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle className="text-2xl">Create your Portal Account</CardTitle>
         <CardDescription>
-          If you are a tenant or landlord, use the Organization ID provided by your agency to sign up.
+          If you are a tenant or landlord, use the Organization ID provided by
+          your agency to sign up.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -120,12 +102,28 @@ export default function PortalSignupPage() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
             <FormField
               control={form.control}
-              name="organizationId"
+              name="entityId"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Organization ID</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter the ID from your agency" {...field} />
+                    <Input
+                      placeholder="Enter the ID from your agency"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="fullName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="John Smith" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -138,7 +136,11 @@ export default function PortalSignupPage() {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="m@example.com" {...field} />
+                    <Input
+                      type="email"
+                      placeholder="m@example.com"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -157,8 +159,38 @@ export default function PortalSignupPage() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Creating account...' : 'Create Account'}
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>I am a...</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your role" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Tenant">Tenant</SelectItem>
+                      <SelectItem value="Landlord">Landlord</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={form.formState.isSubmitting}
+            >
+              {form.formState.isSubmitting
+                ? 'Creating account...'
+                : 'Create Account'}
             </Button>
           </form>
         </Form>
@@ -170,5 +202,5 @@ export default function PortalSignupPage() {
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

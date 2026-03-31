@@ -1,30 +1,25 @@
-'use client';
+'use client'
 
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import useSWR from 'swr'
 
-interface PortalUserProfile {
-    organizationId: string;
-    contactId: string;
-    email: string;
-    firstName: string;
-    lastName: string;
+const fetcher = (url: string) =>
+  fetch(url).then((r) => (r.ok ? r.json() : null))
+
+export interface PortalUserProfile {
+  id: string
+  entity_id: string
+  contact_id: string | null
+  email: string
+  full_name: string
+  role: 'Tenant' | 'Landlord'
+  is_active: boolean
 }
 
 export function usePortalUserProfile() {
-  const { user, isUserLoading: isAuthLoading } = useUser();
-  const firestore = useFirestore();
-
-  const portalProfileRef = useMemoFirebase(
-    () => (firestore && user ? doc(firestore, 'portalUserProfiles', user.uid) : null),
-    [firestore, user]
-  );
-  
-  const { data: portalUserProfile, isLoading: isLoadingProfile, error: profileError } = useDoc<PortalUserProfile>(portalProfileRef);
-
-  return {
-    portalUserProfile,
-    isLoading: isAuthLoading || isLoadingProfile,
-    error: profileError,
-  };
+  const { data, isLoading, error } = useSWR<PortalUserProfile | null>(
+    '/api/portal/auth/me',
+    fetcher,
+    { refreshInterval: 60000 }
+  )
+  return { portalUserProfile: data || null, isLoading, error }
 }

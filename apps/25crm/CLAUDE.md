@@ -195,8 +195,11 @@ docker logs 25crm --tail 50
 | GET/POST | `/api/workflow-rules` | Yes | List / create workflow rules |
 | GET/PATCH/DELETE | `/api/workflow-rules/[id]` | Yes | Get / update / delete workflow rule |
 | GET | `/api/search` | Yes | Global search across contacts, properties, tenancies (?q=term) |
+| POST | `/api/portal/auth/login` | No | Portal login (bcrypt verify, sets crm_portal_token cookie) |
+| POST | `/api/portal/auth/signup` | No | Portal signup (create portal user, sets cookie) |
+| GET/DELETE | `/api/portal/auth/me` | Portal | Get current portal user / logout (clear cookie) |
 
-**Total**: 35 route files
+**Total**: 38 route files
 
 ## UI Pages
 
@@ -261,6 +264,7 @@ docker logs 25crm --tail 50
 | `src/lib/services/audit-logs.service.ts` | Audit logs read-only (list with user_name join) |
 | `src/lib/services/notifications.service.ts` | Notifications (list by user+entity, mark-as-read) |
 | `src/lib/services/user-profiles.service.ts` | User profiles CRUD (list, get, update role) |
+| `src/lib/services/portal-auth.service.ts` | Portal auth (login, signup, JWT verify, bcrypt) |
 | `src/lib/auth.ts` | JWT auth (staff) via `@relentify/auth` |
 | `src/app/api/*/route.ts` | API route handlers |
 | `docker-compose.yml` | Container config (port 3025) |
@@ -270,7 +274,7 @@ docker logs 25crm --tail 50
 - Firebase packages still present — migration not yet executed
 - API routes already read from PostgreSQL via `crm.service.ts` and dedicated service files
 - Staff auth uses `@relentify/auth` JWT
-- Portal auth still uses Firebase (needs migration)
+- **Portal auth migrated**: bcrypt + JWT via `crm_portal_users` table, cookie `crm_portal_token`, API at `/api/portal/auth/{login,signup,me}`
 - Real-time subscriptions (`useDoc`/`useCollection`) still use Firestore (needs migration to polling)
 - **Migrated to API + SWR**: contacts, tenancies, properties, maintenance, tasks, communications, documents, transactions, bank accounts, workflow rules (full CRUD + components)
 - **Maintenance**: service at `src/lib/services/maintenance.service.ts`, API at `/api/maintenance` + `/api/maintenance/[id]`, all 5 components migrated from Firebase to API calls
