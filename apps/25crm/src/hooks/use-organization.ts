@@ -1,19 +1,19 @@
-'use client';
+'use client'
 
-import { useUserProfile } from '@/hooks/use-user-profile';
+import { useUserProfile } from '@/hooks/use-user-profile'
 
 export function useOrganization() {
-  const { userProfile, isLoading: isLoadingProfile, error: profileError } = useUserProfile();
+  const { userProfile, isLoading, error } = useUserProfile()
 
-  const organization = userProfile?.organizationId ? {
-    id: userProfile.organizationId,
-    name: (userProfile as any).organizationName || 'My Organization',
+  const organization = userProfile?.activeEntityId ? {
+    id: userProfile.activeEntityId,
+    name: 'My Organization',
     aiEnabled: true,
-  } : null;
+  } : null
 
   return {
     organization,
-    isLoading: isLoadingProfile,
-    error: profileError,
-  };
+    isLoading,
+    error,
+  }
 }
