@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/auth';
-import pool from '@/lib/db';
+import pool from '@/lib/pool';
 
 export async function GET() {
   const auth = await getAuthUser();
@@ -10,9 +10,9 @@ export async function GET() {
 
   try {
     const { rows } = await pool.query(
-      `SELECT u.id, u.email, u.full_name, u.user_type, u.active_entity_id, e.name as entity_name 
-       FROM users u 
-       LEFT JOIN entities e ON u.active_entity_id = e.id 
+      `SELECT u.id, u.email, u.full_name, u.user_type, u.active_entity_id, e.name as entity_name
+       FROM users u
+       LEFT JOIN entities e ON u.active_entity_id = e.id
        WHERE u.id = $1`,
       [auth.userId]
     );
@@ -22,14 +22,17 @@ export async function GET() {
     }
 
     const user = rows[0];
+    // Prefer users.active_entity_id from DB, fall back to auth-resolved entity
+    const entityId = user.active_entity_id || auth.activeEntityId;
+
     return NextResponse.json({
       uid: user.id,
       id: user.id,
       email: user.email,
       fullName: user.full_name,
       userType: user.user_type,
-      activeEntityId: user.active_entity_id,
-      organizationId: user.active_entity_id,
+      activeEntityId: entityId,
+      organizationId: entityId,
       organizationName: user.entity_name,
     });
   } catch (error) {

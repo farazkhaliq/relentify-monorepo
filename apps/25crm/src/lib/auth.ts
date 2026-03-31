@@ -1,6 +1,6 @@
 import { verifyAuthToken, AUTH_COOKIE_NAME } from '@relentify/auth'
 import { cookies } from 'next/headers'
-import db from './db'
+import pool from './pool'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-dev-secret'
 
@@ -24,26 +24,26 @@ export async function getAuthUser(): Promise<AuthUser | null> {
   const cookieStore = await cookies()
   const token = cookieStore.get(AUTH_COOKIE_NAME)?.value
   if (!token) return null
-  
+
   const payload = await verifyToken(token)
   if (!payload) return null
 
-  // Fetch activeEntityId from DB using Prisma
   try {
-    const user = await db.user.findUnique({
-      where: { id: payload.userId },
-      select: { userType: true } // active_entity_id doesn't exist in our merged schema yet
-    })
-    
+    const result = await pool.query(
+      'SELECT id FROM entities WHERE user_id = $1 LIMIT 1',
+      [payload.userId]
+    )
+    const activeEntityId = result.rows[0]?.id || null
+
     return {
       ...payload,
-      activeEntityId: null // CRM logic for activeEntityId remains to be fully merged if needed
+      activeEntityId,
     }
   } catch (err) {
     console.error('Error fetching user active entity:', err)
     return {
       ...payload,
-      activeEntityId: null
+      activeEntityId: null,
     }
   }
 }
