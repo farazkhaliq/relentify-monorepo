@@ -28,57 +28,36 @@ import {
   TabsTrigger,
 } from "@relentify/ui";
 import { Badge } from "@relentify/ui";
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { useUserProfile } from '@/hooks/use-user-profile';
 import { Skeleton } from '@relentify/ui';
 import { AddTenancyDialog } from "@/components/add-tenancy-dialog";
+import { useApiCollection } from '@/hooks/use-api';
 
 type TenancyStatus = 'Active' | 'Ended' | 'Arrears' | 'Pending';
 type PipelineStatus = 'Application Received' | 'Referencing' | 'Awaiting Guarantor' | 'Contract Signed' | 'Awaiting Payment' | 'Complete';
 
 interface Tenancy {
     id: string;
-    propertyId: string;
-    tenantIds: string[];
-    rentAmount: number;
-    startDate: any;
-    endDate: any;
+    property_id: string;
+    tenant_ids: string[];
+    rent_amount: number;
+    start_date: any;
+    end_date: any;
     status: TenancyStatus;
-    pipelineStatus: PipelineStatus;
+    pipeline_status: PipelineStatus;
+    property_address?: string;
+    tenant_names?: string[];
 }
 
 const pipelineStatusColumns: PipelineStatus[] = ['Application Received', 'Referencing', 'Awaiting Guarantor', 'Contract Signed', 'Awaiting Payment', 'Complete'];
 
 export default function TenanciesPage() {
   const router = useRouter();
-  
-  const [tenancies, setTenancies] = React.useState<Tenancy[]>([]);
-  const [properties, setProperties] = React.useState<any[]>([]);
-  const [contacts, setContacts] = React.useState<any[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
 
-  React.useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const [tenanciesRes, propertiesRes, contactsRes] = await Promise.all([
-          fetch('/api/tenancies'),
-          fetch('/api/properties'),
-          fetch('/api/contacts')
-        ]);
+  const { data: tenancies, isLoading: isLoadingTenancies } = useApiCollection<Tenancy>('/api/tenancies');
+  const { data: properties, isLoading: isLoadingProperties } = useApiCollection<any>('/api/properties');
+  const { data: contacts, isLoading: isLoadingContacts } = useApiCollection<any>('/api/contacts');
 
-        if (tenanciesRes.ok) setTenancies(await tenanciesRes.json());
-        if (propertiesRes.ok) setProperties(await propertiesRes.json());
-        if (contactsRes.ok) setContacts(await contactsRes.json());
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
+  const isLoading = isLoadingTenancies || isLoadingProperties || isLoadingContacts;
 
   // Create maps for efficient lookups
   const propertyMap = React.useMemo(() => new Map(properties?.map(p => [p.id, `${p.address_line1}, ${p.city}`]) || []), [properties]);
@@ -118,9 +97,13 @@ export default function TenanciesPage() {
     return new Date(date);
   };
 
-  const getTenantNames = (tenantIds: string[] | undefined) => {
-    if (!tenantIds || tenantIds.length === 0) return 'N/A';
-    return tenantIds.map(id => contactMap.get(id) || 'Unknown').join(', ');
+  const getTenantNames = (tenancy: Tenancy) => {
+    // Prefer joined tenant_names from API, fall back to contact map
+    if (tenancy.tenant_names && tenancy.tenant_names.length > 0) {
+      return tenancy.tenant_names.join(', ');
+    }
+    if (!tenancy.tenant_ids || tenancy.tenant_ids.length === 0) return 'N/A';
+    return tenancy.tenant_ids.map(id => contactMap.get(id) || 'Unknown').join(', ');
   }
 
   const EmptyState = () => (
@@ -157,7 +140,7 @@ export default function TenanciesPage() {
                         {pipelineStatusColumns.map((status) => (
                             <div key={status} className="flex flex-col gap-4 bg-muted/50 p-4 rounded-lg h-full">
                                 <h2 className="font-semibold text-lg flex items-center gap-2">
-                                    {status} 
+                                    {status}
                                     <span className="text-sm text-muted-foreground bg-background rounded-full px-2 py-0.5">
                                         {isLoading ? '...' : tenanciesByPipelineStatus[status].length}
                                     </span>
@@ -171,8 +154,8 @@ export default function TenanciesPage() {
                                         tenanciesByPipelineStatus[status].map((tenancy) => (
                                             <Card key={tenancy.id} className="bg-background cursor-pointer hover:bg-muted/50" onClick={() => router.push(`/tenancies/${tenancy.id}`)}>
                                                 <CardHeader>
-                                                    <CardTitle className="text-base">{propertyMap.get(tenancy.property_id) || 'Loading...'}</CardTitle>
-                                                    <CardDescription className="line-clamp-2">{getTenantNames(tenancy.tenant_ids)}</CardDescription>
+                                                    <CardTitle className="text-base">{tenancy.property_address || propertyMap.get(tenancy.property_id) || 'Loading...'}</CardTitle>
+                                                    <CardDescription className="line-clamp-2">{getTenantNames(tenancy)}</CardDescription>
                                                 </CardHeader>
                                                 <CardFooter>
                                                     <Badge variant="zinc">{new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(Number(tenancy.rent_amount))}</Badge>
@@ -216,15 +199,15 @@ export default function TenanciesPage() {
                             ))
                         ) : tenancies && tenancies.length > 0 ? (
                             tenancies.map((tenancy) => (
-                            <TableRow 
+                            <TableRow
                                 key={tenancy.id}
                                 className="cursor-pointer"
                                 onClick={() => router.push(`/tenancies/${tenancy.id}`)}
                             >
                                 <TableCell className="font-medium">
-                                {propertyMap.get(tenancy.property_id) || 'Unknown Property'}
+                                {tenancy.property_address || propertyMap.get(tenancy.property_id) || 'Unknown Property'}
                                 </TableCell>
-                                <TableCell>{getTenantNames(tenancy.tenant_ids)}</TableCell>
+                                <TableCell>{getTenantNames(tenancy)}</TableCell>
                                 <TableCell>
                                 {format(getTimestampAsDate(tenancy.start_date), 'PP')} - {tenancy.end_date ? format(getTimestampAsDate(tenancy.end_date), 'PP') : 'N/A'}
                                 </TableCell>

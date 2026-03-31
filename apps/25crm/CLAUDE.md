@@ -150,6 +150,97 @@ docker logs 25crm --tail 50
 
 ---
 
+---
+
+# Current PostgreSQL Implementation
+
+## API Routes
+
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET | `/api/health` | No | Health check |
+| GET | `/api/me` | Yes | Current user info |
+| GET/POST | `/api/contacts` | Yes | List / create contacts |
+| GET/POST | `/api/properties` | Yes | List / create properties |
+| GET/PATCH | `/api/properties/[id]` | Yes | Get / update property |
+| GET/POST | `/api/tenancies` | Yes | List / create tenancies |
+| GET/PATCH/DELETE | `/api/tenancies/[id]` | Yes | Get / update / delete tenancy |
+| GET/POST | `/api/tasks` | Yes | List / create tasks |
+| GET/POST | `/api/maintenance` | Yes | List / create maintenance requests |
+| GET/POST | `/api/listings` | Yes | List / create listings |
+| GET | `/api/notifications` | Yes | List notifications |
+| GET | `/api/reports/dashboard-stats` | Yes | Dashboard KPI stats |
+| GET | `/api/reports/recent-activity` | Yes | Recent activity feed |
+
+**Total**: 13 route files
+
+## UI Pages
+
+### Staff App (auth required)
+| Path | Purpose |
+|------|---------|
+| `/` | Landing / redirect |
+| `/(auth)/login` | Staff login |
+| `/(auth)/signup` | Staff signup |
+| `/(auth)/join` | Join organisation invitation |
+| `/(auth)/forgot-password` | Password reset |
+| `/(app)/dashboard` | Main dashboard (KPIs, activity, charts) |
+| `/(app)/contacts` | Contact list (grid/table) |
+| `/(app)/contacts/[contactId]` | Contact detail |
+| `/(app)/properties` | Property list (grid/table) |
+| `/(app)/properties/[propertyId]` | Property detail (tenancies, maintenance, docs) |
+| `/(app)/tenancies` | Tenancy list (kanban/table) |
+| `/(app)/tenancies/[tenancyId]` | Tenancy detail |
+| `/(app)/maintenance` | Maintenance requests (kanban/table) |
+| `/(app)/maintenance/[maintenanceId]` | Maintenance detail |
+| `/(app)/tasks` | Task list (kanban/table) |
+| `/(app)/communications` | Email / Calls / WhatsApp |
+| `/(app)/documents` | Document management |
+| `/(app)/reports` | Reports (P&L, landlord, vacancy, arrears, maintenance) |
+| `/(app)/audit-log` | Audit trail |
+| `/(app)/settings` | Settings (profile, org, users, workflows, bank) |
+
+### Tenant/Landlord Portal (separate auth)
+| Path | Purpose |
+|------|---------|
+| `/portal/login` | Portal login |
+| `/portal/signup` | Portal signup |
+| `/portal/dashboard` | Tenant/landlord dashboard |
+| `/portal/maintenance` | Submit/view maintenance (tenant) |
+| `/portal/documents` | View linked documents |
+| `/portal/financials` | Transaction history (landlord) |
+
+**Total**: 26 pages (20 staff + 6 portal)
+
+## PostgreSQL Tables (already created)
+
+- `crm_contacts` — id, first_name, last_name, email, phone, contact_type, mailing_address, organization_id
+- `crm_properties` — id, address, city, postcode, property_type, bedrooms, bathrooms, rent_amount, status, landlord_ids, organization_id
+- `crm_tenancies` — id, property_id, tenant_ids, rent_amount, deposit_amount, start_date, end_date, status, pipeline_status, organization_id
+- `crm_tenancy_tenants` — tenancy_id, contact_id (join table)
+- `crm_maintenance_requests` — id, property_id, reporter_contact_id, description, priority, status, organization_id
+- `crm_tasks` — id, title, description, due_date, assignee_id, priority, status, linked entities, organization_id
+- `crm_notifications` — id, user_id, message, read, organization_id
+
+## Key Files
+
+| File | Purpose |
+|------|---------|
+| `src/lib/crm.service.ts` | All PostgreSQL CRUD operations |
+| `src/lib/auth.ts` | JWT auth (staff) via `@relentify/auth` |
+| `src/app/api/*/route.ts` | API route handlers |
+| `docker-compose.yml` | Container config (port 3025) |
+
+## Current Status (2026-03-31)
+
+- Firebase packages still present — migration not yet executed
+- API routes already read from PostgreSQL via `crm.service.ts`
+- Staff auth uses `@relentify/auth` JWT
+- Portal auth still uses Firebase (needs migration)
+- Real-time subscriptions (`useDoc`/`useCollection`) still use Firestore (needs migration to polling)
+
+---
+
 # Original Firebase Relentify CRM — Reference Notes
 
 This document describes what the **original Firebase-based Relentify estate agency CRM** (`farazkhaliq/relentify-estateagencycrm`) was designed to do. It is written as a functional reference so we can compare it against what `25crm` currently does and identify gaps to close.

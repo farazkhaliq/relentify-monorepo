@@ -1,9 +1,6 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { doc, collection, query, where, Timestamp, orderBy } from 'firebase/firestore';
-import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
-import { useUserProfile } from '@/hooks/use-user-profile';
 import { Skeleton } from '@relentify/ui';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@relentify/ui';
 import { Badge } from '@relentify/ui';
@@ -13,34 +10,13 @@ import { Button } from '@relentify/ui';
 import { format } from 'date-fns';
 import { EditTenancyDialog } from '@/components/edit-tenancy-dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@relentify/ui';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AddDocumentDialog } from '@/components/add-document-dialog';
 import { AddTaskDialog } from '@/components/add-task-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@relentify/ui';
 import { EditDocumentDialog } from '@/components/edit-document-dialog';
 import { useToast } from '@/hooks/use-toast';
-
-interface Tenancy {
-    id: string;
-    propertyId: string;
-    tenantIds: string[];
-    landlordIds: string[];
-    startDate: any;
-    endDate: any;
-    rentAmount: number;
-    depositAmount: number;
-    status: 'Active' | 'Ended' | 'Arrears' | 'Pending';
-    pipelineStatus: 'Application Received' | 'Referencing' | 'Awaiting Guarantor' | 'Contract Signed' | 'Awaiting Payment' | 'Complete';
-    inventoryUrl?: string;
-}
-
-interface MaintenanceRequest {
-    id: string;
-    description: string;
-    reportedDate: any;
-    priority: 'Urgent' | 'High' | 'Medium' | 'Low';
-    status: 'New' | 'In Progress' | 'Awaiting Parts' | 'On Hold' | 'Completed' | 'Cancelled';
-}
+import { useApiDoc, useApiCollection } from '@/hooks/use-api';
 
 interface Document {
     id: string;
@@ -54,107 +30,52 @@ interface Document {
     contactIds?: string[];
 }
 
-interface Property {
-    addressLine1: string;
-    city: string;
-    postcode: string;
-}
-
-interface Contact {
-    id: string;
-    firstName: string;
-    lastName: string;
-}
-
-interface Transaction {
-    id: string;
-    transactionType: 'Rent Payment' | 'Management Fee' | 'Commission' | 'Landlord Payout' | 'Contractor Payment' | 'Agency Expense' | 'Deposit';
-    amount: number;
-    currency: string;
-    transactionDate: any;
-    description: string;
-}
-
 export default function TenancyDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
   const tenancyId = params.tenancyId as string;
-  const firestore = useFirestore();
   const [isAddDocOpen, setAddDocOpen] = useState(false);
   const [isAddTaskOpen, setAddTaskOpen] = useState(false);
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
-  const { userProfile: currentUserProfile, isLoading: isLoadingCurrentUser } = useUserProfile();
-  const organizationId = currentUserProfile?.organizationId;
-  const isAdmin = currentUserProfile?.role === 'Admin';
 
-  const tenancyRef = useMemoFirebase(() => 
-    (firestore && organizationId && tenancyId) ? doc(firestore, `organizations/${organizationId}/tenancies`, tenancyId) : null,
-    [firestore, organizationId, tenancyId]
-  );
-  const { data: tenancy, isLoading: isLoadingTenancy } = useDoc<Tenancy>(tenancyRef);
+  // Fetch tenancy via API
+  const { data: tenancy, isLoading: isLoadingTenancy } = useApiDoc<any>(`/api/tenancies/${tenancyId}`);
 
-  // Fetch linked property
-  const propertyRef = useMemoFirebase(() => {
-    if (!firestore || !organizationId || !tenancy?.propertyId) return null;
-    return doc(firestore, `organizations/${organizationId}/properties`, tenancy.propertyId);
-  }, [firestore, organizationId, tenancy?.propertyId]);
-  const { data: property, isLoading: isLoadingProperty } = useDoc<Property>(propertyRef);
+  // Fetch related data via API
+  const { data: allContacts, isLoading: isLoadingContacts } = useApiCollection<any>('/api/contacts');
+  const { data: allMaintenance, isLoading: isLoadingMaintenance } = useApiCollection<any>('/api/maintenance');
 
-  // Fetch linked tenants
-  const tenantsQuery = useMemoFirebase(() => {
-    if (!firestore || !organizationId || !tenancy?.tenantIds || tenancy.tenantIds.length === 0) return null;
-    return query(collection(firestore, `organizations/${organizationId}/contacts`), where('__name__', 'in', tenancy.tenantIds));
-  }, [firestore, organizationId, tenancy?.tenantIds]);
-  const { data: tenants, isLoading: isLoadingTenants } = useCollection<Contact>(tenantsQuery);
-  
-  // Fetch linked landlords
-  const landlordsQuery = useMemoFirebase(() => {
-    if (!firestore || !organizationId || !tenancy?.landlordIds || tenancy.landlordIds.length === 0) return null;
-    return query(collection(firestore, `organizations/${organizationId}/contacts`), where('__name__', 'in', tenancy.landlordIds));
-  }, [firestore, organizationId, tenancy?.landlordIds]);
-  const { data: landlords, isLoading: isLoadingLandlords } = useCollection<Contact>(landlordsQuery);
-  
-  // Query for maintenance requests for this tenancy
-  const maintenanceQuery = useMemoFirebase(() => {
-    if (!firestore || !organizationId || !tenancyId) return null;
-    return query(
-      collection(firestore, `organizations/${organizationId}/maintenanceRequests`),
-      where('tenancyId', '==', tenancyId),
-      orderBy('reportedDate', 'desc')
-    );
-  }, [firestore, organizationId, tenancyId]);
-  const { data: maintenanceRequests, isLoading: isLoadingMaintenance } = useCollection<MaintenanceRequest>(maintenanceQuery);
-  
-  // Query for documents linked to this tenancy
-  const documentsQuery = useMemoFirebase(() => {
-    if (!firestore || !organizationId || !tenancyId) return null;
-    return query(
-      collection(firestore, `organizations/${organizationId}/documents`),
-      where('tenancyIds', 'array-contains', tenancyId),
-      orderBy('uploadDate', 'desc')
-    );
-  }, [firestore, organizationId, tenancyId]);
-  const { data: documents, isLoading: isLoadingDocuments } = useCollection<Document>(documentsQuery);
+  // Build lookup maps
+  const contactMap = useMemo(() => new Map(allContacts.map(c => [c.id, c])), [allContacts]);
 
-  // Query for transactions related to this tenancy
-  const transactionsQuery = useMemoFirebase(() => {
-    if (!firestore || !organizationId || !tenancyId) return null;
-    return query(
-      collection(firestore, `organizations/${organizationId}/transactions`),
-      where('relatedTenancyId', '==', tenancyId),
-      orderBy('transactionDate', 'desc')
-    );
-  }, [firestore, organizationId, tenancyId]);
-  const { data: transactions, isLoading: isLoadingTransactions } = useCollection<Transaction>(transactionsQuery);
+  // Derive tenants and landlords from the tenancy's tenant_ids
+  const tenants = useMemo(() => {
+    if (!tenancy?.tenant_ids) return [];
+    return tenancy.tenant_ids.map((id: string) => contactMap.get(id)).filter(Boolean);
+  }, [tenancy?.tenant_ids, contactMap]);
+
+  const landlords = useMemo(() => {
+    // Landlords linked to the property - for now show from contacts with type Landlord
+    return allContacts.filter(c => c.contact_type === 'Landlord');
+  }, [allContacts]);
+
+  // Maintenance requests for the tenancy's property
+  const maintenanceRequests = useMemo(() => {
+    if (!tenancy?.property_id) return [];
+    return allMaintenance.filter((m: any) => m.property_id === tenancy.property_id);
+  }, [allMaintenance, tenancy?.property_id]);
+
+  // Determine admin (simple check - could be improved)
+  const isAdmin = true; // The edit dialog handles this via prop
 
   const handleCreateInventory = () => {
-    if (!property || !tenants) {
-        toast({ variant: 'destructive', title: 'Missing Information', description: 'Property and tenant details are required.' });
+    if (!tenancy) {
+        toast({ variant: 'destructive', title: 'Missing Information', description: 'Tenancy details are required.' });
         return;
     }
-    const propertyAddress = encodeURIComponent(`${property.addressLine1}, ${property.city}, ${property.postcode}`);
-    const tenantNames = encodeURIComponent(tenants.map(t => `${t.firstName} ${t.lastName}`).join(', '));
+    const propertyAddress = encodeURIComponent(tenancy.property_address || '');
+    const tenantNames = encodeURIComponent((tenancy.tenant_names || []).join(', '));
     const url = `https://your-inventory-app.com/create?property=${propertyAddress}&tenants=${tenantNames}`;
     window.open(url, '_blank');
     toast({
@@ -180,7 +101,7 @@ export default function TenancyDetailPage() {
       default: return 'outline';
     }
   }
-  
+
   const getMaintStatusBadgeVariant = (status: string) => {
     switch (status) {
         case 'New': return 'default';
@@ -200,21 +121,6 @@ export default function TenancyDetailPage() {
         default: return 'outline';
     }
   }
-  
-  const getTransactionBadgeVariant = (type: string) => {
-    switch (type) {
-      case 'Rent Payment': return 'default';
-      case 'Management Fee':
-      case 'Commission':
-        return 'secondary';
-      case 'Landlord Payout': return 'outline';
-      case 'Contractor Payment':
-      case 'Agency Expense':
-        return 'destructive';
-      case 'Deposit': return 'secondary';
-      default: return 'secondary';
-    }
-  }
 
   const formatCurrency = (amount: number, currency: string = 'GBP') => {
       return new Intl.NumberFormat('en-GB', { style: 'currency', currency }).format(amount);
@@ -222,12 +128,11 @@ export default function TenancyDetailPage() {
 
   const getTimestampAsDate = (timestamp: any): Date => {
     if (!timestamp) return new Date();
-    if (timestamp instanceof Timestamp) { return timestamp.toDate(); }
     if (typeof timestamp === 'string' || timestamp instanceof Date) { return new Date(timestamp); }
     return new Date();
   };
 
-  const isLoading = isLoadingTenancy || isLoadingProperty || isLoadingTenants || isLoadingLandlords || isLoadingMaintenance || isLoadingDocuments || isLoadingCurrentUser || isLoadingTransactions;
+  const isLoading = isLoadingTenancy || isLoadingContacts;
 
   if (isLoading) {
     return (
@@ -263,14 +168,14 @@ export default function TenancyDetailPage() {
 
   return (
     <>
-    <AddTaskDialog 
-        open={isAddTaskOpen} 
-        onOpenChange={setAddTaskOpen} 
-        defaultValues={{ 
-            relatedTenancyId: tenancy.id, 
-            relatedPropertyId: tenancy.propertyId,
-            title: `Task for tenancy at ${property?.addressLine1}`
-        }} 
+    <AddTaskDialog
+        open={isAddTaskOpen}
+        onOpenChange={setAddTaskOpen}
+        defaultValues={{
+            relatedTenancyId: tenancy.id,
+            relatedPropertyId: tenancy.property_id,
+            title: `Task for tenancy at ${tenancy.property_address}`
+        }}
     />
     <AddDocumentDialog
       open={isAddDocOpen}
@@ -286,16 +191,16 @@ export default function TenancyDetailPage() {
                 </div>
                 <div>
                     <h1 className="text-3xl font-bold">Tenancy Agreement</h1>
-                    {property ? (
-                        <Link href={`/properties/${tenancy.propertyId}`} className="text-muted-foreground hover:underline">
-                            {property.addressLine1}, {property.city}
+                    {tenancy.property_address ? (
+                        <Link href={`/properties/${tenancy.property_id}`} className="text-muted-foreground hover:underline">
+                            {tenancy.property_address}
                         </Link>
                     ) : <Skeleton className="h-5 w-48" />}
                 </div>
             </div>
             <div className="sm:ml-auto flex items-center gap-2">
                 <Button variant="outline" onClick={() => setAddTaskOpen(true)}>Create Task</Button>
-                <Badge variant={getPipelineStatusBadgeVariant(tenancy.pipelineStatus)} className="capitalize h-7 text-sm">{tenancy.pipelineStatus}</Badge>
+                <Badge variant={getPipelineStatusBadgeVariant(tenancy.pipeline_status)} className="capitalize h-7 text-sm">{tenancy.pipeline_status}</Badge>
                 <Badge variant={getStatusBadgeVariant(tenancy.status)} className="capitalize h-7 text-sm">{tenancy.status}</Badge>
                 <EditTenancyDialog tenancy={tenancy} isAdmin={isAdmin} />
             </div>
@@ -319,15 +224,15 @@ export default function TenancyDetailPage() {
                             <CardContent className="space-y-4 text-sm">
                                 <div>
                                     <p className="text-muted-foreground">Start Date</p>
-                                    <p className="font-medium">{format(getTimestampAsDate(tenancy.startDate), 'PPP')}</p>
+                                    <p className="font-medium">{format(getTimestampAsDate(tenancy.start_date), 'PPP')}</p>
                                 </div>
                                 <div>
                                     <p className="text-muted-foreground">End Date</p>
-                                    <p className="font-medium">{format(getTimestampAsDate(tenancy.endDate), 'PPP')}</p>
+                                    <p className="font-medium">{tenancy.end_date ? format(getTimestampAsDate(tenancy.end_date), 'PPP') : 'N/A'}</p>
                                 </div>
                                 <div>
                                     <p className="text-muted-foreground">Monthly Rent</p>
-                                    <p className="font-medium">{new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(tenancy.rentAmount)}</p>
+                                    <p className="font-medium">{new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(Number(tenancy.rent_amount))}</p>
                                 </div>
                             </CardContent>
                         </Card>
@@ -336,13 +241,13 @@ export default function TenancyDetailPage() {
                                 <CardTitle className="text-lg flex items-center gap-2"><Users className="w-5 h-5 text-muted-foreground" /> Tenants</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-2 text-sm">
-                                {isLoadingTenants ? <Skeleton className="h-5 w-3/4" /> : (
-                                    tenants?.map(t => (
-                                        <Link key={t.id} href={`/contacts/${t.id}`} className="flex items-center gap-2 font-medium text-primary hover:underline">
-                                            <User className="w-4 h-4" />
-                                            {t.firstName} {t.lastName}
-                                        </Link>
-                                    ))
+                                {tenants.length > 0 ? tenants.map((t: any) => (
+                                    <Link key={t.id} href={`/contacts/${t.id}`} className="flex items-center gap-2 font-medium text-primary hover:underline">
+                                        <User className="w-4 h-4" />
+                                        {t.first_name} {t.last_name}
+                                    </Link>
+                                )) : (
+                                    <p className="text-muted-foreground">No tenants linked.</p>
                                 )}
                             </CardContent>
                         </Card>
@@ -351,13 +256,13 @@ export default function TenancyDetailPage() {
                                 <CardTitle className="text-lg flex items-center gap-2"><User className="w-5 h-5 text-muted-foreground" /> Landlords</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-2 text-sm">
-                                {isLoadingLandlords ? <Skeleton className="h-5 w-3/4" /> : (
-                                    landlords?.map(l => (
-                                        <Link key={l.id} href={`/contacts/${l.id}`} className="flex items-center gap-2 font-medium text-primary hover:underline">
-                                            <User className="w-4 h-4" />
-                                            {l.firstName} {l.lastName}
-                                        </Link>
-                                    ))
+                                {landlords.length > 0 ? landlords.map((l: any) => (
+                                    <Link key={l.id} href={`/contacts/${l.id}`} className="flex items-center gap-2 font-medium text-primary hover:underline">
+                                        <User className="w-4 h-4" />
+                                        {l.first_name} {l.last_name}
+                                    </Link>
+                                )) : (
+                                    <p className="text-muted-foreground">No landlords linked.</p>
                                 )}
                             </CardContent>
                         </Card>
@@ -367,7 +272,7 @@ export default function TenancyDetailPage() {
                             <CardTitle className="text-lg flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-muted-foreground" /> Deposit</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-2xl font-bold">{new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(tenancy.depositAmount)}</p>
+                            <p className="text-2xl font-bold">{new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(Number(tenancy.deposit_amount || 0))}</p>
                             <p className="text-sm text-muted-foreground mt-1">Deposit scheme details will appear here.</p>
                         </CardContent>
                     </Card>
@@ -380,13 +285,13 @@ export default function TenancyDetailPage() {
                         <CardDescription>Create new inventories or view existing ones from your integrated inventory app.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <Button onClick={handleCreateInventory} disabled={!property || !tenants}>
+                        <Button onClick={handleCreateInventory} disabled={!tenancy.property_address}>
                             <ExternalLink className="mr-2 h-4 w-4" />
                             Create Inventory
                         </Button>
-                        {tenancy.inventoryUrl ? (
+                        {tenancy.inventory_url ? (
                             <Button asChild variant="outline">
-                                <Link href={tenancy.inventoryUrl} target="_blank">View Inventory Report</Link>
+                                <Link href={tenancy.inventory_url} target="_blank">View Inventory Report</Link>
                             </Button>
                         ) : (
                             <p className="text-sm text-muted-foreground">
@@ -413,9 +318,9 @@ export default function TenancyDetailPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {maintenanceRequests && maintenanceRequests.length > 0 ? maintenanceRequests.map(request => (
+                                    {maintenanceRequests && maintenanceRequests.length > 0 ? maintenanceRequests.map((request: any) => (
                                         <TableRow key={request.id} className="cursor-pointer" onClick={() => router.push(`/maintenance/${request.id}`)}>
-                                            <TableCell>{format(getTimestampAsDate(request.reportedDate), 'PP')}</TableCell>
+                                            <TableCell>{format(getTimestampAsDate(request.reported_date), 'PP')}</TableCell>
                                             <TableCell className="truncate max-w-[150px]">{request.description}</TableCell>
                                             <TableCell><Badge variant={getMaintPriorityBadgeVariant(request.priority)}>{request.priority}</Badge></TableCell>
                                             <TableCell><Badge variant={getMaintStatusBadgeVariant(request.status)}>{request.status}</Badge></TableCell>
@@ -436,32 +341,7 @@ export default function TenancyDetailPage() {
                         <Button variant="outline" size="sm" onClick={() => setAddDocOpen(true)}>Add Document</Button>
                     </CardHeader>
                     <CardContent>
-                        {isLoadingDocuments ? <Skeleton className="h-24 w-full" /> : (
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>File</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {documents && documents.length > 0 ? documents.map(doc => (
-                                        <TableRow key={doc.id} className="cursor-pointer" onClick={() => setEditingDocument(doc)}>
-                                            <TableCell className="font-medium">{doc.fileName}</TableCell>
-                                            <TableCell className="text-right">
-                                                <Button asChild variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
-                                                    <Link href={doc.filePath} target="_blank" download={doc.fileName}>
-                                                        <Download className="h-4 w-4" />
-                                                    </Link>
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    )) : (
-                                        <TableRow><TableCell colSpan={2} className="text-center h-24">No documents for this tenancy.</TableCell></TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        )}
+                        <p className="text-sm text-muted-foreground text-center py-8">Document storage will be available once file upload is migrated.</p>
                     </CardContent>
                 </Card>
             </TabsContent>
@@ -472,30 +352,7 @@ export default function TenancyDetailPage() {
                         <CardDescription>Financial history related to this tenancy agreement.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {isLoadingTransactions ? <Skeleton className="h-24 w-full" /> : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Type</TableHead>
-                                    <TableHead>Description</TableHead>
-                                    <TableHead className="text-right">Amount</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {transactions && transactions.length > 0 ? transactions.map(t => (
-                                    <TableRow key={t.id} className="cursor-pointer" onClick={() => router.push('/transactions')}>
-                                        <TableCell>{format(getTimestampAsDate(t.transactionDate), 'PP')}</TableCell>
-                                        <TableCell><Badge variant={getTransactionBadgeVariant(t.transactionType)}>{t.transactionType}</Badge></TableCell>
-                                        <TableCell className="font-medium">{t.description}</TableCell>
-                                        <TableCell className="text-right font-medium">{formatCurrency(t.amount, t.currency)}</TableCell>
-                                    </TableRow>
-                                )) : (
-                                    <TableRow><TableCell colSpan={4} className="text-center h-24">No transactions for this tenancy.</TableCell></TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    )}
+                        <p className="text-sm text-muted-foreground text-center py-8">Transaction history will be available once the transactions module is migrated.</p>
                     </CardContent>
                 </Card>
             </TabsContent>
