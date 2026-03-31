@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { collection, query, orderBy, Timestamp, doc } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { Download } from 'lucide-react';
 
@@ -27,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@relentify/ui";
-import { useCollection, useFirestore, useMemoFirebase, useAuth } from '@/firebase';
+import { useApiCollection, apiUpdate } from '@/hooks/use-api';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { Skeleton } from '@relentify/ui';
 import { Badge } from '@relentify/ui';
@@ -35,71 +34,60 @@ import Link from 'next/link';
 import { AddTransactionDialog } from '@/components/add-transaction-dialog';
 import { EditTransactionDialog } from '@/components/edit-transaction-dialog';
 import { Switch } from '@relentify/ui';
-import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
 import { SortableTableHead } from '@/components/sortable-table-head';
 import { Button } from '@relentify/ui';
 
 interface Transaction {
     id: string;
-    transactionType: 'Rent Payment' | 'Management Fee' | 'Commission' | 'Landlord Payout' | 'Contractor Payment' | 'Agency Expense' | 'Deposit';
+    type: string;
     amount: number;
     currency: string;
-    transactionDate: any;
+    transaction_date: any;
     description: string;
-    relatedPropertyId?: string;
-    relatedTenancyId?: string;
+    related_property_id?: string;
+    tenancy_id?: string;
+    payer_contact_id?: string;
+    payee_contact_id?: string;
+    reconciled?: boolean;
+    property_address?: string;
+    payer_name?: string;
+    payee_name?: string;
+    // Mapped fields for edit dialog compatibility
+    transactionType?: string;
+    transactionDate?: any;
     payerContactId?: string;
     payeeContactId?: string;
-    reconciled?: boolean;
+    relatedPropertyId?: string;
+    relatedTenancyId?: string;
 }
 
 type SortDirection = 'asc' | 'desc';
 type SortableColumns = 'transactionDate' | 'transactionType' | 'description' | 'amount';
 
 export default function TransactionsPage() {
-  const firestore = useFirestore();
-  const auth = useAuth();
   const { toast } = useToast();
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [editingTransaction, setEditingTransaction] = useState<any | null>(null);
   const [typeFilter, setTypeFilter] = useState('all');
   const [propertyFilter, setPropertyFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortDescriptor, setSortDescriptor] = useState<{ column: SortableColumns; direction: SortDirection }>({ column: 'transactionDate', direction: 'desc' });
-  
+
   const { userProfile: currentUserProfile, isLoading: loadingCurrentUser, isAdmin } = useUserProfile();
   const organizationId = currentUserProfile?.organizationId;
 
-  const transactionsQuery = useMemoFirebase(() =>
-    (firestore && organizationId)
-      ? query(
-          collection(firestore, `organizations/${organizationId}/transactions`),
-        )
-      : null,
-    [firestore, organizationId]
-  );
-  const { data: transactions, isLoading: loadingTransactions } = useCollection<Transaction>(transactionsQuery);
-
-  const contactsQuery = useMemoFirebase(() =>
-    (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/contacts`) : null,
-    [firestore, organizationId]
-  );
-  const { data: contacts, isLoading: loadingContacts } = useCollection<any>(contactsQuery);
-  
-  const propertiesQuery = useMemoFirebase(() =>
-    (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/properties`) : null,
-    [firestore, organizationId]
-  );
-  const { data: properties, isLoading: loadingProperties } = useCollection<any>(propertiesQuery);
+  const { data: transactions, isLoading: loadingTransactions } = useApiCollection<Transaction>('/api/transactions');
+  const { data: contacts, isLoading: loadingContacts } = useApiCollection<any>('/api/contacts');
+  const { data: properties, isLoading: loadingProperties } = useApiCollection<any>('/api/properties');
 
   const contactMap = useMemo(() => {
     if (!contacts) return new Map<string, string>();
-    return new Map(contacts.map(c => [c.id, `${c.firstName} ${c.lastName}`]));
+    return new Map(contacts.map((c: any) => [c.id, `${c.first_name} ${c.last_name}`]));
   }, [contacts]);
-  
+
   const propertyMap = useMemo(() => {
     if (!properties) return new Map<string, string>();
-    return new Map(properties.map(p => [p.id, p.addressLine1]));
+    return new Map(properties.map((p: any) => [p.id, p.address_line1]));
   }, [properties]);
 
   const handleSort = (column: SortableColumns) => {
@@ -109,12 +97,19 @@ export default function TransactionsPage() {
       setSortDescriptor({ column, direction: 'asc' });
     }
   };
-  
+
+  const getDateValue = (val: any): Date => {
+    if (!val) return new Date();
+    if (val instanceof Date) return val;
+    if (typeof val === 'string') return new Date(val);
+    return new Date();
+  };
+
   const filteredAndSortedTransactions = useMemo(() => {
     if (!transactions) return [];
     let processedTransactions = transactions.filter(t => {
-      const typeMatch = typeFilter === 'all' || t.transactionType === typeFilter;
-      const propertyMatch = propertyFilter === 'all' || t.relatedPropertyId === propertyFilter;
+      const typeMatch = typeFilter === 'all' || t.type === typeFilter;
+      const propertyMatch = propertyFilter === 'all' || t.related_property_id === propertyFilter;
       const statusMatch = statusFilter === 'all' || (statusFilter === 'reconciled' && t.reconciled) || (statusFilter === 'unreconciled' && !t.reconciled);
       return typeMatch && propertyMatch && statusMatch;
     });
@@ -125,14 +120,20 @@ export default function TransactionsPage() {
 
         switch(column) {
             case 'transactionDate':
-                aValue = getTimestampAsDate(a.transactionDate).getTime();
-                bValue = getTimestampAsDate(b.transactionDate).getTime();
+                aValue = getDateValue(a.transaction_date).getTime();
+                bValue = getDateValue(b.transaction_date).getTime();
                 break;
             case 'transactionType':
+                aValue = a.type;
+                bValue = b.type;
+                break;
             case 'description':
+                aValue = a.description;
+                bValue = b.description;
+                break;
             case 'amount':
-                aValue = a[column];
-                bValue = b[column];
+                aValue = a.amount;
+                bValue = b.amount;
                 break;
         }
 
@@ -147,18 +148,10 @@ export default function TransactionsPage() {
 
   }, [transactions, typeFilter, propertyFilter, statusFilter, sortDescriptor]);
 
-
-  const getTimestampAsDate = (timestamp: any): Date => {
-    if (!timestamp) return new Date();
-    if (timestamp instanceof Timestamp) { return timestamp.toDate(); }
-    if (typeof timestamp === 'string') { return new Date(timestamp); }
-    return new Date();
-  };
-
   const formatCurrency = (amount: number, currency: string = 'GBP') => {
     return new Intl.NumberFormat('en-GB', { style: 'currency', currency }).format(amount);
   };
-  
+
   const getBadgeVariant = (type: string) => {
     switch (type) {
       case 'Rent Payment': return 'default';
@@ -174,18 +167,33 @@ export default function TransactionsPage() {
     }
   }
 
-  const handleReconcileToggle = (transaction: Transaction, reconciled: boolean) => {
-    if (!firestore || !auth || !organizationId) return;
-
-    const docRef = doc(firestore, `organizations/${organizationId}/transactions`, transaction.id);
-    const entityName = transaction.description;
-    updateDocumentNonBlocking(firestore, auth, organizationId, docRef, { reconciled }, entityName);
-
-    toast({
-        title: 'Transaction Updated',
-        description: `Status changed to ${reconciled ? 'Reconciled' : 'Unreconciled'}.`,
-    });
+  const handleReconcileToggle = async (transaction: Transaction, reconciled: boolean) => {
+    try {
+      await apiUpdate(`/api/transactions/${transaction.id}`, { reconciled });
+      toast({
+          title: 'Transaction Updated',
+          description: `Status changed to ${reconciled ? 'Reconciled' : 'Unreconciled'}.`,
+      });
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to update reconciliation status.' });
+    }
   }
+
+  const handleEditClick = (transaction: Transaction) => {
+    // Map API field names to form field names for the edit dialog
+    setEditingTransaction({
+      id: transaction.id,
+      transactionType: transaction.type,
+      amount: transaction.amount,
+      transactionDate: transaction.transaction_date,
+      description: transaction.description,
+      payerContactId: transaction.payer_contact_id || '',
+      payeeContactId: transaction.payee_contact_id || '',
+      relatedPropertyId: transaction.related_property_id || '',
+      relatedTenancyId: transaction.tenancy_id || '',
+      reconciled: transaction.reconciled,
+    });
+  };
 
   const handleExport = () => {
     if (!filteredAndSortedTransactions || filteredAndSortedTransactions.length === 0) {
@@ -204,12 +212,12 @@ export default function TransactionsPage() {
 
     for (const transaction of filteredAndSortedTransactions) {
       const row = [
-        format(getTimestampAsDate(transaction.transactionDate), 'yyyy-MM-dd'),
-        `"${transaction.transactionType || ''}"`,
-        `"${transaction.description.replace(/"/g, '""')}"`, // Escape double quotes
-        `"${transaction.relatedPropertyId ? propertyMap.get(transaction.relatedPropertyId) || '' : ''}"`,
-        `"${transaction.payerContactId ? contactMap.get(transaction.payerContactId) || '' : ''}"`,
-        `"${transaction.payeeContactId ? contactMap.get(transaction.payeeContactId) || '' : ''}"`,
+        format(getDateValue(transaction.transaction_date), 'yyyy-MM-dd'),
+        `"${transaction.type || ''}"`,
+        `"${(transaction.description || '').replace(/"/g, '""')}"`,
+        `"${transaction.related_property_id ? (transaction.property_address || propertyMap.get(transaction.related_property_id) || '') : ''}"`,
+        `"${transaction.payer_contact_id ? (transaction.payer_name || contactMap.get(transaction.payer_contact_id) || '') : ''}"`,
+        `"${transaction.payee_contact_id ? (transaction.payee_name || contactMap.get(transaction.payee_contact_id) || '') : ''}"`,
         transaction.reconciled ? 'Reconciled' : 'Unreconciled',
         transaction.amount,
         transaction.currency,
@@ -235,7 +243,7 @@ export default function TransactionsPage() {
   };
 
   const isLoading = loadingTransactions || loadingContacts || loadingCurrentUser || loadingProperties;
-  
+
   const EmptyState = () => (
     <Card className="col-span-full">
         <CardContent className="py-10 text-center">
@@ -275,7 +283,7 @@ export default function TransactionsPage() {
                 <SelectTrigger className="w-[180px] h-8 text-sm"><SelectValue placeholder="Filter by property..." /></SelectTrigger>
                 <SelectContent>
                     <SelectItem value="all">All Properties</SelectItem>
-                    {properties?.map(p => <SelectItem key={p.id} value={p.id}>{p.addressLine1}</SelectItem>)}
+                    {properties?.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.address_line1}</SelectItem>)}
                 </SelectContent>
             </Select>
             <Select value={statusFilter} onValueChange={setStatusFilter} disabled={isLoading}>
@@ -314,34 +322,34 @@ export default function TransactionsPage() {
                 <TableBody>
                     {filteredAndSortedTransactions && filteredAndSortedTransactions.length > 0 ? (
                     filteredAndSortedTransactions.map((transaction) => (
-                        <TableRow key={transaction.id} className="cursor-pointer" onClick={() => setEditingTransaction(transaction)}>
+                        <TableRow key={transaction.id} className="cursor-pointer" onClick={() => handleEditClick(transaction)}>
                         <TableCell className="text-sm text-muted-foreground">
-                            {format(getTimestampAsDate(transaction.transactionDate), 'dd/MM/yyyy')}
+                            {format(getDateValue(transaction.transaction_date), 'dd/MM/yyyy')}
                         </TableCell>
                         <TableCell>
-                            <Badge variant={getBadgeVariant(transaction.transactionType)}>{transaction.transactionType}</Badge>
+                            <Badge variant={getBadgeVariant(transaction.type)}>{transaction.type}</Badge>
                         </TableCell>
                         <TableCell>
                             <p className="font-medium truncate max-w-xs">{transaction.description}</p>
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
-                            {transaction.relatedPropertyId && propertyMap.has(transaction.relatedPropertyId) ? (
-                                <Link href={`/properties/${transaction.relatedPropertyId}`} className="hover:underline text-primary" onClick={(e) => e.stopPropagation()}>
-                                    {propertyMap.get(transaction.relatedPropertyId)}
+                            {transaction.related_property_id && (transaction.property_address || propertyMap.has(transaction.related_property_id)) ? (
+                                <Link href={`/properties/${transaction.related_property_id}`} className="hover:underline text-primary" onClick={(e) => e.stopPropagation()}>
+                                    {transaction.property_address || propertyMap.get(transaction.related_property_id)}
                                 </Link>
                             ) : <span className="text-muted-foreground">N/A</span>}
                         </TableCell>
                         <TableCell className="hidden lg:table-cell">
-                            {transaction.payerContactId && contactMap.has(transaction.payerContactId) ? (
-                                <Link href={`/contacts/${transaction.payerContactId}`} className="hover:underline text-primary" onClick={(e) => e.stopPropagation()}>
-                                    {contactMap.get(transaction.payerContactId)}
+                            {transaction.payer_contact_id && (transaction.payer_name || contactMap.has(transaction.payer_contact_id)) ? (
+                                <Link href={`/contacts/${transaction.payer_contact_id}`} className="hover:underline text-primary" onClick={(e) => e.stopPropagation()}>
+                                    {transaction.payer_name || contactMap.get(transaction.payer_contact_id)}
                                 </Link>
                             ) : <span className="text-muted-foreground">N/A</span>}
                         </TableCell>
                         <TableCell className="hidden lg:table-cell">
-                            {transaction.payeeContactId && contactMap.has(transaction.payeeContactId) ? (
-                                <Link href={`/contacts/${transaction.payeeContactId}`} className="hover:underline text-primary" onClick={(e) => e.stopPropagation()}>
-                                    {contactMap.get(transaction.payeeContactId)}
+                            {transaction.payee_contact_id && (transaction.payee_name || contactMap.has(transaction.payee_contact_id)) ? (
+                                <Link href={`/contacts/${transaction.payee_contact_id}`} className="hover:underline text-primary" onClick={(e) => e.stopPropagation()}>
+                                    {transaction.payee_name || contactMap.get(transaction.payee_contact_id)}
                                 </Link>
                             ) : <span className="text-muted-foreground">N/A</span>}
                         </TableCell>

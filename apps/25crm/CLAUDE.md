@@ -175,12 +175,14 @@ docker logs 25crm --tail 50
 | GET/PATCH/DELETE | `/api/documents/[id]` | Yes | Get / update / delete document |
 | POST | `/api/uploads` | Yes | Upload file (multipart), returns path |
 | GET | `/api/uploads/[...path]` | Yes | Serve uploaded file by path |
+| GET/POST | `/api/transactions` | Yes | List (with ?type= and ?contact_id= filters) / create transactions |
+| GET/PATCH/DELETE | `/api/transactions/[id]` | Yes | Get / update / delete transaction (PATCH supports { reconciled } toggle) |
 | GET/POST | `/api/listings` | Yes | List / create listings |
 | GET | `/api/notifications` | Yes | List notifications |
 | GET | `/api/reports/dashboard-stats` | Yes | Dashboard KPI stats |
 | GET | `/api/reports/recent-activity` | Yes | Recent activity feed |
 
-**Total**: 19 route files
+**Total**: 21 route files
 
 ## UI Pages
 
@@ -239,6 +241,7 @@ docker logs 25crm --tail 50
 | `src/lib/services/tasks.service.ts` | Tasks CRUD (full: list, get, create, update, delete) |
 | `src/lib/services/communications.service.ts` | Communications CRUD (list with type filter, get, create, update, delete) |
 | `src/lib/services/documents.service.ts` | Documents CRUD (list, get, create, update, delete) |
+| `src/lib/services/transactions.service.ts` | Transactions CRUD (list with type/contact filters, get, create, update, delete) |
 | `src/lib/auth.ts` | JWT auth (staff) via `@relentify/auth` |
 | `src/app/api/*/route.ts` | API route handlers |
 | `docker-compose.yml` | Container config (port 3025) |
@@ -250,7 +253,7 @@ docker logs 25crm --tail 50
 - Staff auth uses `@relentify/auth` JWT
 - Portal auth still uses Firebase (needs migration)
 - Real-time subscriptions (`useDoc`/`useCollection`) still use Firestore (needs migration to polling)
-- **Migrated to API + SWR**: contacts, tenancies, properties, maintenance, tasks, communications, documents (full CRUD + components)
+- **Migrated to API + SWR**: contacts, tenancies, properties, maintenance, tasks, communications, documents, transactions (full CRUD + components)
 - **Maintenance**: service at `src/lib/services/maintenance.service.ts`, API at `/api/maintenance` + `/api/maintenance/[id]`, all 5 components migrated from Firebase to API calls
 - **Communications**: service at `src/lib/services/communications.service.ts`, API at `/api/communications` + `/api/communications/[id]`, page + log-communication-dialog migrated from Firebase to API calls
 

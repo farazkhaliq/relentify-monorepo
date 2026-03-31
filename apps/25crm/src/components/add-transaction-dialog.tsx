@@ -4,7 +4,6 @@ import React, { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, serverTimestamp } from 'firebase/firestore';
 import { CalendarIcon, PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -34,9 +33,8 @@ import {
 } from '@relentify/ui';
 import { Input } from '@relentify/ui';
 import { Button } from '@relentify/ui';
-import { useCollection, useFirestore, useMemoFirebase, useAuth } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useApiCollection, apiCreate } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@relentify/ui';
 import { Popover, PopoverContent, PopoverTrigger } from '@relentify/ui';
@@ -61,8 +59,6 @@ type TransactionFormValues = z.infer<typeof transactionFormSchema>;
 
 export function AddTransactionDialog() {
   const [open, setOpen] = useState(false);
-  const firestore = useFirestore();
-  const auth = useAuth();
   const { toast } = useToast();
   const { userProfile: currentUserProfile, isLoading: loadingCurrentUser } = useUserProfile();
   const organizationId = currentUserProfile?.organizationId;
@@ -76,34 +72,18 @@ export function AddTransactionDialog() {
   });
 
   // Fetch contacts for the dropdowns
-  const contactsQuery = useMemoFirebase(() =>
-    (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/contacts`) : null,
-    [firestore, organizationId]
-  );
-  const { data: contacts, isLoading: loadingContacts } = useCollection<any>(contactsQuery);
+  const { data: contacts, isLoading: loadingContacts } = useApiCollection<any>('/api/contacts');
 
   // Fetch properties for the dropdown
-  const propertiesQuery = useMemoFirebase(() =>
-    (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/properties`) : null,
-    [firestore, organizationId]
-  );
-  const { data: properties, isLoading: loadingProperties } = useCollection<any>(propertiesQuery);
-  
-  const tenanciesQuery = useMemoFirebase(() =>
-    (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/tenancies`) : null,
-    [firestore, organizationId]
-  );
-  const { data: tenancies, isLoading: loadingTenancies } = useCollection<any>(tenanciesQuery);
+  const { data: properties, isLoading: loadingProperties } = useApiCollection<any>('/api/properties');
 
-  const contactMap = useMemo(() => new Map(contacts?.map(c => [c.id, `${c.firstName} ${c.lastName}`]) || []), [contacts]);
-  const propertyMap = useMemo(() => new Map(properties?.map(p => [p.id, p.addressLine1]) || []), [properties]);
+  const { data: tenancies, isLoading: loadingTenancies } = useApiCollection<any>('/api/tenancies');
 
-  const transactionsCollectionRef = useMemoFirebase(() =>
-    (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/transactions`) : null
-  , [firestore, organizationId]);
+  const contactMap = useMemo(() => new Map(contacts?.map((c: any) => [c.id, `${c.first_name} ${c.last_name}`]) || []), [contacts]);
+  const propertyMap = useMemo(() => new Map(properties?.map((p: any) => [p.id, p.address_line1]) || []), [properties]);
 
-  function onSubmit(data: TransactionFormValues) {
-    if (!transactionsCollectionRef || !organizationId) {
+  async function onSubmit(data: TransactionFormValues) {
+    if (!organizationId) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -112,24 +92,34 @@ export function AddTransactionDialog() {
       return;
     }
 
-    const newTransactionData = {
-      ...data,
-      organizationId,
-      currency: 'GBP', // Hardcode currency for now
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    };
-    
-    const entityName = data.description;
-    addDocumentNonBlocking(firestore, auth, organizationId, transactionsCollectionRef, newTransactionData, entityName);
-    
-    toast({
-      title: 'Transaction Added',
-      description: `Transaction for ${new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(data.amount)} has been added.`,
-    });
+    try {
+      await apiCreate('/api/transactions', {
+        type: data.transactionType,
+        amount: data.amount,
+        transaction_date: data.transactionDate.toISOString(),
+        description: data.description,
+        payer_contact_id: data.payerContactId || null,
+        payee_contact_id: data.payeeContactId || null,
+        related_property_id: data.relatedPropertyId || null,
+        tenancy_id: data.relatedTenancyId || null,
+        reconciled: data.reconciled,
+        currency: 'GBP',
+      });
 
-    form.reset();
-    setOpen(false);
+      toast({
+        title: 'Transaction Added',
+        description: `Transaction for ${new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(data.amount)} has been added.`,
+      });
+
+      form.reset();
+      setOpen(false);
+    } catch (err) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to add transaction.',
+      });
+    }
   }
 
   const isLoading = loadingContacts || loadingProperties || loadingCurrentUser || loadingTenancies;
@@ -179,7 +169,7 @@ export function AddTransactionDialog() {
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Amount (£)</FormLabel>
+                    <FormLabel>Amount ({'\u00A3'})</FormLabel>
                     <FormControl>
                       <Input type="number" placeholder="100.00" {...field} />
                     </FormControl>
@@ -240,7 +230,7 @@ export function AddTransactionDialog() {
                           <SelectTrigger><SelectValue placeholder="Select a contact" /></SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {contacts?.map(c => <SelectItem key={c.id} value={c.id}>{c.firstName} {c.lastName}</SelectItem>)}
+                          {contacts?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.first_name} {c.last_name}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     )}
@@ -260,7 +250,7 @@ export function AddTransactionDialog() {
                           <SelectTrigger><SelectValue placeholder="Select a contact" /></SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {contacts?.map(c => <SelectItem key={c.id} value={c.id}>{c.firstName} {c.lastName}</SelectItem>)}
+                          {contacts?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.first_name} {c.last_name}</SelectItem>)}
                         </SelectContent>
                       </Select>
                     )}
@@ -281,7 +271,7 @@ export function AddTransactionDialog() {
                         <SelectTrigger><SelectValue placeholder="Select a property" /></SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {properties?.map(p => <SelectItem key={p.id} value={p.id}>{p.addressLine1}</SelectItem>)}
+                        {properties?.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.address_line1}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   )}
@@ -301,9 +291,9 @@ export function AddTransactionDialog() {
                         <SelectTrigger><SelectValue placeholder="Select a tenancy" /></SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {tenancies?.map(t => {
-                          const propertyName = propertyMap.get(t.propertyId) || 'Unknown Property';
-                          const tenantNames = t.tenantIds.map((id:string) => contactMap.get(id) || 'Unknown').join(', ');
+                        {tenancies?.map((t: any) => {
+                          const propertyName = propertyMap.get(t.property_id) || 'Unknown Property';
+                          const tenantNames = (t.tenant_names || []).join(', ') || 'No tenants';
                           return (
                             <SelectItem key={t.id} value={t.id}>{propertyName} - {tenantNames}</SelectItem>
                           )

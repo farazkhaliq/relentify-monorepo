@@ -4,7 +4,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, serverTimestamp, doc, Timestamp } from 'firebase/firestore';
 import { CalendarIcon, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
@@ -44,8 +43,8 @@ import {
 } from '@relentify/ui';
 import { Input } from '@relentify/ui';
 import { Button } from '@relentify/ui';
-import { useCollection, useDoc, useFirestore, useMemoFirebase, useUserProfile, useAuth } from '@/firebase';
-import { deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useUserProfile } from '@/hooks/use-user-profile';
+import { useApiCollection, apiUpdate, apiDelete } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@relentify/ui';
 import { Popover, PopoverContent, PopoverTrigger } from '@relentify/ui';
@@ -75,17 +74,15 @@ interface EditTransactionDialogProps {
   isAdmin: boolean;
 }
 
-const getTimestampAsDate = (timestamp: any): Date | undefined => {
-  if (!timestamp) return undefined;
-  if (timestamp instanceof Timestamp) { return timestamp.toDate(); }
-  if (typeof timestamp === 'string' || timestamp instanceof Date) { return new Date(timestamp); }
+const getDateValue = (val: any): Date | undefined => {
+  if (!val) return undefined;
+  if (val instanceof Date) return val;
+  if (typeof val === 'string') return new Date(val);
   return undefined;
 };
 
 export function EditTransactionDialog({ transaction, open, onOpenChange, isAdmin }: EditTransactionDialogProps) {
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const firestore = useFirestore();
-  const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const { userProfile: currentUserProfile, isLoading: loadingCurrentUser } = useUserProfile();
@@ -94,12 +91,12 @@ export function EditTransactionDialog({ transaction, open, onOpenChange, isAdmin
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema),
   });
-  
+
   useEffect(() => {
     if (transaction) {
       form.reset({
         ...transaction,
-        transactionDate: getTimestampAsDate(transaction.transactionDate),
+        transactionDate: getDateValue(transaction.transactionDate),
         payerContactId: transaction.payerContactId || '',
         payeeContactId: transaction.payeeContactId || '',
         relatedPropertyId: transaction.relatedPropertyId || '',
@@ -109,39 +106,45 @@ export function EditTransactionDialog({ transaction, open, onOpenChange, isAdmin
   }, [transaction, form]);
 
   // Fetch contacts and properties for dropdowns
-  const contactsQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/contacts`) : null, [firestore, organizationId]);
-  const { data: contacts, isLoading: loadingContacts } = useCollection<any>(contactsQuery);
+  const { data: contacts, isLoading: loadingContacts } = useApiCollection<any>('/api/contacts');
+  const { data: properties, isLoading: loadingProperties } = useApiCollection<any>('/api/properties');
+  const { data: tenancies, isLoading: loadingTenancies } = useApiCollection<any>('/api/tenancies');
 
-  const propertiesQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/properties`) : null, [firestore, organizationId]);
-  const { data: properties, isLoading: loadingProperties } = useCollection<any>(propertiesQuery);
-  
-  const tenanciesQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/tenancies`) : null, [firestore, organizationId]);
-  const { data: tenancies, isLoading: loadingTenancies } = useCollection<any>(tenanciesQuery);
+  const contactMap = useMemo(() => new Map(contacts?.map((c: any) => [c.id, `${c.first_name} ${c.last_name}`]) || []), [contacts]);
+  const propertyMap = useMemo(() => new Map(properties?.map((p: any) => [p.id, p.address_line1]) || []), [properties]);
 
-  const contactMap = useMemo(() => new Map(contacts?.map(c => [c.id, `${c.firstName} ${c.lastName}`]) || []), [contacts]);
-  const propertyMap = useMemo(() => new Map(properties?.map(p => [p.id, p.addressLine1]) || []), [properties]);
+  async function onSubmit(data: TransactionFormValues) {
+    if (!organizationId) return;
 
-  const transactionDocRef = useMemoFirebase(() => (firestore && organizationId) ? doc(firestore, `organizations/${organizationId}/transactions`, transaction.id) : null, [firestore, organizationId, transaction.id]);
+    try {
+      await apiUpdate(`/api/transactions/${transaction.id}`, {
+        type: data.transactionType,
+        amount: data.amount,
+        transaction_date: data.transactionDate.toISOString(),
+        description: data.description,
+        payer_contact_id: data.payerContactId || null,
+        payee_contact_id: data.payeeContactId || null,
+        related_property_id: data.relatedPropertyId || null,
+        tenancy_id: data.relatedTenancyId || null,
+        reconciled: data.reconciled,
+      });
 
-  function onSubmit(data: TransactionFormValues) {
-    if (!transactionDocRef || !auth || !organizationId) return;
-
-    const updatedData = { ...data, updatedAt: serverTimestamp() };
-    updateDocumentNonBlocking(firestore, auth, organizationId, transactionDocRef, updatedData, data.description);
-    
-    toast({ title: 'Transaction Updated', description: 'The transaction has been successfully updated.' });
-    onOpenChange(false);
+      toast({ title: 'Transaction Updated', description: 'The transaction has been successfully updated.' });
+      onOpenChange(false);
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to update transaction.' });
+    }
   }
 
-  const handleDelete = () => {
-    if (!transactionDocRef || !auth || !organizationId) return;
-    
-    deleteDocumentNonBlocking(firestore, auth, organizationId, transactionDocRef, transaction.description);
-
-    toast({ title: 'Transaction Deleted', description: 'The transaction has been deleted.' });
-    
-    setDeleteDialogOpen(false);
-    onOpenChange(false);
+  const handleDelete = async () => {
+    try {
+      await apiDelete(`/api/transactions/${transaction.id}`);
+      toast({ title: 'Transaction Deleted', description: 'The transaction has been deleted.' });
+      setDeleteDialogOpen(false);
+      onOpenChange(false);
+    } catch (err) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete transaction.' });
+    }
   };
 
   const isLoading = loadingContacts || loadingProperties || loadingCurrentUser || loadingTenancies;
@@ -163,7 +166,7 @@ export function EditTransactionDialog({ transaction, open, onOpenChange, isAdmin
                   <FormItem><FormLabel>Type</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl><SelectContent>{['Rent Payment', 'Management Fee', 'Commission', 'Landlord Payout', 'Contractor Payment', 'Agency Expense', 'Deposit'].map(type => (<SelectItem key={type} value={type}>{type}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>
                 )}/>
                 <FormField control={form.control} name="amount" render={({ field }) => (
-                  <FormItem><FormLabel>Amount (£)</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
+                  <FormItem><FormLabel>Amount ({'\u00A3'})</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
                 )}/>
               </div>
               <FormField control={form.control} name="transactionDate" render={({ field }) => (
@@ -179,14 +182,14 @@ export function EditTransactionDialog({ transaction, open, onOpenChange, isAdmin
               )}/>
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="payerContactId" render={({ field }) => (
-                  <FormItem><FormLabel>From / Payer</FormLabel>{isLoading ? <Skeleton className="h-10 w-full" /> : (<Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a contact" /></SelectTrigger></FormControl><SelectContent>{contacts?.map(c => <SelectItem key={c.id} value={c.id}>{c.firstName} {c.lastName}</SelectItem>)}</SelectContent></Select>)}<FormMessage /></FormItem>
+                  <FormItem><FormLabel>From / Payer</FormLabel>{isLoading ? <Skeleton className="h-10 w-full" /> : (<Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a contact" /></SelectTrigger></FormControl><SelectContent>{contacts?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.first_name} {c.last_name}</SelectItem>)}</SelectContent></Select>)}<FormMessage /></FormItem>
                 )}/>
                 <FormField control={form.control} name="payeeContactId" render={({ field }) => (
-                  <FormItem><FormLabel>To / Payee</FormLabel>{isLoading ? <Skeleton className="h-10 w-full" /> : (<Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a contact" /></SelectTrigger></FormControl><SelectContent>{contacts?.map(c => <SelectItem key={c.id} value={c.id}>{c.firstName} {c.lastName}</SelectItem>)}</SelectContent></Select>)}<FormMessage /></FormItem>
+                  <FormItem><FormLabel>To / Payee</FormLabel>{isLoading ? <Skeleton className="h-10 w-full" /> : (<Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a contact" /></SelectTrigger></FormControl><SelectContent>{contacts?.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.first_name} {c.last_name}</SelectItem>)}</SelectContent></Select>)}<FormMessage /></FormItem>
                 )}/>
               </div>
               <FormField control={form.control} name="relatedPropertyId" render={({ field }) => (
-                <FormItem><FormLabel>Related Property (Optional)</FormLabel>{isLoading ? <Skeleton className="h-10 w-full" /> : (<Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a property" /></SelectTrigger></FormControl><SelectContent>{properties?.map(p => <SelectItem key={p.id} value={p.id}>{p.addressLine1}</SelectItem>)}</SelectContent></Select>)}<FormMessage /></FormItem>
+                <FormItem><FormLabel>Related Property (Optional)</FormLabel>{isLoading ? <Skeleton className="h-10 w-full" /> : (<Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a property" /></SelectTrigger></FormControl><SelectContent>{properties?.map((p: any) => <SelectItem key={p.id} value={p.id}>{p.address_line1}</SelectItem>)}</SelectContent></Select>)}<FormMessage /></FormItem>
               )}/>
               <FormField
                 control={form.control}
@@ -200,9 +203,9 @@ export function EditTransactionDialog({ transaction, open, onOpenChange, isAdmin
                           <SelectTrigger><SelectValue placeholder="Select a tenancy" /></SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {tenancies?.map(t => {
-                            const propertyName = propertyMap.get(t.propertyId) || 'Unknown Property';
-                            const tenantNames = t.tenantIds.map((id:string) => contactMap.get(id) || 'Unknown').join(', ');
+                          {tenancies?.map((t: any) => {
+                            const propertyName = propertyMap.get(t.property_id) || 'Unknown Property';
+                            const tenantNames = (t.tenant_names || []).join(', ') || 'No tenants';
                             return (
                               <SelectItem key={t.id} value={t.id}>{propertyName} - {tenantNames}</SelectItem>
                             )
