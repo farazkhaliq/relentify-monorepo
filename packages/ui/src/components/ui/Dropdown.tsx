@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { spring } from '../../animations';
 
 interface DropdownProps {
   trigger: React.ReactNode;
@@ -53,10 +54,10 @@ export function Dropdown({
       <AnimatePresence>
         {open && (
           <motion.div 
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0, y: -6, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0,  scale: 1    }}
+            exit={{ opacity: 0,   y: -4,  scale: 0.98 }}
+            transition={{ ...spring.snappy }}
             className={cn(
               "absolute top-full mt-2 w-64 rounded-[2rem] p-4 shadow-2xl z-50 backdrop-blur-3xl border",
               "bg-white/70 border-black/10 dark:bg-zinc-900/70 dark:border-white/10",

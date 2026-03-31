@@ -15,8 +15,8 @@ WORKDIR /app
 COPY --from=pruner /app/out/json/ .
 COPY --from=pruner /app/out/pnpm-lock.yaml ./pnpm-lock.yaml
 # Use --ignore-scripts to skip sharp's native build (falls back gracefully at runtime)
-RUN pnpm install --frozen-lockfile --ignore-scripts && \
-    cd packages/database && npx --yes prisma@5.22.0 generate || true
+RUN pnpm install --no-frozen-lockfile --ignore-scripts
+RUN cd packages/database && npx --yes prisma@5.22.0 generate || true
 
 FROM base AS builder
 RUN apk add --no-cache libc6-compat openssl

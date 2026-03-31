@@ -16,12 +16,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     let paymentDate: string | undefined;
     let bankAccountId: string | undefined;
     let reference: string | undefined;
+    let isPrepayment: boolean | undefined;
+    let prepaymentMonths: number | undefined;
+    let prepaymentExpAcctId: string | undefined;
 
     try {
       const body = await req.json();
       paymentDate = body.paymentDate || undefined;
       bankAccountId = body.bankAccountId || undefined;
       reference = body.reference || undefined;
+      isPrepayment = body.isPrepayment || undefined;
+      prepaymentMonths = body.prepaymentMonths ? parseInt(body.prepaymentMonths) : undefined;
+      prepaymentExpAcctId = body.prepaymentExpAcctId || undefined;
     } catch {
       // body is optional — fall back to defaults
     }
@@ -37,13 +43,16 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }, { status: 403 });
     }
 
-    const bill = await markBillPaid(auth.userId, id, entity.id, { paymentDate, bankAccountId, reference });
+    const bill = await markBillPaid(auth.userId, id, entity.id, {
+      paymentDate, bankAccountId, reference, isPrepayment, prepaymentMonths, prepaymentExpAcctId,
+    });
     if (!bill) return NextResponse.json({ error: 'Bill not found' }, { status: 404 });
     await logAudit(auth.userId, 'bill.paid', 'bill', id, {
       supplier: bill.supplier_name,
       amount: bill.amount,
       paymentDate,
       bankAccountId,
+      isPrepayment,
     });
     return NextResponse.json({ bill });
   } catch (e) {

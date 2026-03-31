@@ -65,3 +65,7 @@ export * from './components/ui/Tooltip';
 // Utils
 export * from './lib/utils';
 export { THEME_SCRIPT } from './hooks/useTheme';
+
+// Animation system
+export * from './animations';
+export * from './MotionProvider';

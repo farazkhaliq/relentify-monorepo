@@ -4,6 +4,7 @@ import * as React from 'react';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 import { motion } from 'framer-motion';
 import { cn } from '../../lib/utils';
+import { spring } from '../../animations';
 
 // Legacy pill-style tab nav (for 22accounting settings and similar)
 interface TabNavOption {
@@ -41,7 +42,7 @@ export function TabsNav({ options, selectedValue, onValueChange, variant = 'cine
               <motion.div
                 layoutId="activeTabNav"
                 className="absolute inset-0 bg-[var(--theme-primary)] dark:bg-white rounded-full -z-10"
-                transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                transition={spring.snappy}
               />
             )}
             {option.label}

@@ -91,7 +91,7 @@ Defined in `lib/tiers.ts`. Never hardcode tier names in components — always us
 | **Priority 4** | ✅ | **File attachments** |
 | **Priority 5** | ✅ | **UI polish (batch all pages at once)** — all items complete |
 | **Priority 6** | ✅ | **Production hardening** |
-| **Priority 7** | 🔴 | **Advanced / post-launch** |
+| **Priority 7** | ✅ | **Advanced / post-launch** |
 
 ---
 
@@ -191,7 +191,7 @@ Several pages haven't been updated to match the dark-mode `@relentify/ui` style.
 
 ---
 
-### 🔴 Priority 7 — Advanced / Post-Launch
+### ✅ Priority 7 — Advanced / Post-Launch (complete)
 
 | # | Item |
 |---|------|
@@ -237,9 +237,9 @@ Several pages haven't been updated to match the dark-mode `@relentify/ui` style.
 
 ---
 
-## Summary: ✅ Priority 1–6 complete | ✅ Priority 7 complete (#28 ✅, #36 ✅, #37 ✅, #39 ✅)
+## Summary: ✅ Priority 1–7 complete
 
-**Next:** say "do priority 4" (file attachments), "do priority 5" (UI polish), "do priority 6" (production hardening), or "do priority 7" (advanced features).
+All pre-launch priority groups are done. See **Remaining Work — Launch Blockers** below for what's still needed before public launch.
 
 ---
 
@@ -333,7 +333,7 @@ Several pages haven't been updated to match the dark-mode `@relentify/ui` style.
 
 ---
 
-## Accounting Engine Workstream (2026-03-28, in progress)
+## Accounting Engine Workstream (2026-03-28, ✅ complete)
 
 Plan: `docs/superpowers/plans/2026-03-28-accounting-engine.md` (17 tasks)
 
@@ -377,36 +377,159 @@ Plan: `docs/superpowers/plans/2026-03-28-accounting-engine.md` (17 tasks)
 
 ---
 
-## All Remaining Work — Master Summary
+## Remaining Work — Launch Blockers
 
-> To work on any item: read the plan file listed, then implement task by task using subagent-driven development. One task at a time.
+Every item below must be complete before 22accounting launches publicly.
 
-| # | Workstream | Tasks remaining | Plan file | Status |
-|---|------------|----------------|-----------|--------|
-| 1 | **Accounting Engine** | 13 of 17 (tasks 5–17) | `docs/superpowers/plans/2026-03-28-accounting-engine.md` | 🔄 In progress |
-| 2 | **UI Animations** | 0 of 11 | `docs/superpowers/plans/2026-03-28-ui-animations.md` | ✅ Complete (2026-03-30) |
-| 3 | **Help System** | 15 of 15 | `docs/superpowers/plans/2026-03-28-help-system.md` | 🔴 Not started |
-| 4 | **Migration Tool** | 0 of 17 | `docs/superpowers/plans/2026-03-28-migration-tool.md` | ✅ Complete (2026-03-30) |
-| 5 | **Recording System** | 8 of 8 | `docs/superpowers/plans/2026-03-28-recording-system.md` | 🔴 Not started |
-| 6 | **Developer API** | 15 of 15 | `docs/superpowers/plans/2026-03-28-developer-api.md` | 🔴 Not started |
+| # | Workstream | Status | Detail |
+|---|-----------|--------|--------|
+| 1 | Help articles (27 remaining + 7 API docs) | 20/47 written | See `apps/26help/CLAUDE.md` |
+| 2 | Help videos (every article needs a recording) | 0/47 recorded | See `apps/26help/CLAUDE.md` |
+| 3 | Help automation (weekly cron) | Not built | See `apps/26help/CLAUDE.md` |
+| 4 | Developer API + Webhooks (15 tasks) | Not started | See `docs/superpowers/plans/2026-03-28-developer-api.md` |
+| 5 | Granular permissions (~40 routes) | Not started | Detail below |
+| 6 | Mismatch flagging (PO-bill + bank-invoice) | Not started | Detail below |
+| 7 | Migration 026 numbering conflict | Not resolved | Renumber recording system's 026 to 027 |
 
-### Accounting Engine — remaining tasks (next up: Task 5)
+### Granular Permissions
 
-| # | Task | Status |
-|---|------|--------|
-| 5 | Audit service — add `workspaceEntityId` 7th param | ✅ Done |
-| 6 | Invoice service — atomic `createInvoice` + `recordPayment` + `voidInvoice` | ✅ Done |
-| 7 | Bill service — atomic `createBill` + `recordBillPayment` | ✅ Done |
-| 8 | Credit note, expense, approval services — atomic | ✅ Done |
-| 9 | Quote, PO, opening balance, intercompany — atomic | ✅ Done |
-| 10 | VAT engine service — explicit UK rules | ✅ Done |
-| 11 | Cron monitoring — `cron_runs` table, Telegram alert on failure | ✅ Done |
-| 12 | Team roles — `getMemberRole`, `requireGLRole` permission checks | ✅ Done |
-| 13 | Accrual journals — draft mode, balance warning, auto-reversal cron | ✅ Done |
-| 14 | Prepayment tracking — Dr Prepayments 1300, monthly release cron | ✅ Done |
-| 15 | GL integrity diagnostic in health report | ✅ Done |
-| 16 | Journal UI — Reverse button, Draft badge + Post action | ✅ Done |
-| 17 | Build & deploy | ✅ Done |
+Expand `checkPermission()` from 7 route handlers to ~40. The utility exists in `src/lib/workspace-auth.ts` — it just needs wiring into unprotected routes.
+
+**Step 1: Expand WorkspacePermissions type** (`src/lib/auth.ts`)
+
+```ts
+export interface WorkspacePermissions {
+  // Existing
+  invoices:    { view: boolean; create: boolean; delete: boolean };
+  bills:       { view: boolean; create: boolean; delete: boolean };
+  banking:     { view: boolean; reconcile: boolean };
+  reports:     { view: boolean };
+  settings:    { view: boolean };
+  customers:   { view: boolean; manage: boolean };
+  // New
+  suppliers:   { view: boolean; manage: boolean };
+  expenses:    { view: boolean; create: boolean; approve: boolean };
+  quotes:      { view: boolean; create: boolean };
+  creditNotes: { view: boolean; create: boolean };
+  journals:    { view: boolean; create: boolean };
+  po:          { view: boolean; create: boolean; approve: boolean };
+  projects:    { view: boolean; manage: boolean };
+  mileage:     { view: boolean; create: boolean; approve: boolean };
+  vat:         { view: boolean; submit: boolean };
+  coa:         { view: boolean; manage: boolean };
+  audit:       { view: boolean };
+  entities:    { view: boolean; manage: boolean };
+}
+```
+
+**Step 2: Expand DEFAULT_PERMISSIONS** (`src/lib/team-defaults.ts`) — all new modules: `view: true`, write actions `false`.
+
+**Step 3: Update team page module config** (`app/dashboard/team/page.tsx` lines 15-22) — add all new modules to the checkbox grid.
+
+**Step 4: Wire checkPermission into routes**
+
+Each route gets `checkPermission(auth, module, action)` after `getAuthUser()`. Owner and accountant bypass automatically.
+
+| Module | Route file | Handler | Action |
+|--------|-----------|---------|--------|
+| `suppliers` | `suppliers/[id]/route.ts` | PATCH, DELETE | `manage` |
+| `bills` | `bills/[id]/route.ts` | PATCH | `create` |
+| `bills` | `bills/[id]/route.ts` | DELETE | `delete` |
+| `bills` | `bills/[id]/pay/route.ts` | POST | `create` |
+| `customers` | `customers/[id]/route.ts` | PATCH, DELETE | `manage` |
+| `expenses` | `expenses/route.ts` | POST | `create` |
+| `expenses` | `expenses/[id]/route.ts` | PATCH, DELETE | `create` |
+| `expenses` | `expenses/[id]/approve/route.ts` | POST | `approve` |
+| `expenses` | `expenses/[id]/reject/route.ts` | POST | `approve` |
+| `expenses` | `expense-approval-settings/route.ts` | PATCH | `approve` |
+| `quotes` | `quotes/route.ts` | POST | `create` |
+| `quotes` | `quotes/[id]/route.ts` | PATCH, DELETE | `create` |
+| `quotes` | `quotes/[id]/send/route.ts` | POST | `create` |
+| `quotes` | `quotes/[id]/convert/route.ts` | POST | `create` |
+| `creditNotes` | `credit-notes/route.ts` | POST | `create` |
+| `creditNotes` | `credit-notes/[id]/route.ts` | PATCH | `create` |
+| `journals` | `journals/route.ts` | POST | `create` |
+| `journals` | `journals/[id]/route.ts` | DELETE, PATCH | `create` |
+| `po` | `po/route.ts` | POST | `create` |
+| `po` | `po/[id]/route.ts` | PATCH | `create` |
+| `po` | `po/[id]/approve/route.ts` | POST | `approve` |
+| `po` | `po/[id]/reject/route.ts` | POST | `approve` |
+| `po` | `po/settings/route.ts` | PATCH | `approve` |
+| `po` | `po/approver-mappings/route.ts` | POST | `approve` |
+| `projects` | `projects/route.ts` | POST | `manage` |
+| `projects` | `projects/[id]/route.ts` | PATCH | `manage` |
+| `mileage` | `mileage/route.ts` | POST | `create` |
+| `mileage` | `mileage/[id]/route.ts` | DELETE | `create` |
+| `mileage` | `mileage/[id]/approve/route.ts` | POST | `approve` |
+| `mileage` | `mileage/[id]/reject/route.ts` | POST | `approve` |
+| `vat` | `hmrc/vat/submit/route.ts` | POST | `submit` |
+| `coa` | `accounts/route.ts` | POST | `manage` |
+| `coa` | `accounts/[id]/route.ts` | PATCH, DELETE | `manage` |
+| `entities` | `entities/[id]/route.ts` | PATCH, DELETE | `manage` |
+| `settings` | `settings/route.ts` | PATCH | `view` |
+| `banking` | `banking/[id]/match/route.ts` | POST | `reconcile` |
+
+**Routes intentionally excluded**: `auth/*`, `workspace/*`, `team/*` (owner-only), `account/*`, `user/*`, `accountant/*` (own access model), Stripe `webhooks/*`, `recordings/*` (user-level), `period-locks/*` and `year-end/*` (admin-only via role check), `comments/*` and `attachments/*` (follow parent entity permissions).
+
+**Pattern per route:**
+```ts
+import { checkPermission } from '@/src/lib/workspace-auth';
+// In handler, after auth check:
+const denied = checkPermission(auth, 'module', 'action');
+if (denied) return denied;
+```
+
+**Verification**: MCP tests (48) should still pass (MCP user is owner → always allowed). Also test with a restricted workspace member to verify 403s.
+
+### Mismatch Flagging
+
+Persistent tracking of PO-to-bill and bank-to-invoice amount discrepancies.
+
+**New DB table** (migration — renumber as needed):
+
+```sql
+CREATE TABLE mismatches (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  entity_id UUID NOT NULL,
+  type TEXT NOT NULL,
+  severity TEXT DEFAULT 'warning',
+  source_type TEXT NOT NULL,
+  source_id UUID NOT NULL,
+  reference_type TEXT NOT NULL,
+  reference_id UUID NOT NULL,
+  source_amount DECIMAL(12,2),
+  reference_amount DECIMAL(12,2),
+  difference DECIMAL(12,2),
+  message TEXT,
+  status TEXT DEFAULT 'open',
+  resolved_at TIMESTAMPTZ,
+  resolved_by UUID,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_mismatches_user_status ON mismatches(user_id, status);
+CREATE INDEX idx_mismatches_entity ON mismatches(entity_id);
+```
+
+**New file: `src/lib/mismatch.service.ts`**
+
+- `detectBillPOMismatch(userId, entityId, billId, billAmount, poId)` — creates mismatch if diff > £1 AND > 2%. Type: `po_bill_amount`.
+- `detectBankMismatch(userId, entityId, txId, txAmount, matchType, matchId)` — creates mismatch if amounts differ. Type: `bank_invoice_amount` or `bank_bill_amount`.
+- `getMismatches(userId, entityId, status?)` — list with optional status filter
+- `resolveMismatch(id, userId, action: 'resolved' | 'ignored')` — update status
+- `getMismatchCount(userId, entityId)` — open mismatch count
+
+**New routes:**
+- `GET /api/mismatches` — list, tier-gated to `mismatch_flagging`
+- `PATCH /api/mismatches/[id]` — resolve/ignore
+
+**Integration points:**
+- `app/api/bills/route.ts` POST — after bill creation, call `detectBillPOMismatch()` if `poId` present
+- `app/api/banking/[id]/match/route.ts` POST — after `manualMatch()`, call `detectBankMismatch()` for bill/invoice matches
+
+**Tier gate**: `mismatch_flagging` already exists in `tiers.ts` FEATURE_ACCESS.
+
+**Verification**: Create PO £1000 → bill £1200 → mismatch auto-created. GET /api/mismatches returns it. PATCH to resolve.
 
 ---
 
@@ -417,11 +540,11 @@ Plan: `docs/superpowers/plans/2026-03-28-accounting-engine.md` (17 tasks)
 
 | Workstream | Spec | Plan | Status |
 |------------|------|------|--------|
-| Accounting Engine | `2026-03-26-accounting-engine-design.md` | `2026-03-28-accounting-engine.md` | 🔄 In progress (tasks 1–4 done) |
+| Accounting Engine | `2026-03-26-accounting-engine-design.md` | `2026-03-28-accounting-engine.md` | ✅ Complete (2026-03-29) |
 | UI Animations (Framer Motion) | — | `2026-03-28-ui-animations.md` | ✅ Complete (2026-03-30) |
-| Help System (apps/26help) | — | `2026-03-28-help-system.md` | 🔴 Not started |
+| Help System (apps/26help) | — | `2026-03-28-help-system.md` | ✅ Complete (2026-03-30) |
 | Migration Tool (Xero/QB import) | `2026-03-26-migration-tool-design.md` | `2026-03-28-migration-tool.md` | ✅ Complete (2026-03-30) |
-| Recording System (screen capture) | `2026-03-26-recording-system-design.md` | `2026-03-28-recording-system.md` | 🔴 Not started |
+| Recording System (screen capture) | `2026-03-26-recording-system-design.md` | `2026-03-28-recording-system.md` | ✅ Complete (2026-03-30) |
 | Developer API + Webhooks | `2026-03-26-developer-api-design.md` | `2026-03-28-developer-api.md` | 🔴 Not started |
 
 ---
@@ -643,6 +766,20 @@ A "Report Issue" screen recording system built into the 22accounting dashboard.
 - `RecordingManager` interface designed for future React Native parity — don't call `getDisplayMedia` directly anywhere except `WebRecordingManager`
 - New env var: `SUPPORT_EMAIL` — add to `.env.example`
 - Migration 026 note: both migration tool and recording system use 026 — one must be renumbered to 027 when both are implemented in sequence
+
+---
+
+## Help Centre — Product Launch Requirement
+
+Full documentation lives in `apps/26help/CLAUDE.md`. Summary:
+
+- **Live at**: `help.relentify.com/accounting` — container `26help`, port 3026
+- **Content**: `apps/26help/content/accounting/` — one MDX file per feature
+- **Status**: 20 of ~35 articles written. Every feature in this app needs an article AND a video.
+- **Videos**: embed via `videoUrl` frontmatter → `<VideoGuide>` component. Not yet recorded.
+- **Automation**: `scripts/update-help-articles.ts` (not yet built) — weekly cron runs MCP tests, calls Claude API, rewrites stale articles automatically.
+
+**This must be complete before accounting launches publicly.** See `apps/26help/CLAUDE.md` for the full article checklist, video recording guidelines, and automation spec.
 
 ---
 

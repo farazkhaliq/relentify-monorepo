@@ -1,5 +1,9 @@
+'use client'
+
 import * as React from 'react'
+import { motion } from 'framer-motion'
 import { cn } from '../../lib/utils'
+import { spring } from '../../animations'
 
 interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   value?: number
@@ -7,15 +11,18 @@ interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const Progress = React.forwardRef<HTMLDivElement, ProgressProps>(
   ({ className, value = 0, ...props }, ref) => {
+    const clamped = Math.min(100, Math.max(0, value))
     return (
       <div
         ref={ref}
         className={cn('relative h-2 w-full overflow-hidden rounded-full bg-[var(--theme-border)]', className)}
         {...props}
       >
-        <div
-          className="h-full bg-[var(--theme-accent)] transition-all duration-300"
-          style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
+        <motion.div
+          className="h-full bg-[var(--theme-accent)] rounded-full"
+          initial={{ width: 0 }}
+          animate={{ width: `${clamped}%` }}
+          transition={spring.smooth}
         />
       </div>
     )

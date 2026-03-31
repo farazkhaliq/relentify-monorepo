@@ -1,0 +1,31 @@
+services:
+  web:
+    build:
+      context: ../../
+      dockerfile: apps/26help/Dockerfile
+    container_name: 26help
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+    ports:
+      - "3026:3000"
+    networks:
+      - infra_default
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  infra_default:
+    external: true
+    name: infra_default

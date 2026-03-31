@@ -15,6 +15,7 @@ All UI components, theming, and navigation must come from `@relentify/ui`.
 | 23inventory | 23inventory | 3023 | TopBar layout |
 | 24reminders | 24reminders | 3024 | TopBar layout |
 | 25crm | 25crm | 3025 | TopBar layout (no sidebar) |
+| 26help | 26help | 3026 | Static export (output: 'export'), TopBar layout, Pagefind search, help.relentify.com |
 
 **Container naming**: All containers are named to match their app folder (20marketing, 21auth, etc.).
 The old names (relentify-com, relentify-login, relentify-accounts, etc.) are retired — containers deleted.
@@ -290,6 +291,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=pruner /app/out/full/ .
 COPY --from=deps /app/apps/<appdir>/node_modules ./apps/<appdir>/node_modules
+COPY --from=deps /app/packages/ui/node_modules ./packages/ui/node_modules
 RUN cd packages/database && npx prisma generate
 WORKDIR /app/apps/<appdir>
 RUN pnpm build
@@ -351,6 +353,8 @@ Also add to `package.json` devDependencies: `"@tailwindcss/postcss": "^4.2.1"`
 
 Without `postcss.config.js` + `@tailwindcss/postcss`, `@import "tailwindcss"` passes through as raw CSS
 — the CSS bundle will have CSS variables but **zero utility classes** (no `flex`, `w-6`, etc.).
+
+**`COPY --from=deps /app/packages/ui/node_modules`** — required in the builder stage when `transpilePackages: ['@relentify/ui']` is set. `packages/ui/src/index.ts` imports `'./styles/globals.css'` which contains `@import "tailwindcss"`. Without this COPY, webpack resolves tailwindcss from packages/ui's directory context and fails with `Can't resolve 'tailwindcss' in '/app/packages/ui/src/styles'`. This is already in the Dockerfile template above.
 
 ### Middleware redirect URL fix
 

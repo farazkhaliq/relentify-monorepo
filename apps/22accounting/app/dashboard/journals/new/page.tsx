@@ -11,6 +11,8 @@ interface JournalLine { accountId: string; description: string; debit: string; c
 const inputCls = 'w-full px-3 py-2 bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-cinematic text-[var(--theme-text)] placeholder-[var(--theme-text-muted)] focus:ring-2 focus:ring-[var(--theme-accent)] focus:border-[var(--theme-accent)] outline-none text-sm';
 const labelCls = 'block text-[10px] font-black text-[var(--theme-text-muted)] uppercase tracking-widest mb-1.5';
 
+const CONTROL_CODES = new Set([1100, 2100]);
+
 const COMMON_JOURNALS = [
   {
     label: 'Accrual', description: 'Accrued expense / income not yet invoiced',
@@ -126,7 +128,10 @@ export default function NewJournalPage() {
     { accountId: '', description: '', debit: '', credit: '' },
     { accountId: '', description: '', debit: '', credit: '' },
   ]);
-  const [loading, setLoading] = useState(false);
+  const [isAccrual, setIsAccrual] = useState(false);
+  const [reversalDate, setReversalDate] = useState('');
+  const [posting, setPosting] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
 
   useEffect(() => {
     fetch('/api/accounts')
@@ -151,6 +156,7 @@ export default function NewJournalPage() {
   function applyTemplate(tpl: typeof COMMON_JOURNALS[0]) {
     setDescription(tpl.description);
     setLines(tpl.lines.map(l => ({ ...l })));
+    if (tpl.label === 'Accrual') setIsAccrual(true);
   }
 
   const totalDebit  = lines.reduce((s, l) => s + (parseFloat(l.debit)  || 0), 0);
@@ -158,14 +164,22 @@ export default function NewJournalPage() {
   const diff = Math.abs(totalDebit - totalCredit);
   const balanced = diff < 0.005;
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  // Detect control account usage (1100 Debtors, 2100 Creditors)
+  const controlAccountWarning = lines.some(l => {
+    const acct = accounts.find(a => a.id === l.accountId);
+    return acct && CONTROL_CODES.has(acct.code);
+  });
 
-    if (!balanced) { toast(`Journal doesn't balance — debits £${totalDebit.toFixed(2)} vs credits £${totalCredit.toFixed(2)}`, 'error'); return; }
+  async function submit(mode: 'draft' | 'posted') {
+    if (mode === 'posted' && !balanced) {
+      toast(`Journal doesn't balance — debits £${totalDebit.toFixed(2)} vs credits £${totalCredit.toFixed(2)}`, 'error');
+      return;
+    }
     if (lines.some(l => !l.accountId)) { toast('All lines must have an account selected', 'error'); return; }
     if (lines.every(l => !parseFloat(l.debit) && !parseFloat(l.credit))) { toast('At least one line must have an amount', 'error'); return; }
+    if (isAccrual && mode === 'posted' && !reversalDate) { toast('Accrual entries require a reversal date', 'error'); return; }
 
-    setLoading(true);
+    if (mode === 'draft') setSavingDraft(true); else setPosting(true);
     try {
       const r = await fetch('/api/journals', {
         method: 'POST',
@@ -174,6 +188,9 @@ export default function NewJournalPage() {
           date,
           reference: reference.trim() || undefined,
           description: description.trim() || undefined,
+          status: mode,
+          isAccrual: isAccrual || undefined,
+          reversalDate: isAccrual && reversalDate ? reversalDate : undefined,
           lines: lines.map(l => ({
             accountId: l.accountId,
             description: l.description.trim() || undefined,
@@ -184,14 +201,17 @@ export default function NewJournalPage() {
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error);
-      toast('Journal entry posted', 'success');
+      toast(mode === 'draft' ? 'Draft saved' : 'Journal entry posted', 'success');
       setTimeout(() => router.push('/dashboard/journals'), 600);
     } catch (e: unknown) {
-      toast(e instanceof Error ? e.message : 'Failed to post journal', 'error');
+      toast(e instanceof Error ? e.message : 'Failed to save journal', 'error');
     } finally {
-      setLoading(false);
+      setSavingDraft(false);
+      setPosting(false);
     }
   }
+
+  const anyLoading = posting || savingDraft;
 
   return (
     <div className="min-h-screen bg-[var(--theme-background)] bg-transparent">
@@ -216,7 +236,7 @@ export default function NewJournalPage() {
           </div>
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-6">
+        <div className="space-y-6">
           {/* Header */}
           <div className="bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-cinematic p-5 sm:p-8 space-y-4">
             <h2 className="text-[10px] font-black text-[var(--theme-accent)] uppercase tracking-widest">Journal Details</h2>
@@ -235,7 +255,46 @@ export default function NewJournalPage() {
                 <input type="text" value={description} onChange={e => setDescription(e.target.value)} className={inputCls} placeholder="e.g. Monthly accruals" />
               </div>
             </div>
+
+            {/* Accrual toggle */}
+            <div className="pt-2 border-t border-[var(--theme-border)]">
+              <label className="flex items-center gap-3 cursor-pointer w-fit">
+                <input
+                  type="checkbox"
+                  checked={isAccrual}
+                  onChange={e => { setIsAccrual(e.target.checked); if (!e.target.checked) setReversalDate(''); }}
+                  className="w-4 h-4 accent-[var(--theme-accent)]"
+                />
+                <span className="text-sm font-bold text-[var(--theme-text)]">
+                  Accrual entry — auto-reverses on a future date
+                </span>
+              </label>
+
+              {isAccrual && (
+                <div className="mt-3 max-w-xs">
+                  <label className={labelCls}>Reversal Date *</label>
+                  <DatePicker
+                    value={reversalDate}
+                    min={date || undefined}
+                    onChange={setReversalDate}
+                  />
+                  <p className="mt-1 text-xs text-[var(--theme-text-muted)]">
+                    A reversing journal will be automatically posted on this date.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Control account warning */}
+          {controlAccountWarning && (
+            <div className="flex items-start gap-3 bg-[var(--theme-warning)]/10 border border-[var(--theme-warning)]/30 rounded-cinematic px-4 py-3">
+              <svg className="w-4 h-4 text-[var(--theme-warning)] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              <p className="text-xs text-[var(--theme-warning)] font-bold">
+                You have selected a control account (Debtors 1100 or Creditors 2100). Manual journals to control accounts can affect reconciliation — make sure this is intentional.
+              </p>
+            </div>
+          )}
 
           {/* Lines */}
           <div className="bg-[var(--theme-card)] border border-[var(--theme-border)] rounded-cinematic p-5 sm:p-8">
@@ -332,18 +391,33 @@ export default function NewJournalPage() {
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading || !balanced}
-            className="w-full py-4 bg-[var(--theme-accent)] text-white font-black rounded-cinematic text-sm uppercase tracking-widest hover:brightness-110 disabled:opacity-50 transition-all shadow-lg active:scale-[0.98]"
-          >
-            {loading ? 'Posting…' : 'Post Journal Entry'}
-          </button>
-
-          {!balanced && totalDebit > 0 && (
-            <p className="text-center text-sm text-[var(--theme-destructive)] font-bold">Journal must balance before posting</p>
+          {/* Balance warning */}
+          {!balanced && (totalDebit > 0 || totalCredit > 0) && (
+            <p className="text-center text-sm text-[var(--theme-destructive)] font-bold">
+              Journal does not balance: Dr £{totalDebit.toFixed(2)} ≠ Cr £{totalCredit.toFixed(2)}
+            </p>
           )}
-        </form>
+
+          {/* Action buttons */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              type="button"
+              onClick={() => submit('draft')}
+              disabled={anyLoading}
+              className="flex-1 py-4 bg-[var(--theme-card)] border border-[var(--theme-border)] text-[var(--theme-text)] font-black rounded-cinematic text-sm uppercase tracking-widest hover:border-[var(--theme-accent)] hover:text-[var(--theme-accent)] disabled:opacity-50 transition-all active:scale-[0.98]"
+            >
+              {savingDraft ? 'Saving…' : 'Save as Draft'}
+            </button>
+            <button
+              type="button"
+              onClick={() => submit('posted')}
+              disabled={anyLoading || !balanced}
+              className="flex-1 py-4 bg-[var(--theme-accent)] text-white font-black rounded-cinematic text-sm uppercase tracking-widest hover:brightness-110 disabled:opacity-50 transition-all shadow-lg active:scale-[0.98]"
+            >
+              {posting ? 'Posting…' : 'Post Journal Entry'}
+            </button>
+          </div>
+        </div>
       </main>
     </div>
   );

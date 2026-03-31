@@ -1,0 +1,38 @@
+{
+  "name": "26help",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3026",
+    "build": "next build",
+    "start": "serve out -p 3026",
+    "lint": "next lint",
+    "record": "ts-node -T playwright/record.ts",
+    "validate": "ts-node -T playwright/validate.ts",
+    "build:search": "next build && npx pagefind --site out --output-path out/_pagefind"
+  },
+  "dependencies": {
+    "@relentify/ui": "workspace:*",
+    "gray-matter": "^4.0.3",
+    "next": "15.5.14",
+    "next-mdx-remote": "^5.0.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "serve": "^14.2.4",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0",
+    "@tailwindcss/postcss": "^4.2.1",
+    "@types/node": "^22.19.15",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.4.27",
+    "dotenv": "^16.4.7",
+    "pagefind": "^1.1.0",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

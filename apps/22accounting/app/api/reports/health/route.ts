@@ -124,6 +124,49 @@ export async function GET() {
       vatIssueCount = 1;
     }
 
+    // ── 5. GL integrity diagnostics ───────────────────────────────────────────
+    const [orphanedR, unbalancedR] = await Promise.all([
+      query(
+        `SELECT
+           (SELECT COUNT(*) FROM invoices i
+            WHERE NOT EXISTS (
+              SELECT 1 FROM journal_entries je
+              WHERE je.source_type='invoice' AND je.source_id=i.id::text
+                AND je.entity_id = $1
+            ) AND i.entity_id = $1 AND i.status NOT IN ('draft','voided')) AS orphaned_invoices,
+           (SELECT COUNT(*) FROM bills b
+            WHERE NOT EXISTS (
+              SELECT 1 FROM journal_entries je
+              WHERE je.source_type='bill' AND je.source_id=b.id::text
+                AND je.entity_id = $1
+            ) AND b.entity_id = $1) AS orphaned_bills,
+           (SELECT COUNT(*) FROM expenses e
+            WHERE NOT EXISTS (
+              SELECT 1 FROM journal_entries je
+              WHERE je.source_type='expense' AND je.source_id=e.id::text
+                AND je.entity_id = $1
+            ) AND e.user_id = $2 AND e.status = 'approved') AS orphaned_expenses`,
+        [entityId, userId]
+      ),
+      query(
+        `SELECT COUNT(*)::int AS unbalanced_entries
+         FROM journal_entries je
+         WHERE je.entity_id = $1
+           AND ABS(
+             (SELECT COALESCE(SUM(jl.debit),0)  FROM journal_lines jl WHERE jl.entry_id=je.id) -
+             (SELECT COALESCE(SUM(jl.credit),0) FROM journal_lines jl WHERE jl.entry_id=je.id)
+           ) > 0.005`,
+        [entityId]
+      ),
+    ]);
+
+    const glIntegrity = {
+      orphanedInvoices:  parseInt(orphanedR.rows[0]?.orphaned_invoices  ?? '0'),
+      orphanedBills:     parseInt(orphanedR.rows[0]?.orphaned_bills     ?? '0'),
+      orphanedExpenses:  parseInt(orphanedR.rows[0]?.orphaned_expenses  ?? '0'),
+      unbalancedEntries: unbalancedR.rows[0]?.unbalanced_entries ?? 0,
+    };
+
     // ── Total score ────────────────────────────────────────────────────────────
     const totalScore = reconciliationScore + missingReceiptsScore + overdueScore + vatScore;
 
@@ -166,6 +209,7 @@ export async function GET() {
           vatRegistered,
         },
       },
+      glIntegrity,
       generatedAt: new Date().toISOString(),
     });
   } catch (e) {

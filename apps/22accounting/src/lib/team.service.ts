@@ -112,3 +112,29 @@ export async function getActiveMembership(ownerUserId: string, memberUserId: str
   );
   return r.rows[0] || null;
 }
+
+export async function getMemberRole(
+  ownerUserId: string,
+  memberUserId: string
+): Promise<'admin' | 'accountant' | 'staff' | null> {
+  // Owner is always admin
+  if (ownerUserId === memberUserId) return 'admin'
+
+  const r = await query(
+    `SELECT role FROM workspace_members
+     WHERE owner_user_id=$1 AND member_user_id=$2 AND status='accepted'`,
+    [ownerUserId, memberUserId]
+  )
+  return r.rows.length > 0 ? (r.rows[0].role as 'admin' | 'accountant' | 'staff') : null
+}
+
+export async function requireGLRole(
+  ownerUserId: string,
+  actingUserId: string,
+  allowedRoles: Array<'admin' | 'accountant' | 'staff'>
+): Promise<void> {
+  const role = await getMemberRole(ownerUserId, actingUserId)
+  if (!role || !allowedRoles.includes(role)) {
+    throw new Error(`PERMISSION_DENIED: This action requires one of: ${allowedRoles.join(', ')}`)
+  }
+}

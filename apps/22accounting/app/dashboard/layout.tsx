@@ -18,6 +18,11 @@ import {
 } from '@relentify/ui';
 import AccountantBanner from '@/app/components/AccountantBanner';
 import { PageTransition } from '@/src/components/layout/PageTransition';
+import { RecordingProvider } from '@/app/components/recording/RecordingContext';
+import { RecordingButton } from '@/app/components/recording/RecordingButton';
+import { RecordingIndicator } from '@/app/components/recording/RecordingIndicator';
+import { RecordingPanel } from '@/app/components/recording/RecordingPanel';
+import { HelpButton } from '@/app/components/HelpButton';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -77,6 +82,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const isReportsActive = reportsItems.some(i => isActive(i.href));
 
   return (
+    <RecordingProvider>
     <MotionProvider>
     <NavShell
       topbar={
@@ -120,6 +126,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <TopBarLink href="/dashboard/migrate" active={isActive('/dashboard/migrate')}>
                   Migrate
                 </TopBarLink>
+                <HelpButton />
+                <RecordingButton />
                 <TopBarLink href="/dashboard/settings" active={isActive('/dashboard/settings')} aria-label="Settings">
                   <Settings size={14} />
                 </TopBarLink>
@@ -157,5 +165,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </>
       </NavShell>
     </MotionProvider>
+      <RecordingIndicator />
+      <RecordingPanel />
+    </RecordingProvider>
   );
 }

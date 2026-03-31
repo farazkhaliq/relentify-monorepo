@@ -1,6 +1,9 @@
+'use client';
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import { cn } from '../../lib/utils';
+import { spring } from '../../animations';
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
@@ -29,18 +32,20 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(({
   };
 
   return (
-    <div 
+    <motion.div
       ref={ref}
       className={cn(
-        "rounded-3xl transition-all duration-500",
+        "rounded-3xl",
         variants[variant],
         paddings[padding],
         className
       )}
+      whileHover={{ y: -2 }}
+      transition={spring.smooth}
       {...props}
     >
       {children}
-    </div>
+    </motion.div>
   );
 });
 Card.displayName = 'Card';

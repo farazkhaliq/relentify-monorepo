@@ -1,0 +1,8 @@
+@import "tailwindcss";
+@source "../../../../packages/ui/src";
+
+@layer base {
+  body {
+    font-family: var(--font-sans), ui-sans-serif, system-serif, sans-serif;
+  }
+}

@@ -39,6 +39,10 @@ export default function BillDetailPage({ params }: { params: Promise<{ id: strin
   const [paymentDate, setPaymentDate] = useState('');
   const [bankAccountId, setBankAccountId] = useState('');
   const [payReference, setPayReference] = useState('');
+  const [isPrepayment, setIsPrepayment] = useState(false);
+  const [prepaymentMonths, setPrepaymentMonths] = useState('');
+  const [prepaymentExpAcctId, setPrepaymentExpAcctId] = useState('');
+  const [expenseAccounts, setExpenseAccounts] = useState<BankAccount[]>([]);
   const [paying, setPaying] = useState(false);
 
   useEffect(() => {
@@ -56,6 +60,9 @@ export default function BillDetailPage({ params }: { params: Promise<{ id: strin
   function openPayModal() {
     setPaymentDate(new Date().toISOString().split('T')[0]);
     setPayReference('');
+    setIsPrepayment(false);
+    setPrepaymentMonths('');
+    setPrepaymentExpAcctId('');
     setShowPayModal(true);
     if (bankAccounts.length === 0) {
       fetch('/api/bills/bank-accounts').then(r => r.json()).then(d => {
@@ -64,6 +71,16 @@ export default function BillDetailPage({ params }: { params: Promise<{ id: strin
           const defaultAcc = d.accounts.find((a: BankAccount) => a.code === 1200);
           if (defaultAcc) setBankAccountId(defaultAcc.id);
           else if (d.accounts.length > 0) setBankAccountId(d.accounts[0].id);
+        }
+      }).catch(() => {});
+    }
+    if (expenseAccounts.length === 0) {
+      fetch('/api/accounts').then(r => r.json()).then(d => {
+        if (d.accounts) {
+          const expense = d.accounts.filter((a: BankAccount & { account_type: string }) =>
+            a.account_type === 'EXPENSE' || a.account_type === 'COGS'
+          );
+          setExpenseAccounts(expense);
         }
       }).catch(() => {});
     }
@@ -79,6 +96,9 @@ export default function BillDetailPage({ params }: { params: Promise<{ id: strin
           paymentDate: paymentDate || undefined,
           bankAccountId: bankAccountId || undefined,
           reference: payReference.trim() || undefined,
+          isPrepayment: isPrepayment || undefined,
+          prepaymentMonths: isPrepayment && prepaymentMonths ? parseInt(prepaymentMonths) : undefined,
+          prepaymentExpAcctId: isPrepayment && prepaymentExpAcctId ? prepaymentExpAcctId : undefined,
         }),
       });
       const d = await r.json();
@@ -168,6 +188,44 @@ export default function BillDetailPage({ params }: { params: Promise<{ id: strin
               <div>
                 <label className={labelCls}>Reference (optional)</label>
                 <input type="text" value={payReference} onChange={e => setPayReference(e.target.value)} className={inputCls} placeholder="e.g. BACS ref, cheque number" />
+              </div>
+
+              {/* Prepayment toggle */}
+              <div className="pt-2 border-t border-[var(--theme-border)]">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isPrepayment}
+                    onChange={e => { setIsPrepayment(e.target.checked); if (!e.target.checked) { setPrepaymentMonths(''); setPrepaymentExpAcctId(''); } }}
+                    className="w-4 h-4 accent-[var(--theme-accent)]"
+                  />
+                  <span className="text-sm font-bold text-[var(--theme-text)]">This is a prepayment (defers expense)</span>
+                </label>
+                {isPrepayment && (
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    <div>
+                      <label className={labelCls}>Spread over (months)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="120"
+                        value={prepaymentMonths}
+                        onChange={e => setPrepaymentMonths(e.target.value)}
+                        className={inputCls}
+                        placeholder="e.g. 12"
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Expense account</label>
+                      <select value={prepaymentExpAcctId} onChange={e => setPrepaymentExpAcctId(e.target.value)} className={inputCls + ' appearance-none'}>
+                        <option value="">Auto-detect</option>
+                        {expenseAccounts.map((a: any) => (
+                          <option key={a.id} value={a.id}>{a.code} — {a.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

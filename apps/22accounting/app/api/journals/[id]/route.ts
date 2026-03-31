@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/src/lib/auth';
 import { getActiveEntity } from '@/src/lib/entity.service';
-import { reverseJournalEntry } from '@/src/lib/general_ledger.service';
+import { reverseJournalEntry, postJournalEntry } from '@/src/lib/general_ledger.service';
 import { logAudit } from '@/src/lib/audit.service';
 import { isDateLocked } from '@/src/lib/period_lock.service';
+import { requireGLRole } from '@/src/lib/team.service';
 import { query } from '@/src/lib/db';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -46,6 +47,12 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     const entity = await getActiveEntity(auth.userId);
     if (!entity) return NextResponse.json({ error: 'No active entity' }, { status: 400 });
 
+    try {
+      await requireGLRole(entity.user_id, auth.userId, ['admin', 'accountant'])
+    } catch {
+      return NextResponse.json({ error: 'Only admin or accountant roles may reverse journal entries' }, { status: 403 })
+    }
+
     // Verify belongs to entity and is manual
     const r = await query(
       `SELECT id, reference, description, source_type, entry_date FROM journal_entries WHERE id=$1 AND entity_id=$2`,
@@ -80,6 +87,83 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Failed to reverse journal entry';
     console.error('[DELETE /api/journals/[id]]', e);
+    return NextResponse.json({ error: msg }, { status: 400 });
+  }
+}
+
+// PATCH — post a draft journal entry
+export async function PATCH(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  try {
+    const auth = await getAuthUser();
+    if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const entity = await getActiveEntity(auth.userId);
+    if (!entity) return NextResponse.json({ error: 'No active entity' }, { status: 400 });
+
+    try {
+      await requireGLRole(entity.user_id, auth.userId, ['admin', 'accountant']);
+    } catch {
+      return NextResponse.json({ error: 'Only admin or accountant roles may post journals' }, { status: 403 });
+    }
+
+    // Fetch the draft entry + lines
+    const r = await query(
+      `SELECT * FROM journal_entries WHERE id=$1 AND entity_id=$2 AND status='draft'`,
+      [id, entity.id]
+    );
+    if (!r.rows[0]) return NextResponse.json({ error: 'Draft journal not found' }, { status: 404 });
+    const entry = r.rows[0];
+
+    const linesRes = await query(
+      `SELECT account_id, description, debit, credit FROM journal_lines WHERE entry_id=$1`,
+      [id]
+    );
+
+    const lockCheck = await isDateLocked(entity.id, entry.entry_date, auth.userId);
+    if (lockCheck.locked) {
+      return NextResponse.json({
+        error: 'PERIOD_LOCKED',
+        lockedThrough: lockCheck.lockedThrough,
+        reason: lockCheck.reason,
+        earliestUnlockedDate: lockCheck.earliestUnlockedDate,
+      }, { status: 403 });
+    }
+
+    // Delete the draft then post as a new entry to go through postJournalEntry validation
+    await query(`DELETE FROM journal_lines WHERE entry_id=$1`, [id]);
+    await query(`DELETE FROM journal_entries WHERE id=$1`, [id]);
+
+    const entryId = await postJournalEntry({
+      entityId:    entity.id,
+      userId:      auth.userId,
+      date:        String(entry.entry_date).split('T')[0],
+      reference:   entry.reference ?? undefined,
+      description: entry.description ?? undefined,
+      sourceType:  'manual',
+      lines: linesRes.rows.map((l: { account_id: string; description: string; debit: string; credit: string }) => ({
+        accountId:   l.account_id,
+        description: l.description,
+        debit:       parseFloat(l.debit),
+        credit:      parseFloat(l.credit),
+      })),
+    });
+
+    // Restore accrual metadata if set
+    if (entry.is_accrual || entry.reversal_date) {
+      await query(
+        `UPDATE journal_entries SET is_accrual=$1, reversal_date=$2 WHERE id=$3`,
+        [entry.is_accrual ?? false, entry.reversal_date ?? null, entryId]
+      );
+    }
+
+    await logAudit(auth.userId, 'journal.posted_from_draft', 'journal_entry', entryId, {
+      originalDraftId: id, reference: entry.reference,
+    });
+
+    return NextResponse.json({ id: entryId });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'Failed to post journal';
+    console.error('[PATCH /api/journals/[id]]', e);
     return NextResponse.json({ error: msg }, { status: 400 });
   }
 }

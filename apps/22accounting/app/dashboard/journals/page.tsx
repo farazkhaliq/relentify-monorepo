@@ -12,12 +12,16 @@ interface Journal {
   total_debit: string;
   line_count: string;
   created_at: string;
+  status: string | null;
+  reversed_by: string | null;
+  is_accrual: boolean | null;
 }
 
 export default function JournalsPage() {
   const [journals, setJournals] = useState<Journal[]>([]);
   const [loading, setLoading] = useState(true);
   const [reversing, setReversing] = useState<string | null>(null);
+  const [posting, setPosting] = useState<string | null>(null);
   const [expandedJournalId, setExpandedJournalId] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState('');
   const [targetUserId, setTargetUserId] = useState<string | null>(null);
@@ -35,6 +39,10 @@ export default function JournalsPage() {
     }).catch(() => {});
   }, []);
 
+  function reloadJournals() {
+    fetch('/api/journals').then(r => r.json()).then(d => { if (d.journals) setJournals(d.journals); });
+  }
+
   async function reverse(id: string, ref: string | null) {
     if (!confirm(`Reverse journal entry${ref ? ` "${ref}"` : ''}? This will create an equal and opposite entry.`)) return;
     setReversing(id);
@@ -43,12 +51,27 @@ export default function JournalsPage() {
       const d = await r.json();
       if (!r.ok) throw new Error(d.error);
       toast('Journal reversed — reversal entry created', 'success');
-      // Reload
-      fetch('/api/journals').then(r => r.json()).then(d => { if (d.journals) setJournals(d.journals); });
+      reloadJournals();
     } catch (e: unknown) {
       toast(e instanceof Error ? e.message : 'Failed to reverse', 'error');
     } finally {
       setReversing(null);
+    }
+  }
+
+  async function postDraft(id: string, ref: string | null) {
+    if (!confirm(`Post draft journal${ref ? ` "${ref}"` : ''}? This will create a GL entry.`)) return;
+    setPosting(id);
+    try {
+      const r = await fetch(`/api/journals/${id}`, { method: 'PATCH' });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error);
+      toast('Journal posted to GL', 'success');
+      reloadJournals();
+    } catch (e: unknown) {
+      toast(e instanceof Error ? e.message : 'Failed to post', 'error');
+    } finally {
+      setPosting(null);
     }
   }
 
@@ -108,20 +131,46 @@ export default function JournalsPage() {
                         <td className="px-4 py-3 text-right text-[var(--theme-text)] font-bold text-sm">£{parseFloat(j.total_debit).toFixed(2)}</td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center justify-end gap-3">
-                            <button
-                              onClick={() => setExpandedJournalId(expandedJournalId === j.id ? null : j.id)}
-                              className="text-[10px] font-black text-[var(--theme-text-muted)] hover:text-[var(--theme-accent)] uppercase tracking-widest bg-transparent border border-[var(--theme-border)] rounded-lg px-2 py-1 transition-colors"
-                              title="Comments"
-                            >
-                              💬
-                            </button>
-                            <button
-                              onClick={() => reverse(j.id, j.reference)}
-                              disabled={reversing === j.id}
-                              className="text-[10px] font-black text-[var(--theme-text-muted)] hover:text-[var(--theme-destructive)] uppercase tracking-widest bg-transparent border-none cursor-pointer disabled:opacity-50 transition-colors"
-                            >
-                              {reversing === j.id ? 'Reversing…' : 'Reverse'}
-                            </button>
+                            {j.status === 'draft' && (
+                              <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-300">
+                                Draft
+                              </span>
+                            )}
+                            {j.is_accrual && j.status !== 'draft' && (
+                              <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
+                                Accrual
+                              </span>
+                            )}
+                            {j.status !== 'draft' && (
+                              <button
+                                onClick={() => setExpandedJournalId(expandedJournalId === j.id ? null : j.id)}
+                                className="text-[10px] font-black text-[var(--theme-text-muted)] hover:text-[var(--theme-accent)] uppercase tracking-widest bg-transparent border border-[var(--theme-border)] rounded-lg px-2 py-1 transition-colors"
+                                title="Comments"
+                              >
+                                💬
+                              </button>
+                            )}
+                            {j.status === 'draft' ? (
+                              <button
+                                onClick={() => postDraft(j.id, j.reference)}
+                                disabled={posting === j.id}
+                                className="text-[10px] font-black text-white bg-[var(--theme-accent)] hover:brightness-110 uppercase tracking-widest rounded-lg px-3 py-1 cursor-pointer disabled:opacity-50 transition-all"
+                              >
+                                {posting === j.id ? 'Posting…' : 'Post'}
+                              </button>
+                            ) : j.reversed_by ? (
+                              <span className="text-[10px] font-black text-[var(--theme-text-dim)] uppercase tracking-widest">
+                                Reversed
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => reverse(j.id, j.reference)}
+                                disabled={reversing === j.id}
+                                className="text-[10px] font-black text-[var(--theme-text-muted)] hover:text-[var(--theme-destructive)] uppercase tracking-widest bg-transparent border-none cursor-pointer disabled:opacity-50 transition-colors"
+                              >
+                                {reversing === j.id ? 'Reversing…' : 'Reverse'}
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
