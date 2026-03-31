@@ -4,9 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, doc, query } from 'firebase/firestore';
 import { Trash2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 import {
   Dialog,
@@ -29,8 +27,7 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@relentify/ui';
 import { Input } from '@relentify/ui';
 import { Button } from '@relentify/ui';
-import { useCollection, useFirestore, useMemoFirebase, useAuth } from '@/firebase';
-import { updateDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useApiCollection, apiUpdate, apiDelete } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@relentify/ui';
 import { ScrollArea } from '@relentify/ui';
@@ -51,7 +48,7 @@ type DocumentFormValues = z.infer<typeof documentFormSchema>;
 
 interface Document {
   id: string;
-  fileName: string;
+  name: string;
   description?: string;
   tags?: string[];
   propertyIds?: string[];
@@ -74,22 +71,13 @@ interface FullTenancyInfo {
 export function EditDocumentDialog({ document, open, onOpenChange }: EditDocumentDialogProps) {
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [searchTerms, setSearchTerms] = useState({ contacts: '', properties: '', tenancies: '' });
-  const firestore = useFirestore();
-  const auth = useAuth();
-  const router = useRouter();
   const { toast } = useToast();
-  const { userProfile, isAdmin } = useUserProfile();
-  const organizationId = userProfile?.organizationId;
+  const { isAdmin } = useUserProfile();
 
   // --- Data Fetching ---
-  const contactsQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/contacts`) : null, [firestore, organizationId]);
-  const { data: contacts, isLoading: loadingContacts } = useCollection<any>(contactsQuery);
-
-  const propertiesQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/properties`) : null, [firestore, organizationId]);
-  const { data: properties, isLoading: loadingProperties } = useCollection<any>(propertiesQuery);
-
-  const tenanciesQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/tenancies`) : null, [firestore, organizationId]);
-  const { data: tenancies, isLoading: loadingTenancies } = useCollection<any>(tenanciesQuery);
+  const { data: contacts, isLoading: loadingContacts } = useApiCollection('/api/contacts');
+  const { data: properties, isLoading: loadingProperties } = useApiCollection('/api/properties');
+  const { data: tenancies, isLoading: loadingTenancies } = useApiCollection('/api/tenancies');
 
   const form = useForm<DocumentFormValues>({
     resolver: zodResolver(documentFormSchema),
@@ -108,51 +96,56 @@ export function EditDocumentDialog({ document, open, onOpenChange }: EditDocumen
     }
   }, [document, form]);
 
-  const documentDocRef = useMemoFirebase(() =>
-    (firestore && organizationId && document) ? doc(firestore, `organizations/${organizationId}/documents`, document.id) : null
-  , [firestore, organizationId, document]);
+  async function onSubmit(data: DocumentFormValues) {
+    if (!document) return;
 
-  function onSubmit(data: DocumentFormValues) {
-    if (!documentDocRef || !auth || !organizationId || !document) return;
+    try {
+      const updateData = {
+        description: data.description || '',
+        tags: data.tags?.split(',').map((tag: string) => tag.trim()).filter(Boolean) || [],
+      };
 
-    const updateData = {
-      ...data,
-      tags: data.tags?.split(',').map(tag => tag.trim()).filter(Boolean) || [],
-    };
-    
-    updateDocumentNonBlocking(firestore, auth, organizationId, documentDocRef, updateData, document.fileName);
-    toast({ title: 'Document Updated', description: 'The document details have been saved.' });
-    onOpenChange(false);
+      await apiUpdate(`/api/documents/${document.id}`, updateData);
+      toast({ title: 'Document Updated', description: 'The document details have been saved.' });
+      onOpenChange(false);
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Update Failed', description: error.message });
+    }
   }
 
-  const handleDelete = () => {
-    if (!documentDocRef || !auth || !organizationId || !document) return;
-    deleteDocumentNonBlocking(firestore, auth, organizationId, documentDocRef, document.fileName);
-    toast({ title: 'Document Deleted', description: 'The document has been permanently deleted.' });
-    setDeleteDialogOpen(false);
-    onOpenChange(false);
+  const handleDelete = async () => {
+    if (!document) return;
+
+    try {
+      await apiDelete(`/api/documents/${document.id}`);
+      toast({ title: 'Document Deleted', description: 'The document has been permanently deleted.' });
+      setDeleteDialogOpen(false);
+      onOpenChange(false);
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Delete Failed', description: error.message });
+    }
   };
 
   const handleSearch = (type: 'contacts' | 'properties' | 'tenancies', value: string) => {
     setSearchTerms(prev => ({ ...prev, [type]: value }));
   };
 
-  const filteredContacts = useMemo(() => contacts?.filter(c => `${c.firstName} ${c.lastName} ${c.email}`.toLowerCase().includes(searchTerms.contacts.toLowerCase())), [contacts, searchTerms.contacts]);
-  const filteredProperties = useMemo(() => properties?.filter(p => `${p.addressLine1} ${p.city} ${p.postcode}`.toLowerCase().includes(searchTerms.properties.toLowerCase())), [properties, searchTerms.properties]);
-  
-  const propertyMap = useMemo(() => new Map(properties?.map(p => [p.id, `${p.addressLine1}, ${p.city}`]) || []), [properties]);
-  const contactMap = useMemo(() => new Map(contacts?.map(c => [c.id, `${c.firstName} ${c.lastName}`]) || []), [contacts]);
+  const filteredContacts = useMemo(() => contacts?.filter((c: any) => `${c.first_name} ${c.last_name} ${c.email}`.toLowerCase().includes(searchTerms.contacts.toLowerCase())), [contacts, searchTerms.contacts]);
+  const filteredProperties = useMemo(() => properties?.filter((p: any) => `${p.address_line1 || p.address || ''} ${p.city || ''} ${p.postcode || ''}`.toLowerCase().includes(searchTerms.properties.toLowerCase())), [properties, searchTerms.properties]);
+
+  const propertyMap = useMemo(() => new Map(properties?.map((p: any) => [p.id, `${p.address_line1 || p.address || ''}, ${p.city || ''}`]) || []), [properties]);
+  const contactMap = useMemo(() => new Map(contacts?.map((c: any) => [c.id, `${c.first_name} ${c.last_name}`]) || []), [contacts]);
 
   const enhancedTenancies = useMemo<FullTenancyInfo[]>(() => {
     if (!tenancies) return [];
-    return tenancies.map(t => ({
+    return tenancies.map((t: any) => ({
       id: t.id,
-      propertyName: propertyMap.get(t.propertyId) || 'Unknown Property',
-      tenantNames: t.tenantIds.map((id: string) => contactMap.get(id) || '').join(', '),
+      propertyName: propertyMap.get(t.property_id) || 'Unknown Property',
+      tenantNames: (t.tenant_ids || []).map((id: string) => contactMap.get(id) || '').join(', '),
     }));
   }, [tenancies, propertyMap, contactMap]);
 
-  const filteredTenancies = useMemo(() => enhancedTenancies.filter(t => 
+  const filteredTenancies = useMemo(() => enhancedTenancies.filter(t =>
     `${t.propertyName} ${t.tenantNames}`.toLowerCase().includes(searchTerms.tenancies.toLowerCase())
   ), [enhancedTenancies, searchTerms.tenancies]);
 
@@ -172,7 +165,7 @@ export function EditDocumentDialog({ document, open, onOpenChange }: EditDocumen
       </ScrollArea></FormItem>
     )}/>
   );
-  
+
   if (!document) return null;
 
   return (
@@ -180,7 +173,7 @@ export function EditDocumentDialog({ document, open, onOpenChange }: EditDocumen
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
-            <DialogTitle className="truncate pr-8">Edit: {document.fileName}</DialogTitle>
+            <DialogTitle className="truncate pr-8">Edit: {document.name}</DialogTitle>
             <DialogDescription>Update the document's metadata and links.</DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -199,11 +192,11 @@ export function EditDocumentDialog({ document, open, onOpenChange }: EditDocumen
                     </TabsList>
                     <TabsContent value="contacts">
                         <Input placeholder="Search contacts..." value={searchTerms.contacts} onChange={(e) => handleSearch('contacts', e.target.value)} className="my-2" />
-                        <LinkingTab name="contactIds" items={filteredContacts} displayKey="lastName" subDisplayKey="email" />
+                        <LinkingTab name="contactIds" items={filteredContacts} displayKey="last_name" subDisplayKey="email" />
                     </TabsContent>
                     <TabsContent value="properties">
                         <Input placeholder="Search properties..." value={searchTerms.properties} onChange={(e) => handleSearch('properties', e.target.value)} className="my-2" />
-                        <LinkingTab name="propertyIds" items={filteredProperties} displayKey="addressLine1" subDisplayKey="postcode" />
+                        <LinkingTab name="propertyIds" items={filteredProperties} displayKey="address_line1" subDisplayKey="postcode" />
                     </TabsContent>
                     <TabsContent value="tenancies">
                         <Input placeholder="Search by address or tenant..." value={searchTerms.tenancies} onChange={(e) => handleSearch('tenancies', e.target.value)} className="my-2" />
@@ -234,7 +227,7 @@ export function EditDocumentDialog({ document, open, onOpenChange }: EditDocumen
           </Form>
         </DialogContent>
       </Dialog>
-      
+
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
             <AlertDialogHeader>

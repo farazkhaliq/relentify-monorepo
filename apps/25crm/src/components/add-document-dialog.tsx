@@ -4,8 +4,6 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { File, UploadCloud, X } from 'lucide-react';
 
 import {
@@ -27,9 +25,7 @@ import {
 } from '@relentify/ui';
 import { Input } from '@relentify/ui';
 import { Button } from '@relentify/ui';
-import { useAuth, useFirestore, useStorage, useMemoFirebase, useCollection } from '@/firebase';
-import { useUserProfile } from '@/hooks/use-user-profile';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useApiCollection, apiCreate } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@relentify/ui';
 import { Textarea } from '@relentify/ui';
@@ -71,23 +67,12 @@ interface FullTenancyInfo {
 export function AddDocumentDialog({ open, onOpenChange, defaultValues }: AddDocumentDialogProps) {
   const [uploadProgress, setUploadProgress] = useState<number | null>(null);
   const [searchTerms, setSearchTerms] = useState({ properties: '', tenancies: '', contacts: '' });
-  const firestore = useFirestore();
-  const storage = useStorage();
-  const auth = useAuth();
   const { toast } = useToast();
-  const { userProfile: currentUserProfile, isLoading: loadingCurrentUser } = useUserProfile();
-  const organizationId = currentUserProfile?.organizationId;
-
 
   // --- Data Fetching ---
-  const contactsQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/contacts`) : null, [firestore, organizationId]);
-  const { data: contacts, isLoading: loadingContacts } = useCollection<any>(contactsQuery);
-
-  const propertiesQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/properties`) : null, [firestore, organizationId]);
-  const { data: properties, isLoading: loadingProperties } = useCollection<any>(propertiesQuery);
-
-  const tenanciesQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/tenancies`) : null, [firestore, organizationId]);
-  const { data: tenancies, isLoading: loadingTenancies } = useCollection<any>(tenanciesQuery);
+  const { data: contacts, isLoading: loadingContacts } = useApiCollection('/api/contacts');
+  const { data: properties, isLoading: loadingProperties } = useApiCollection('/api/properties');
+  const { data: tenancies, isLoading: loadingTenancies } = useApiCollection('/api/tenancies');
 
   const form = useForm<DocumentFormValues>({
     resolver: zodResolver(documentFormSchema),
@@ -117,58 +102,49 @@ export function AddDocumentDialog({ open, onOpenChange, defaultValues }: AddDocu
 
   const fileRef = form.register("file");
 
-  const documentsCollectionRef = useMemoFirebase(() =>
-    (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/documents`) : null
-  , [firestore, organizationId]);
-
-  function onSubmit(data: DocumentFormValues) {
+  async function onSubmit(data: DocumentFormValues) {
     const file = data.file[0];
-    if (!file || !documentsCollectionRef || !auth.currentUser || !organizationId) return;
+    if (!file) return;
 
     setUploadProgress(0);
 
-    const storageRef = ref(storage, `organizations/${organizationId}/documents/${Date.now()}_${file.name}`);
-    const uploadTask = uploadBytesResumable(storageRef, file);
+    try {
+      // Step 1: Upload file
+      const formData = new FormData();
+      formData.append('file', file);
 
-    uploadTask.on('state_changed',
-      (snapshot) => {
-        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setUploadProgress(progress);
-      },
-      (error) => {
-        console.error("Upload failed:", error);
-        toast({ variant: 'destructive', title: 'Upload Failed', description: error.message });
-        setUploadProgress(null);
-      },
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-          const newDocData = {
-            organizationId,
-            fileName: file.name,
-            filePath: downloadURL,
-            mimeType: file.type,
-            fileSize: file.size,
-            uploadDate: serverTimestamp(),
-            uploadedByUserId: auth.currentUser?.uid,
-            description: data.description || '',
-            tags: data.tags?.split(',').map(tag => tag.trim()).filter(Boolean) || [],
-            propertyIds: data.propertyIds || [],
-            tenancyIds: data.tenancyIds || [],
-            contactIds: data.contactIds || [],
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-          };
-
-          addDocumentNonBlocking(firestore, auth, organizationId, documentsCollectionRef, newDocData, file.name);
-          
-          toast({ title: 'Document Uploaded', description: `${file.name} has been successfully added.` });
-          
-          setUploadProgress(null);
-          form.reset();
-          onOpenChange(false);
-        });
+      const uploadRes = await fetch('/api/uploads', { method: 'POST', body: formData });
+      if (!uploadRes.ok) {
+        const err = await uploadRes.text();
+        throw new Error(err || 'Upload failed');
       }
-    );
+      setUploadProgress(60);
+
+      const uploadResult = await uploadRes.json();
+
+      // Step 2: Create document record
+      await apiCreate('/api/documents', {
+        name: uploadResult.name,
+        file_path: uploadResult.path,
+        mime_type: uploadResult.mime_type,
+        size_bytes: uploadResult.size_bytes,
+        description: data.description || '',
+        tags: data.tags?.split(',').map((tag: string) => tag.trim()).filter(Boolean) || [],
+        related_type: 'general',
+        related_id: null,
+      });
+
+      setUploadProgress(100);
+      toast({ title: 'Document Uploaded', description: `${file.name} has been successfully added.` });
+
+      setUploadProgress(null);
+      form.reset();
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error('Upload failed:', error);
+      toast({ variant: 'destructive', title: 'Upload Failed', description: error.message });
+      setUploadProgress(null);
+    }
   }
 
   const selectedFile = form.watch('file')?.[0];
@@ -177,28 +153,28 @@ export function AddDocumentDialog({ open, onOpenChange, defaultValues }: AddDocu
     setSearchTerms(prev => ({ ...prev, [type]: value }));
   };
 
-  const filteredContacts = useMemo(() => contacts?.filter(c => `${c.firstName} ${c.lastName} ${c.email}`.toLowerCase().includes(searchTerms.contacts.toLowerCase())), [contacts, searchTerms.contacts]);
-  const filteredProperties = useMemo(() => properties?.filter(p => `${p.addressLine1} ${p.city} ${p.postcode}`.toLowerCase().includes(searchTerms.properties.toLowerCase())), [properties, searchTerms.properties]);
-  
-  const propertyMap = useMemo(() => new Map(properties?.map(p => [p.id, `${p.addressLine1}, ${p.city}`]) || []), [properties]);
-  const contactMap = useMemo(() => new Map(contacts?.map(c => [c.id, `${c.firstName} ${c.lastName}`]) || []), [contacts]);
+  const filteredContacts = useMemo(() => contacts?.filter((c: any) => `${c.first_name} ${c.last_name} ${c.email}`.toLowerCase().includes(searchTerms.contacts.toLowerCase())), [contacts, searchTerms.contacts]);
+  const filteredProperties = useMemo(() => properties?.filter((p: any) => `${p.address_line1 || p.address || ''} ${p.city || ''} ${p.postcode || ''}`.toLowerCase().includes(searchTerms.properties.toLowerCase())), [properties, searchTerms.properties]);
+
+  const propertyMap = useMemo(() => new Map(properties?.map((p: any) => [p.id, `${p.address_line1 || p.address || ''}, ${p.city || ''}`]) || []), [properties]);
+  const contactMap = useMemo(() => new Map(contacts?.map((c: any) => [c.id, `${c.first_name} ${c.last_name}`]) || []), [contacts]);
 
   const enhancedTenancies = useMemo<FullTenancyInfo[]>(() => {
     if (!tenancies) return [];
-    return tenancies.map(t => ({
+    return tenancies.map((t: any) => ({
       id: t.id,
-      propertyName: propertyMap.get(t.propertyId) || 'Unknown Property',
-      tenantNames: t.tenantIds.map((id: string) => contactMap.get(id) || '').join(', '),
+      propertyName: propertyMap.get(t.property_id) || 'Unknown Property',
+      tenantNames: (t.tenant_ids || []).map((id: string) => contactMap.get(id) || '').join(', '),
     }));
   }, [tenancies, propertyMap, contactMap]);
 
-  const filteredTenancies = useMemo(() => enhancedTenancies.filter(t => 
+  const filteredTenancies = useMemo(() => enhancedTenancies.filter(t =>
     `${t.propertyName} ${t.tenantNames}`.toLowerCase().includes(searchTerms.tenancies.toLowerCase())
   ), [enhancedTenancies, searchTerms.tenancies]);
 
-  
-  const isLoading = loadingContacts || loadingProperties || loadingTenancies || loadingCurrentUser;
-  
+
+  const isLoading = loadingContacts || loadingProperties || loadingTenancies;
+
   const LinkingTab = ({ name, items, displayKey, subDisplayKey }: { name: "propertyIds" | "contactIds", items: any[] | undefined, displayKey: string, subDisplayKey?: string}) => (
     <FormField control={form.control} name={name} render={() => (
       <FormItem><ScrollArea className="h-48 w-full rounded-md border p-2">
@@ -284,11 +260,11 @@ export function AddDocumentDialog({ open, onOpenChange, defaultValues }: AddDocu
                     </TabsList>
                     <TabsContent value="contacts">
                         <Input placeholder="Search contacts..." value={searchTerms.contacts} onChange={(e) => handleSearch('contacts', e.target.value)} className="my-2" />
-                        <LinkingTab name="contactIds" items={filteredContacts} displayKey="lastName" subDisplayKey="email" />
+                        <LinkingTab name="contactIds" items={filteredContacts} displayKey="last_name" subDisplayKey="email" />
                     </TabsContent>
                     <TabsContent value="properties">
                         <Input placeholder="Search properties..." value={searchTerms.properties} onChange={(e) => handleSearch('properties', e.target.value)} className="my-2" />
-                        <LinkingTab name="propertyIds" items={filteredProperties} displayKey="addressLine1" subDisplayKey="postcode" />
+                        <LinkingTab name="propertyIds" items={filteredProperties} displayKey="address_line1" subDisplayKey="postcode" />
                     </TabsContent>
                     <TabsContent value="tenancies">
                         <Input placeholder="Search by address or tenant..." value={searchTerms.tenancies} onChange={(e) => handleSearch('tenancies', e.target.value)} className="my-2" />
@@ -310,7 +286,7 @@ export function AddDocumentDialog({ open, onOpenChange, defaultValues }: AddDocu
                     </TabsContent>
                 </Tabs>
             </div>
-            
+
             <div className="md:col-span-2">
                 {uploadProgress !== null && <Progress value={uploadProgress} className="w-full" />}
                 <DialogFooter className="pt-4">
