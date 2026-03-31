@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, serverTimestamp, doc, setDoc, addDoc } from 'firebase/firestore';
 import { PlusCircle } from 'lucide-react';
 
 import {
@@ -33,8 +32,7 @@ import {
 } from '@relentify/ui';
 import { Input } from '@relentify/ui';
 import { Button } from '@relentify/ui';
-import { useAuth, useFirestore, useMemoFirebase } from '@/firebase';
-import { logAuditEvent } from '@/firebase/audit';
+import { apiCreate } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@relentify/ui';
 import { useUserProfile } from '@/hooks/use-user-profile';
@@ -59,11 +57,8 @@ type ContactFormValues = z.infer<typeof contactFormSchema>;
 export function AddContactDialog() {
   const [open, setOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const firestore = useFirestore();
-  const auth = useAuth();
   const { toast } = useToast();
   const { userProfile } = useUserProfile();
-  const organizationId = userProfile?.organizationId;
 
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
@@ -83,12 +78,8 @@ export function AddContactDialog() {
     },
   });
 
-  const contactsCollectionRef = useMemoFirebase(() =>
-    (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/contacts`) : null
-  , [firestore, organizationId]);
-
   async function onSubmit(data: ContactFormValues) {
-    if (!contactsCollectionRef || !organizationId || !auth.currentUser) {
+    if (!userProfile?.activeEntityId) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -96,50 +87,21 @@ export function AddContactDialog() {
       });
       return;
     }
-    
+
     setIsSaving(true);
     try {
-        const newContactRef = doc(contactsCollectionRef);
-        const newContactData = {
-          id: newContactRef.id,
-          ...data,
-          organizationId,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-          propertyIds: [],
-          tenancyIds: [],
-        };
-        
-        await setDoc(newContactRef, newContactData);
-        logAuditEvent(firestore, auth, organizationId, 'Created', newContactRef, `${data.firstName} ${data.lastName}`);
-        
-        // --- Workflow: Create task if new contact is a lead ---
-        if (data.contactType === 'Lead') {
-            const tasksCollectionRef = collection(firestore, `organizations/${organizationId}/tasks`);
-            const dueDate = new Date();
-            dueDate.setDate(dueDate.getDate() + 3); // Set due date 3 days from now
-            
-            const tasksRef = doc(tasksCollectionRef);
-            const newTaskData = {
-                id: tasksRef.id,
-                organizationId,
-                title: `Follow up with ${data.firstName} ${data.lastName}`,
-                description: `A new lead has been added. Reach out to them.`,
-                assignedToUserId: auth.currentUser.uid,
-                createdByUserId: auth.currentUser.uid,
-                dueDate: dueDate,
-                priority: 'Medium',
-                status: 'Open',
-                relatedContactId: newContactRef.id,
-                createdAt: serverTimestamp(),
-                updatedAt: serverTimestamp(),
-            };
-            // This is a "fire-and-forget" operation, we don't need to wait for it.
-            // We'll add its own audit event inside the task creation logic if needed,
-            // but for now, we'll keep it simple.
-            await setDoc(tasksRef, newTaskData);
-            logAuditEvent(firestore, auth, organizationId, 'Created', tasksRef, newTaskData.title);
-        }
+        await apiCreate('/api/contacts', {
+          first_name: data.firstName,
+          last_name: data.lastName,
+          email: data.email,
+          phone: data.phone,
+          contact_type: data.contactType,
+          address_line1: data.mailingAddress.addressLine1,
+          address_line2: data.mailingAddress.addressLine2 || null,
+          city: data.mailingAddress.city,
+          postcode: data.mailingAddress.postcode,
+          country: data.mailingAddress.country,
+        });
 
         toast({
           title: 'Contact Added',
@@ -255,7 +217,7 @@ export function AddContactDialog() {
             />
 
             <Separator className="my-2" />
-            
+
             <h3 className="font-medium text-lg">Mailing Address</h3>
 
             <FormField
@@ -328,7 +290,7 @@ export function AddContactDialog() {
 
 
             <DialogFooter className="pt-4">
-              <Button type="submit" disabled={!organizationId || isSaving}>
+              <Button type="submit" disabled={!userProfile?.activeEntityId || isSaving}>
                 {isSaving ? 'Saving...' : 'Save Contact'}
               </Button>
             </DialogFooter>

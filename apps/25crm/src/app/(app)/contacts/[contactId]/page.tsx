@@ -1,8 +1,7 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { doc, collection, query, where, orderBy, Timestamp } from 'firebase/firestore';
-import { useDoc, useFirestore, useMemoFirebase, useCollection } from '@/firebase';
+import { useApiDoc } from '@/hooks/use-api';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { Skeleton } from '@relentify/ui';
 import { Card, CardContent, CardHeader, CardTitle } from '@relentify/ui';
@@ -20,37 +19,19 @@ import { AddDocumentDialog } from '@/components/add-document-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@relentify/ui';
 import { EditDocumentDialog } from '@/components/edit-document-dialog';
 
-interface Address {
-    addressLine1: string;
-    addressLine2?: string;
-    city: string;
-    postcode: string;
-    country: string;
-}
-
 interface Contact {
     id: string;
-    firstName: string;
-    lastName: string;
+    first_name: string;
+    last_name: string;
     email: string;
     phone: string;
-    contactType: string;
-    mailingAddress?: Address;
-    previousAddress?: Address;
-    forwardingAddress?: Address;
+    contact_type: string;
+    address_line1?: string;
+    address_line2?: string;
+    city?: string;
+    postcode?: string;
+    country?: string;
     notes?: string;
-}
-
-interface Property {
-    id: string;
-    addressLine1: string;
-    city: string;
-    postcode: string;
-}
-
-interface Tenancy {
-    id: string;
-    propertyId: string;
 }
 
 interface Document {
@@ -65,108 +46,28 @@ interface Document {
     contactIds?: string[];
 }
 
-interface Communication {
-    id: string;
-    subject: string;
-    direction: 'Inbound' | 'Outbound';
-    timestamp: any;
-}
-
-interface Task {
-    id: string;
-    title: string;
-    status: 'Open' | 'In Progress' | 'Completed';
-    priority: 'High' | 'Medium' | 'Low';
-    dueDate: any;
-}
-
-
 export default function ContactDetailPage() {
   const params = useParams();
   const contactId = params.contactId as string;
-  const firestore = useFirestore();
   const router = useRouter();
   const [isAddTaskOpen, setAddTaskOpen] = useState(false);
   const [isAddDocOpen, setAddDocOpen] = useState(false);
   const [editingDocument, setEditingDocument] = useState<Document | null>(null);
-  
+
   const { userProfile: currentUserProfile, isLoading: isLoadingCurrentUser } = useUserProfile();
-  const organizationId = currentUserProfile?.organizationId;
   const isAdmin = currentUserProfile?.role === 'Admin';
 
-  const contactRef = useMemoFirebase(() => 
-    (firestore && organizationId && contactId) ? doc(firestore, `organizations/${organizationId}/contacts`, contactId) : null,
-    [firestore, organizationId, contactId]
+  const { data: contact, isLoading: isLoadingContact } = useApiDoc<Contact>(
+    contactId ? `/api/contacts/${contactId}` : null
   );
-  const { data: contact, isLoading: isLoadingContact } = useDoc<Contact>(contactRef);
 
-  // Query for properties where this contact is a landlord
-  const landlordPropertiesQuery = useMemoFirebase(() => {
-    if (!firestore || !organizationId || !contactId || contact?.contactType !== 'Landlord') return null;
-    return query(
-      collection(firestore, `organizations/${organizationId}/properties`),
-      where('landlordIds', 'array-contains', contactId)
-    );
-  }, [firestore, organizationId, contactId, contact?.contactType]);
-  const { data: landlordProperties, isLoading: isLoadingProperties } = useCollection<Property>(landlordPropertiesQuery);
-
-  // Query for tenancies where this contact is a tenant
-  const tenanciesQuery = useMemoFirebase(() => {
-    if (!firestore || !organizationId || !contactId || contact?.contactType !== 'Tenant') return null;
-    return query(
-      collection(firestore, `organizations/${organizationId}/tenancies`),
-      where('tenantIds', 'array-contains', contactId)
-    );
-  }, [firestore, organizationId, contactId, contact?.contactType]);
-  const { data: tenancies, isLoading: isLoadingTenancies } = useCollection<Tenancy>(tenanciesQuery);
-
-  // Based on the tenancy, find the property they live in. This simplifies by taking the first tenancy found.
-  const tenancyPropertyRef = useMemoFirebase(() => {
-    if (!firestore || !organizationId || !tenancies || tenancies.length === 0) return null;
-    return doc(firestore, `organizations/${organizationId}/properties`, tenancies[0].propertyId);
-  }, [firestore, organizationId, tenancies]);
-  const { data: tenancyProperty, isLoading: isLoadingTenancyProperty } = useDoc<Property>(tenancyPropertyRef);
-
-  // Query for documents where this contact is linked
-  const documentsQuery = useMemoFirebase(() => {
-    if (!firestore || !organizationId || !contactId) return null;
-    return query(
-      collection(firestore, `organizations/${organizationId}/documents`),
-      where('contactIds', 'array-contains', contactId),
-      orderBy('uploadDate', 'desc')
-    );
-  }, [firestore, organizationId, contactId]);
-  const { data: documents, isLoading: isLoadingDocuments } = useCollection<Document>(documentsQuery);
-
-  // Query for communications where this contact is linked
-  const communicationsQuery = useMemoFirebase(() => {
-    if (!firestore || !organizationId || !contactId) return null;
-    return query(
-        collection(firestore, `organizations/${organizationId}/communications`),
-        where('relatedContactIds', 'array-contains', contactId),
-        orderBy('timestamp', 'desc')
-    );
-  }, [firestore, organizationId, contactId]);
-  const { data: communications, isLoading: isLoadingCommunications } = useCollection<Communication>(communicationsQuery);
-  
-  // Query for tasks related to this contact
-  const tasksQuery = useMemoFirebase(() => {
-    if (!firestore || !organizationId || !contactId) return null;
-    return query(
-        collection(firestore, `organizations/${organizationId}/tasks`),
-        where('relatedContactId', '==', contactId),
-        orderBy('dueDate', 'desc')
-    );
-  }, [firestore, organizationId, contactId]);
-  const { data: tasks, isLoading: isLoadingTasks } = useCollection<Task>(tasksQuery);
-
-
-  const getTimestampAsDate = (timestamp: any): Date => {
-    if (!timestamp) return new Date();
-    if (timestamp instanceof Timestamp) { return timestamp.toDate(); }
-    if (typeof timestamp === 'string') { return new Date(timestamp); }
-    return new Date();
-  };
+  // Related data: these will be populated when their respective APIs support query params
+  // For now, show empty states for related info tabs
+  const landlordProperties: any[] = [];
+  const tenancies: any[] = [];
+  const communications: any[] = [];
+  const tasks: any[] = [];
+  const documents: any[] = [];
 
   const getBadgeVariant = (type: string | undefined) => {
     switch (type) {
@@ -195,8 +96,6 @@ export default function ContactDetailPage() {
         default: return 'outline';
     }
   }
-
-  const isRelatedInfoLoading = isLoadingProperties || isLoadingTenancies || isLoadingTenancyProperty || isLoadingDocuments || isLoadingCommunications || isLoadingTasks;
 
   if (isLoadingContact || isLoadingCurrentUser) {
     return (
@@ -238,6 +137,24 @@ export default function ContactDetailPage() {
     );
   }
 
+  // Map DB fields to the shape the EditContactDialog expects (camelCase form fields)
+  const contactForEdit = {
+    id: contact.id,
+    firstName: contact.first_name,
+    lastName: contact.last_name,
+    email: contact.email,
+    phone: contact.phone,
+    contactType: contact.contact_type as any,
+    notes: contact.notes,
+    mailingAddress: contact.address_line1 ? {
+      addressLine1: contact.address_line1,
+      addressLine2: contact.address_line2 || '',
+      city: contact.city || '',
+      postcode: contact.postcode || '',
+      country: contact.country || 'United Kingdom',
+    } : undefined,
+  };
+
   return (
     <>
     <AddDocumentDialog
@@ -246,28 +163,28 @@ export default function ContactDetailPage() {
         defaultValues={{ contactIds: [contactId] }}
     />
     <EditDocumentDialog document={editingDocument} open={!!editingDocument} onOpenChange={(isOpen) => !isOpen && setEditingDocument(null)} />
-    <AddTaskDialog 
-        open={isAddTaskOpen} 
-        onOpenChange={setAddTaskOpen} 
-        defaultValues={{ 
-            relatedContactId: contact.id, 
-            title: `Follow up with ${contact.firstName} ${contact.lastName}` 
-        }} 
+    <AddTaskDialog
+        open={isAddTaskOpen}
+        onOpenChange={setAddTaskOpen}
+        defaultValues={{
+            relatedContactId: contact.id,
+            title: `Follow up with ${contact.first_name} ${contact.last_name}`
+        }}
     />
     <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6">
             <div className="flex items-center gap-4 mb-4 sm:mb-0">
                 <Avatar className="h-20 w-20 text-3xl">
-                    <AvatarFallback>{contact.firstName?.substring(0,1)}{contact.lastName?.substring(0,1)}</AvatarFallback>
+                    <AvatarFallback>{contact.first_name?.substring(0,1)}{contact.last_name?.substring(0,1)}</AvatarFallback>
                 </Avatar>
                 <div>
-                    <h1 className="text-3xl font-bold">{contact.firstName} {contact.lastName}</h1>
-                    <Badge variant={getBadgeVariant(contact.contactType)} className="capitalize mt-1">{contact.contactType}</Badge>
+                    <h1 className="text-3xl font-bold">{contact.first_name} {contact.last_name}</h1>
+                    <Badge variant={getBadgeVariant(contact.contact_type)} className="capitalize mt-1">{contact.contact_type}</Badge>
                 </div>
             </div>
             <div className="sm:ml-auto flex gap-2">
                 <Button variant="outline" onClick={() => setAddTaskOpen(true)}>Create Task</Button>
-                <EditContactDialog contact={contact} isAdmin={isAdmin} />
+                <EditContactDialog contact={contactForEdit} isAdmin={isAdmin} />
             </div>
         </div>
 
@@ -292,12 +209,12 @@ export default function ContactDetailPage() {
                     <CardTitle className="text-lg flex items-center gap-2"><Home className="w-5 h-5 text-muted-foreground" /> Mailing Address</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-1 text-sm">
-                    {contact.mailingAddress && contact.mailingAddress.addressLine1 ? (
+                    {contact.address_line1 ? (
                         <>
-                            <p>{contact.mailingAddress.addressLine1}</p>
-                            {contact.mailingAddress.addressLine2 && <p>{contact.mailingAddress.addressLine2}</p>}
-                            <p>{contact.mailingAddress.city}, {contact.mailingAddress.postcode}</p>
-                            <p>{contact.mailingAddress.country}</p>
+                            <p>{contact.address_line1}</p>
+                            {contact.address_line2 && <p>{contact.address_line2}</p>}
+                            <p>{contact.city}, {contact.postcode}</p>
+                            <p>{contact.country}</p>
                         </>
                     ) : (
                         <p className="text-muted-foreground">No mailing address on file.</p>
@@ -309,25 +226,8 @@ export default function ContactDetailPage() {
                     <CardTitle className="text-lg flex items-center gap-2"><Building className="w-5 h-5 text-muted-foreground" /> Address History</CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm space-y-4">
-                    {contact.previousAddress && contact.previousAddress.addressLine1 ? (
-                        <div>
-                            <h4 className="font-medium text-muted-foreground">Previous Address</h4>
-                            <p>{contact.previousAddress.addressLine1}</p>
-                            {contact.previousAddress.addressLine2 && <p>{contact.previousAddress.addressLine2}</p>}
-                            <p>{contact.previousAddress.city}, {contact.previousAddress.postcode}</p>
-                        </div>
-                    ) : null}
-                     {contact.forwardingAddress && contact.forwardingAddress.addressLine1 ? (
-                        <div>
-                            <h4 className="font-medium text-muted-foreground">Forwarding Address</h4>
-                            <p>{contact.forwardingAddress.addressLine1}</p>
-                            {contact.forwardingAddress.addressLine2 && <p>{contact.forwardingAddress.addressLine2}</p>}
-                            <p>{contact.forwardingAddress.city}, {contact.forwardingAddress.postcode}</p>
-                        </div>
-                    ) : null}
-                    {!contact.previousAddress?.addressLine1 && !contact.forwardingAddress?.addressLine1 && (
-                        <p className="text-muted-foreground">No previous or forwarding address on file.</p>
-                    )}
+                    {/* Previous/forwarding addresses not yet in DB schema -- will be added in a future migration */}
+                    <p className="text-muted-foreground">No previous or forwarding address on file.</p>
                 </CardContent>
             </Card>
         </div>
@@ -340,48 +240,40 @@ export default function ContactDetailPage() {
             <TabsTrigger value="tasks">Tasks</TabsTrigger>
             <TabsTrigger value="notes">Notes</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="related" className="mt-4">
              <Card>
                 <CardHeader><CardTitle className="text-lg flex items-center gap-2"><Building className="w-5 h-5 text-muted-foreground" /> Related Info</CardTitle></CardHeader>
                 <CardContent className="text-sm">
-                    {isRelatedInfoLoading ? (
-                        <Skeleton className="h-8 w-full" />
-                    ) : (
-                        <>
-                            {contact.contactType === 'Landlord' && (
-                                landlordProperties && landlordProperties.length > 0 ? (
-                                    <ul className="space-y-2">
-                                        {landlordProperties.map(prop => (
-                                            <li key={prop.id}>
-                                                <Link href={`/properties/${prop.id}`} className="font-medium hover:underline text-primary flex items-center gap-2">
-                                                    <Home className="w-4 h-4" /> {prop.addressLine1}, {prop.city}
-                                                </Link>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : <p className="text-muted-foreground">Not linked to any properties.</p>
-                            )}
+                    {/* TODO: Wire up when properties/tenancies APIs support query param filtering by contact */}
+                    {contact.contact_type === 'Landlord' && (
+                        landlordProperties.length > 0 ? (
+                            <ul className="space-y-2">
+                                {landlordProperties.map((prop: any) => (
+                                    <li key={prop.id}>
+                                        <Link href={`/properties/${prop.id}`} className="font-medium hover:underline text-primary flex items-center gap-2">
+                                            <Home className="w-4 h-4" /> {prop.address_line1}, {prop.city}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : <p className="text-muted-foreground">Not linked to any properties.</p>
+                    )}
 
-                            {contact.contactType === 'Tenant' && (
-                                tenancyProperty ? (
-                                     <ul className="space-y-2">
-                                        <li>
-                                            <div className="font-medium flex items-center gap-2">
-                                                <FileText className="w-4 h-4" /> Current Tenancy:
-                                            </div>
-                                            <Link href={`/properties/${tenancyProperty.id}`} className="hover:underline text-primary pl-6 block">
-                                                {tenancyProperty.addressLine1}, {tenancyProperty.city}
-                                            </Link>
-                                        </li>
-                                    </ul>
-                                ) : <p className="text-muted-foreground">Not linked to any tenancies.</p>
-                            )}
-                            
-                            {(contact.contactType !== 'Landlord' && contact.contactType !== 'Tenant') && (
-                                <p className="text-muted-foreground">No related items for this contact type.</p>
-                            )}
-                        </>
+                    {contact.contact_type === 'Tenant' && (
+                        tenancies.length > 0 ? (
+                             <ul className="space-y-2">
+                                <li>
+                                    <div className="font-medium flex items-center gap-2">
+                                        <FileText className="w-4 h-4" /> Current Tenancy
+                                    </div>
+                                </li>
+                            </ul>
+                        ) : <p className="text-muted-foreground">Not linked to any tenancies.</p>
+                    )}
+
+                    {(contact.contact_type !== 'Landlord' && contact.contact_type !== 'Tenant') && (
+                        <p className="text-muted-foreground">No related items for this contact type.</p>
                     )}
                 </CardContent>
             </Card>
@@ -392,30 +284,28 @@ export default function ContactDetailPage() {
                     <CardTitle className="text-lg flex items-center gap-2"><Mail className="w-5 h-5 text-muted-foreground" /> Communication History</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {isLoadingCommunications ? <Skeleton className="h-24 w-full" /> : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Subject</TableHead>
-                                    <TableHead>Direction</TableHead>
-                                    <TableHead className="text-right">Date</TableHead>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Subject</TableHead>
+                                <TableHead>Direction</TableHead>
+                                <TableHead className="text-right">Date</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {communications.length > 0 ? communications.map((comm: any) => (
+                                <TableRow key={comm.id} className="cursor-pointer" onClick={() => router.push(`/communications?emailId=${comm.id}`)}>
+                                    <TableCell className="font-medium">{comm.subject}</TableCell>
+                                    <TableCell><Badge variant={comm.direction === 'Inbound' ? 'secondary' : 'default'}>{comm.direction}</Badge></TableCell>
+                                    <TableCell className="text-right text-sm text-muted-foreground">
+                                        {comm.timestamp ? format(new Date(comm.timestamp), 'PP') : '-'}
+                                    </TableCell>
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {communications && communications.length > 0 ? communications.map(comm => (
-                                    <TableRow key={comm.id} className="cursor-pointer" onClick={() => router.push(`/communications?emailId=${comm.id}`)}>
-                                        <TableCell className="font-medium">{comm.subject}</TableCell>
-                                        <TableCell><Badge variant={comm.direction === 'Inbound' ? 'secondary' : 'default'}>{comm.direction}</Badge></TableCell>
-                                        <TableCell className="text-right text-sm text-muted-foreground">
-                                            {format(getTimestampAsDate(comm.timestamp), 'PP')}
-                                        </TableCell>
-                                    </TableRow>
-                                )) : (
-                                    <TableRow><TableCell colSpan={3} className="text-center h-24">No communications for this contact.</TableCell></TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    )}
+                            )) : (
+                                <TableRow><TableCell colSpan={3} className="text-center h-24">No communications for this contact.</TableCell></TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
                 </CardContent>
             </Card>
           </TabsContent>
@@ -426,32 +316,30 @@ export default function ContactDetailPage() {
                     <Button variant="outline" size="sm" onClick={() => setAddDocOpen(true)}>Add Document</Button>
                 </CardHeader>
                 <CardContent>
-                    {isLoadingDocuments ? <Skeleton className="h-24 w-full" /> : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>File</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>File</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {documents.length > 0 ? documents.map((doc: any) => (
+                                <TableRow key={doc.id} className="cursor-pointer" onClick={() => setEditingDocument(doc)}>
+                                    <TableCell className="font-medium">{doc.fileName}</TableCell>
+                                    <TableCell className="text-right">
+                                         <Button asChild variant="ghost" size="icon" onClick={(e: any) => e.stopPropagation()}>
+                                            <Link href={doc.filePath} target="_blank" download={doc.fileName}>
+                                                <Download className="h-4 w-4" />
+                                            </Link>
+                                        </Button>
+                                    </TableCell>
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {documents && documents.length > 0 ? documents.map(doc => (
-                                    <TableRow key={doc.id} className="cursor-pointer" onClick={() => setEditingDocument(doc)}>
-                                        <TableCell className="font-medium">{doc.fileName}</TableCell>
-                                        <TableCell className="text-right">
-                                             <Button asChild variant="ghost" size="icon" onClick={(e) => e.stopPropagation()}>
-                                                <Link href={doc.filePath} target="_blank" download={doc.fileName}>
-                                                    <Download className="h-4 w-4" />
-                                                </Link>
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                )) : (
-                                    <TableRow><TableCell colSpan={2} className="text-center h-24">No documents for this contact.</TableCell></TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    )}
+                            )) : (
+                                <TableRow><TableCell colSpan={2} className="text-center h-24">No documents for this contact.</TableCell></TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
                 </CardContent>
             </Card>
           </TabsContent>
@@ -461,32 +349,30 @@ export default function ContactDetailPage() {
                     <CardTitle className="text-lg flex items-center gap-2"><CheckSquare className="w-5 h-5 text-muted-foreground" /> Tasks</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    {isLoadingTasks ? <Skeleton className="h-24 w-full" /> : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Task</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Priority</TableHead>
-                                    <TableHead className="text-right">Due Date</TableHead>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Task</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead>Priority</TableHead>
+                                <TableHead className="text-right">Due Date</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {tasks.length > 0 ? tasks.map((task: any) => (
+                                <TableRow key={task.id}>
+                                    <TableCell className="font-medium">{task.title}</TableCell>
+                                    <TableCell><Badge variant={getTaskStatusBadgeVariant(task.status)}>{task.status}</Badge></TableCell>
+                                    <TableCell><Badge variant={getTaskPriorityBadgeVariant(task.priority)}>{task.priority}</Badge></TableCell>
+                                    <TableCell className="text-right text-sm text-muted-foreground">
+                                        {task.due_date ? format(new Date(task.due_date), 'PP') : '-'}
+                                    </TableCell>
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {tasks && tasks.length > 0 ? tasks.map(task => (
-                                    <TableRow key={task.id}>
-                                        <TableCell className="font-medium">{task.title}</TableCell>
-                                        <TableCell><Badge variant={getTaskStatusBadgeVariant(task.status)}>{task.status}</Badge></TableCell>
-                                        <TableCell><Badge variant={getTaskPriorityBadgeVariant(task.priority)}>{task.priority}</Badge></TableCell>
-                                        <TableCell className="text-right text-sm text-muted-foreground">
-                                            {format(getTimestampAsDate(task.dueDate), 'PP')}
-                                        </TableCell>
-                                    </TableRow>
-                                )) : (
-                                    <TableRow><TableCell colSpan={4} className="text-center h-24">No tasks for this contact.</TableCell></TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    )}
+                            )) : (
+                                <TableRow><TableCell colSpan={4} className="text-center h-24">No tasks for this contact.</TableCell></TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
                 </CardContent>
             </Card>
           </TabsContent>

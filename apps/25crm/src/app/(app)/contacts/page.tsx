@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LayoutGrid, List } from 'lucide-react';
 
@@ -33,8 +33,7 @@ import {
 } from "@relentify/ui";
 import { Badge } from "@relentify/ui";
 import { Avatar, AvatarFallback } from "@relentify/ui";
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { useUserProfile } from '@/hooks/use-user-profile';
+import { useApiCollection } from '@/hooks/use-api';
 import { Skeleton } from '@relentify/ui';
 import { AddContactDialog } from '@/components/add-contact-dialog';
 import { Button } from '@relentify/ui';
@@ -43,27 +42,7 @@ export default function ContactsPage() {
   const [contactTypeFilter, setContactTypeFilter] = useState("all");
   const router = useRouter();
 
-  const [contacts, setContacts] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchContacts = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetch('/api/contacts');
-        if (res.ok) {
-          const data = await res.json();
-          setContacts(data);
-        }
-      } catch (error) {
-        console.error('Error fetching contacts:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchContacts();
-  }, []);
+  const { data: contacts, isLoading } = useApiCollection('/api/contacts');
 
   const getBadgeVariant = (type: string) => {
     switch (type) {
@@ -75,7 +54,7 @@ export default function ContactsPage() {
     }
   }
 
-  const filteredContacts = contacts?.filter(contact => {
+  const filteredContacts = contacts?.filter((contact: any) => {
     if (contactTypeFilter === 'all') return true;
     // Ensure case-insensitive comparison
     return contact.contact_type?.toLowerCase() === contactTypeFilter;
@@ -101,7 +80,7 @@ export default function ContactsPage() {
         ))}
     </div>
   );
-  
+
   const EmptyState = () => (
     <Card className="col-span-full">
         <CardContent className="py-10 text-center">
@@ -143,13 +122,13 @@ export default function ContactsPage() {
                     <AddContactDialog />
                 </div>
             </div>
-            
+
             <TabsContent value="grid">
                 {isLoading ? (
                     <PageSkeleton />
                 ) : filteredContacts.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {filteredContacts.map((contact) => (
+                        {filteredContacts.map((contact: any) => (
                             <Card key={contact.id} className="cursor-pointer hover:shadow-lg transition-shadow flex flex-col" onClick={() => router.push(`/contacts/${contact.id}`)}>
                                 <CardHeader className="flex flex-col items-center text-center gap-4">
                                     <Avatar className="h-20 w-20 text-3xl">
@@ -171,7 +150,7 @@ export default function ContactsPage() {
                     <EmptyState />
                 )}
             </TabsContent>
-            
+
             <TabsContent value="list">
                 <Card>
                     <CardContent>
@@ -195,7 +174,7 @@ export default function ContactsPage() {
                             </TableRow>
                             ))
                         ) : filteredContacts.length > 0 ? (
-                            filteredContacts.map((contact) => (
+                            filteredContacts.map((contact: any) => (
                             <TableRow
                                 key={contact.id}
                                 className="cursor-pointer"

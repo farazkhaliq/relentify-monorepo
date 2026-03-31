@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { doc, serverTimestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { Trash2 } from 'lucide-react';
 
@@ -44,8 +43,7 @@ import {
 } from '@relentify/ui';
 import { Input } from '@relentify/ui';
 import { Button } from '@relentify/ui';
-import { useAuth, useFirestore, useMemoFirebase } from '@/firebase';
-import { deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { apiUpdate, apiDelete } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@relentify/ui';
 import { Textarea } from '@relentify/ui';
@@ -83,12 +81,10 @@ interface EditContactDialogProps {
 export function EditContactDialog({ contact, isAdmin }: EditContactDialogProps) {
   const [open, setOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const firestore = useFirestore();
-  const auth = useAuth();
+  const [isSaving, setIsSaving] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
   const { userProfile } = useUserProfile();
-  const organizationId = userProfile?.organizationId;
 
   const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
@@ -100,58 +96,53 @@ export function EditContactDialog({ contact, isAdmin }: EditContactDialogProps) 
     form.reset(contact);
   }, [contact, form]);
 
-  const contactDocRef = useMemoFirebase(() =>
-    (firestore && organizationId) ? doc(firestore, `organizations/${organizationId}/contacts`, contact.id) : null
-  , [firestore, organizationId, contact.id]);
-
-  function onSubmit(data: ContactFormValues) {
-    if (!contactDocRef || !organizationId) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Could not update contact.',
+  async function onSubmit(data: ContactFormValues) {
+    setIsSaving(true);
+    try {
+      await apiUpdate('/api/contacts/' + contact.id, {
+        first_name: data.firstName,
+        last_name: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        contact_type: data.contactType,
+        notes: data.notes || null,
+        address_line1: data.mailingAddress?.addressLine1 || null,
+        address_line2: data.mailingAddress?.addressLine2 || null,
+        city: data.mailingAddress?.city || null,
+        postcode: data.mailingAddress?.postcode || null,
+        country: data.mailingAddress?.country || null,
       });
-      return;
-    }
-    
-    // Ensure empty strings are handled correctly if fields are cleared
-    const updatedData = {
-      ...data,
-      updatedAt: serverTimestamp(),
-    };
-    
-    const entityName = `${data.firstName} ${data.lastName}`;
-    updateDocumentNonBlocking(firestore, auth, organizationId, contactDocRef, updatedData, entityName);
-    
-    toast({
-      title: 'Contact Updated',
-      description: `${data.firstName} ${data.lastName} has been successfully updated.`,
-    });
 
-    setOpen(false);
+      toast({
+        title: 'Contact Updated',
+        description: `${data.firstName} ${data.lastName} has been successfully updated.`,
+      });
+
+      setOpen(false);
+    } catch (error: any) {
+      console.error("Failed to update contact:", error);
+      toast({ variant: 'destructive', title: 'Update Failed', description: error.message });
+    } finally {
+      setIsSaving(false);
+    }
   }
 
-  const handleDeleteContact = () => {
-    if (!contactDocRef || !organizationId) {
+  const handleDeleteContact = async () => {
+    try {
+      await apiDelete('/api/contacts/' + contact.id);
+
       toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Could not delete contact.',
+        title: 'Contact Deleted',
+        description: `${contact.firstName} ${contact.lastName} has been deleted.`,
       });
-      return;
+
+      setDeleteDialogOpen(false);
+      setOpen(false);
+      router.push('/contacts');
+    } catch (error: any) {
+      console.error("Failed to delete contact:", error);
+      toast({ variant: 'destructive', title: 'Delete Failed', description: error.message });
     }
-    
-    const entityName = `${contact.firstName} ${contact.lastName}`;
-    deleteDocumentNonBlocking(firestore, auth, organizationId, contactDocRef, entityName);
-
-    toast({
-      title: 'Contact Deleted',
-      description: `${contact.firstName} ${contact.lastName} has been deleted.`,
-    });
-
-    setDeleteDialogOpen(false);
-    setOpen(false); // Close the edit dialog
-    router.push('/contacts'); // Redirect to contacts list
   }
 
   // A helper component to render address fields
@@ -238,13 +229,13 @@ export function EditContactDialog({ contact, isAdmin }: EditContactDialogProps) 
               <FormField control={form.control} name="notes" render={({ field }) => (
                 <FormItem><FormLabel>Notes</FormLabel><FormControl><Textarea placeholder="Add notes..." {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
               )} />
-              
+
               <Separator className="my-2" />
               <AddressFields fieldName="mailingAddress" title="Mailing Address" />
 
               <Separator className="my-2" />
               <AddressFields fieldName="previousAddress" title="Previous Address" />
-              
+
               <Separator className="my-2" />
               <AddressFields fieldName="forwardingAddress" title="Forwarding Address" />
 
@@ -261,7 +252,9 @@ export function EditContactDialog({ contact, isAdmin }: EditContactDialogProps) 
                         </Button>
                     )}
                 </div>
-                <Button type="submit" disabled={!organizationId}>Save Changes</Button>
+                <Button type="submit" disabled={isSaving}>
+                  {isSaving ? 'Saving...' : 'Save Changes'}
+                </Button>
               </DialogFooter>
             </form>
           </Form>
