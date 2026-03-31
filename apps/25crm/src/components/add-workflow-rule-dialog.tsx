@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, serverTimestamp } from 'firebase/firestore';
 import { PlusCircle } from 'lucide-react';
 
 import {
@@ -33,10 +32,8 @@ import {
 } from '@relentify/ui';
 import { Input } from '@relentify/ui';
 import { Button } from '@relentify/ui';
-import { useAuth, useFirestore, useMemoFirebase } from '@/firebase';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { apiCreate } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
-import { useUserProfile } from '@/hooks/use-user-profile';
 import { Textarea } from '@relentify/ui';
 import { Switch } from '@relentify/ui';
 
@@ -62,12 +59,7 @@ const EXAMPLE_EVENT_TYPES = [
 
 export function AddWorkflowRuleDialog() {
   const [open, setOpen] = useState(false);
-  const firestore = useFirestore();
-  const auth = useAuth();
   const { toast } = useToast();
-  const { userProfile } = useUserProfile();
-  const organizationId = userProfile?.organizationId;
-  const currentUserId = userProfile?.id;
 
   const form = useForm<WorkflowFormValues>({
     resolver: zodResolver(workflowFormSchema),
@@ -81,37 +73,37 @@ export function AddWorkflowRuleDialog() {
     },
   });
 
-  const workflowsCollectionRef = useMemoFirebase(() =>
-    (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/workflowRules`) : null
-  , [firestore, organizationId]);
+  async function onSubmit(data: WorkflowFormValues) {
+    try {
+      // Parse conditions and actions as JSON if possible, otherwise store as string in object
+      let conditionsObj: Record<string, any> = {};
+      let actionsObj: Record<string, any> = {};
 
-  function onSubmit(data: WorkflowFormValues) {
-    if (!workflowsCollectionRef || !organizationId || !currentUserId) {
+      try { conditionsObj = data.conditions ? JSON.parse(data.conditions) : {}; } catch { conditionsObj = { raw: data.conditions }; }
+      try { actionsObj = data.actions ? JSON.parse(data.actions) : {}; } catch { actionsObj = { raw: data.actions }; }
+
+      await apiCreate('/api/workflow-rules', {
+        name: data.name,
+        trigger_type: data.eventType,
+        conditions: conditionsObj,
+        actions: actionsObj,
+        is_active: data.isActive,
+      });
+
+      toast({
+        title: 'Workflow Rule Added',
+        description: `The rule "${data.name}" has been created.`,
+      });
+
+      form.reset();
+      setOpen(false);
+    } catch (error: any) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Could not add rule.',
+        description: error.message || 'Could not add rule.',
       });
-      return;
     }
-
-    const newRuleData = {
-      ...data,
-      organizationId,
-      createdByUserId: currentUserId,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    };
-    
-    addDocumentNonBlocking(firestore, auth, organizationId, workflowsCollectionRef, newRuleData, data.name);
-    
-    toast({
-      title: 'Workflow Rule Added',
-      description: `The rule "${data.name}" has been created.`,
-    });
-
-    form.reset();
-    setOpen(false);
   }
 
   return (
@@ -233,7 +225,7 @@ export function AddWorkflowRuleDialog() {
                     )}
                 />
             </div>
-            
+
             <DialogFooter className="pt-4">
               <Button type="submit">Save Rule</Button>
             </DialogFooter>

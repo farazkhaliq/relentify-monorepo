@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { collection, query, doc } from 'firebase/firestore';
 import { Trash2 } from 'lucide-react';
 import {
   Card,
@@ -29,70 +28,54 @@ import {
   AlertDialogTitle,
 } from '@relentify/ui';
 import { Button } from '@relentify/ui';
-import { useCollection, useFirestore, useMemoFirebase, useAuth } from '@/firebase';
-import { useUserProfile } from '@/hooks/use-user-profile';
+import { useApiCollection, apiDelete } from '@/hooks/use-api';
 import { Skeleton } from '@relentify/ui';
 import { Badge } from '@relentify/ui';
 import { useToast } from '@/hooks/use-toast';
 import { AddBankAccountDialog } from '../add-bank-account-dialog';
-import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 interface BankAccount {
     id: string;
-    bankName: string;
-    accountName: string;
-    accountNumberMask: string;
-    sortCode: string;
-    status: 'Active' | 'Disconnected' | 'Error';
-    contactId: string;
+    bank_name: string;
+    account_name: string;
+    account_number: string;
+    sort_code: string;
+    is_default: boolean;
 }
 
 export function BankAccountSettings() {
-    const firestore = useFirestore();
     const { toast } = useToast();
-    const auth = useAuth();
     const [accountToDelete, setAccountToDelete] = React.useState<BankAccount | null>(null);
-    const { userProfile: currentUserProfile, isLoading: isCurrentUserLoading } = useUserProfile();
-    const organizationId = currentUserProfile?.organizationId;
 
-    const accountsQuery = useMemoFirebase(() =>
-        (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/bankAccounts`) : null,
-        [firestore, organizationId]
-    );
-    const { data: accounts, isLoading: loadingAccounts } = useCollection<BankAccount>(accountsQuery);
+    const { data: accounts, isLoading: loadingAccounts } = useApiCollection<BankAccount>('/api/bank-accounts');
+    const { data: contacts, isLoading: loadingContacts } = useApiCollection<any>('/api/contacts');
+    const contactMap = React.useMemo(() => new Map(contacts?.map((c: any) => [c.id, `${c.first_name} ${c.last_name}`]) || []), [contacts]);
 
-    const contactsQuery = useMemoFirebase(() =>
-        (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/contacts`) : null,
-        [firestore, organizationId]
-    );
-    const { data: contacts, isLoading: loadingContacts } = useCollection<any>(contactsQuery);
-    const contactMap = React.useMemo(() => new Map(contacts?.map(c => [c.id, `${c.firstName} ${c.lastName}`]) || []), [contacts]);
+    const handleDelete = async () => {
+        if (!accountToDelete) return;
 
-    const handleDelete = () => {
-        if (!firestore || !auth || !organizationId || !accountToDelete) return;
-
-        const docRef = doc(firestore, `organizations/${organizationId}/bankAccounts`, accountToDelete.id);
-        const entityName = `${accountToDelete.bankName} (${accountToDelete.accountNumberMask})`;
-        deleteDocumentNonBlocking(firestore, auth, organizationId, docRef, entityName);
-
-        toast({
-            title: 'Bank Account Unlinked',
-            description: `The account has been successfully unlinked.`,
-        });
+        try {
+            await apiDelete(`/api/bank-accounts/${accountToDelete.id}`);
+            toast({
+                title: 'Bank Account Unlinked',
+                description: `The account has been successfully unlinked.`,
+            });
+        } catch (error: any) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: error.message || 'Failed to delete bank account.',
+            });
+        }
         setAccountToDelete(null);
     }
 
-    const getStatusBadgeVariant = (status: string) => {
-        switch (status) {
-            case 'Active': return 'default';
-            case 'Disconnected': return 'outline';
-            case 'Error': return 'destructive';
-            default: return 'secondary';
-        }
+    const getStatusBadgeVariant = (isDefault: boolean) => {
+        return isDefault ? 'default' : 'outline';
     }
 
-    const isLoading = isCurrentUserLoading || loadingAccounts || loadingContacts;
-    
+    const isLoading = loadingAccounts || loadingContacts;
+
     return (
         <>
             <Card>
@@ -131,13 +114,13 @@ export function BankAccountSettings() {
                                 ) : accounts && accounts.length > 0 ? (
                                     accounts.map((account) => (
                                         <TableRow key={account.id}>
-                                            <TableCell className="font-medium">{account.bankName}</TableCell>
+                                            <TableCell className="font-medium">{account.bank_name}</TableCell>
                                             <TableCell>
-                                                <div className="font-medium">{account.accountName}</div>
-                                                <div className="text-sm text-muted-foreground">{account.sortCode} &middot; **** {account.accountNumberMask}</div>
+                                                <div className="font-medium">{account.account_name}</div>
+                                                <div className="text-sm text-muted-foreground">{account.sort_code} &middot; **** {account.account_number}</div>
                                             </TableCell>
-                                            <TableCell>{contactMap.get(account.contactId) || 'Unknown Contact'}</TableCell>
-                                            <TableCell><Badge variant={getStatusBadgeVariant(account.status)}>{account.status}</Badge></TableCell>
+                                            <TableCell>{contactMap.get((account as any).contactId) || 'N/A'}</TableCell>
+                                            <TableCell><Badge variant={getStatusBadgeVariant(account.is_default)}>{account.is_default ? 'Default' : 'Active'}</Badge></TableCell>
                                             <TableCell className="text-right">
                                                 <Button variant="ghost" size="icon" onClick={() => setAccountToDelete(account)}>
                                                     <Trash2 className="h-4 w-4" />

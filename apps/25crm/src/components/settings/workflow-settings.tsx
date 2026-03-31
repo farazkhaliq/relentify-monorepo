@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { collection, query, where, getDocs, Timestamp, serverTimestamp, doc, setDoc, updateDoc } from 'firebase/firestore';
 import {
   Card,
   CardContent,
@@ -17,108 +16,73 @@ import {
   TableHeader,
   TableRow,
 } from "@relentify/ui";
-import { useCollection, useFirestore, useMemoFirebase, useAuth, logAuditEvent } from '@/firebase';
-import { useUserProfile } from '@/hooks/use-user-profile';
+import { useApiCollection, apiUpdate } from '@/hooks/use-api';
 import { Skeleton } from '@relentify/ui';
 import { AddWorkflowRuleDialog } from '@/components/add-workflow-rule-dialog';
 import { Badge } from '@relentify/ui';
 import { Button } from '@relentify/ui';
 import { Bot, ShieldAlert } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { addDays, format, startOfMonth } from 'date-fns';
 
 function ManualWorkflows() {
     const [isCheckingTenancies, setIsCheckingTenancies] = useState(false);
     const [isCheckingArrears, setIsCheckingArrears] = useState(false);
     const { toast } = useToast();
-    const firestore = useFirestore();
-    const auth = useAuth();
-    const { userProfile } = useUserProfile();
-    const organizationId = userProfile?.organizationId;
 
     const handleCheckTenancies = async () => {
-        if (!firestore || !organizationId || !auth.currentUser) {
-            toast({ variant: "destructive", title: "Cannot run workflow", description: "User or organization not found." });
-            return;
-        }
         setIsCheckingTenancies(true);
         try {
-            // 1. Get tenancies expiring in the next 60 days
-            const sixtyDaysFromNow = Timestamp.fromDate(addDays(new Date(), 60));
-            const now = Timestamp.fromDate(new Date());
+            // Fetch active tenancies, tasks, and properties via API
+            const [tenanciesRes, tasksRes, propertiesRes] = await Promise.all([
+                fetch('/api/tenancies'),
+                fetch('/api/tasks'),
+                fetch('/api/properties'),
+            ]);
+            const tenancies = await tenanciesRes.json();
+            const tasks = await tasksRes.json();
+            const properties = await propertiesRes.json();
 
-            const tenanciesRef = collection(firestore, `organizations/${organizationId}/tenancies`);
-            const expiringTenanciesQuery = query(
-                tenanciesRef,
-                where('status', '==', 'Active'),
-                where('endDate', '<=', sixtyDaysFromNow),
-                where('endDate', '>=', now)
-            );
-            const expiringTenanciesSnap = await getDocs(expiringTenanciesQuery);
-            const expiringTenancies = expiringTenanciesSnap.docs.map(d => ({ id: d.id, ...d.data() as any }));
+            const propertyMap = new Map(properties.map((p: any) => [p.id, p.address_line1 || p.address]));
+
+            const sixtyDaysFromNow = new Date();
+            sixtyDaysFromNow.setDate(sixtyDaysFromNow.getDate() + 60);
+            const now = new Date();
+
+            const expiringTenancies = tenancies.filter((t: any) => {
+                if (t.status !== 'Active') return false;
+                const endDate = new Date(t.end_date);
+                return endDate >= now && endDate <= sixtyDaysFromNow;
+            });
 
             if (expiringTenancies.length === 0) {
                 toast({ title: "No Action Needed", description: "No active tenancies are expiring within 60 days." });
                 setIsCheckingTenancies(false);
                 return;
             }
-            
-            // 2. Get all tasks and properties to avoid duplicates and get names
-            const tasksRef = collection(firestore, `organizations/${organizationId}/tasks`);
-            const tasksSnap = await getDocs(tasksRef);
-            const allTasks = tasksSnap.docs.map(d => d.data());
-
-            const propertiesRef = collection(firestore, `organizations/${organizationId}/properties`);
-            const propertiesSnap = await getDocs(propertiesRef);
-            const propertyMap = new Map(propertiesSnap.docs.map(d => [d.id, d.data().addressLine1]));
-
-            const notificationsRef = collection(firestore, `organizations/${organizationId}/notifications`);
 
             let tasksCreated = 0;
 
-            // 3. Loop and create tasks if needed
             for (const tenancy of expiringTenancies) {
-                const renewalTaskExists = allTasks.some(task => 
-                    task.relatedTenancyId === tenancy.id && task.title.startsWith('Follow up on tenancy renewal')
+                const renewalTaskExists = tasks.some((task: any) =>
+                    task.related_tenancy_id === tenancy.id && task.title?.startsWith('Follow up on tenancy renewal')
                 );
 
-                if (!renewalTaskExists && tenancy.createdByUserId) {
-                    const propertyAddress = propertyMap.get(tenancy.propertyId) || 'Unknown Property';
-                    const newTaskRef = doc(tasksRef);
-                    const newTaskData = {
-                        id: newTaskRef.id,
-                        organizationId,
-                        title: `Follow up on tenancy renewal for ${propertyAddress}`,
-                        description: `This tenancy is due to expire on ${format(tenancy.endDate.toDate(), 'PP')}. Contact the tenants and landlord to discuss renewal.`,
-                        assignedToUserId: tenancy.createdByUserId,
-                        createdByUserId: auth.currentUser.uid,
-                        dueDate: tenancy.endDate.toDate(),
-                        priority: 'Medium',
-                        status: 'Open',
-                        relatedTenancyId: tenancy.id,
-                        relatedPropertyId: tenancy.propertyId,
-                        createdAt: serverTimestamp(),
-                        updatedAt: serverTimestamp(),
-                    };
-                    
-                    await setDoc(newTaskRef, newTaskData);
-                    logAuditEvent(firestore, auth, organizationId, 'Created', newTaskRef, newTaskData.title, newTaskRef.id);
-
-                    // Create notification for the assigned user
-                    const newNotificationRef = doc(notificationsRef);
-                    const newNotificationData = {
-                        id: newNotificationRef.id,
-                        organizationId,
-                        userId: tenancy.createdByUserId,
-                        title: "New Task: Tenancy Renewal",
-                        message: `A task to follow up on the tenancy at ${propertyAddress} was created for you.`,
-                        link: `/tasks`,
-                        isRead: false,
-                        createdAt: serverTimestamp(),
-                    };
-                    await setDoc(newNotificationRef, newNotificationData);
-                    logAuditEvent(firestore, auth, organizationId, 'Created', newNotificationRef, newNotificationData.title, newNotificationRef.id);
-
+                if (!renewalTaskExists) {
+                    const propertyAddress = propertyMap.get(tenancy.property_id) || 'Unknown Property';
+                    const endDate = new Date(tenancy.end_date);
+                    await fetch('/api/tasks', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            title: `Follow up on tenancy renewal for ${propertyAddress}`,
+                            description: `This tenancy is due to expire on ${endDate.toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' })}. Contact the tenants and landlord to discuss renewal.`,
+                            due_date: tenancy.end_date,
+                            priority: 'Medium',
+                            status: 'Open',
+                            related_tenancy_id: tenancy.id,
+                            related_property_id: tenancy.property_id,
+                        }),
+                    });
                     tasksCreated++;
                 }
             }
@@ -138,10 +102,6 @@ function ManualWorkflows() {
     };
 
     const handleCheckArrears = async () => {
-        if (!firestore || !organizationId || !auth.currentUser) {
-            toast({ variant: "destructive", title: "Cannot run workflow", description: "User or organization not found." });
-            return;
-        }
         setIsCheckingArrears(true);
         try {
             const gracePeriodDay = 5;
@@ -151,47 +111,40 @@ function ManualWorkflows() {
                 return;
             }
 
-            const tenanciesRef = collection(firestore, `organizations/${organizationId}/tenancies`);
-            const qTenancies = query(tenanciesRef, where('status', '==', 'Active'));
-            const tenanciesSnap = await getDocs(qTenancies);
-            const activeTenancies = tenanciesSnap.docs.map(d => ({ id: d.id, ...d.data() as any }));
+            const [tenanciesRes, transactionsRes, propertiesRes] = await Promise.all([
+                fetch('/api/tenancies'),
+                fetch('/api/transactions?type=Rent Payment'),
+                fetch('/api/properties'),
+            ]);
+            const tenancies = await tenanciesRes.json();
+            const transactions = await transactionsRes.json();
+            const properties = await propertiesRes.json();
 
-            const startOfMonthDate = startOfMonth(new Date());
-            const transactionsRef = collection(firestore, `organizations/${organizationId}/transactions`);
-            const qTransactions = query(transactionsRef, where('transactionType', '==', 'Rent Payment'), where('transactionDate', '>=', startOfMonthDate));
-            const transactionsSnap = await getDocs(qTransactions);
-            const rentPaymentsThisMonth = transactionsSnap.docs.map(d => d.data());
-            
-            const propertiesRef = collection(firestore, `organizations/${organizationId}/properties`);
-            const propertiesSnap = await getDocs(propertiesRef);
-            const propertyMap = new Map(propertiesSnap.docs.map(d => [d.id, d.data().addressLine1]));
+            const propertyMap = new Map(properties.map((p: any) => [p.id, p.address_line1 || p.address]));
 
-            const notificationsRef = collection(firestore, `organizations/${organizationId}/notifications`);
+            const activeTenancies = tenancies.filter((t: any) => t.status === 'Active');
+
+            const startOfMonth = new Date();
+            startOfMonth.setDate(1);
+            startOfMonth.setHours(0, 0, 0, 0);
+
+            const rentPaymentsThisMonth = transactions.filter((t: any) =>
+                new Date(t.transaction_date) >= startOfMonth
+            );
+
             let tenanciesUpdated = 0;
 
             for (const tenancy of activeTenancies) {
-                const hasPaid = rentPaymentsThisMonth.some(p => p.relatedTenancyId === tenancy.id && p.amount >= tenancy.rentAmount);
+                const hasPaid = rentPaymentsThisMonth.some((p: any) =>
+                    p.related_tenancy_id === tenancy.id && parseFloat(p.amount) >= parseFloat(tenancy.rent_amount)
+                );
 
                 if (!hasPaid) {
-                    const tenancyRef = doc(firestore, `organizations/${organizationId}/tenancies`, tenancy.id);
-                    await updateDoc(tenancyRef, { status: 'Arrears', updatedAt: serverTimestamp() });
-                    logAuditEvent(firestore, auth, organizationId, 'Updated', tenancyRef, `Tenancy at ${propertyMap.get(tenancy.propertyId)}`);
-                    
-                    if (tenancy.createdByUserId) {
-                        const newNotificationRef = doc(notificationsRef);
-                        const propertyAddress = propertyMap.get(tenancy.propertyId) || 'Unknown Property';
-                        const newNotificationData = {
-                            id: newNotificationRef.id,
-                            organizationId,
-                            userId: tenancy.createdByUserId,
-                            title: "Rent Overdue",
-                            message: `Rent for ${propertyAddress} is overdue. Tenancy marked as 'Arrears'.`,
-                            link: `/tenancies/${tenancy.id}`,
-                            isRead: false,
-                            createdAt: serverTimestamp(),
-                        };
-                        await setDoc(newNotificationRef, newNotificationData);
-                    }
+                    await fetch(`/api/tenancies/${tenancy.id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: 'Arrears' }),
+                    });
                     tenanciesUpdated++;
                 }
             }
@@ -246,18 +199,25 @@ function ManualWorkflows() {
 }
 
 export function WorkflowSettings() {
-    const firestore = useFirestore();
-    const { userProfile: currentUserProfile, isLoading: isCurrentUserLoading } = useUserProfile();
-    const organizationId = currentUserProfile?.organizationId;
+    const { toast } = useToast();
+    const { data: workflows, isLoading: loadingWorkflows } = useApiCollection<any>('/api/workflow-rules');
 
-    const workflowsQuery = useMemoFirebase(() =>
-        (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/workflowRules`) : null,
-        [firestore, organizationId]
-    );
-    const { data: workflows, isLoading: loadingWorkflows } = useCollection<any>(workflowsQuery);
+    const handleToggleActive = async (rule: any) => {
+        try {
+            await apiUpdate(`/api/workflow-rules/${rule.id}`, { is_active: !rule.is_active });
+            toast({
+                title: rule.is_active ? 'Rule Deactivated' : 'Rule Activated',
+                description: `"${rule.name}" has been ${rule.is_active ? 'deactivated' : 'activated'}.`,
+            });
+        } catch (error: any) {
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: error.message || 'Failed to update rule.',
+            });
+        }
+    };
 
-    const isLoading = isCurrentUserLoading || loadingWorkflows;
-    
     return (
         <>
         <Card>
@@ -271,7 +231,7 @@ export function WorkflowSettings() {
                 <AddWorkflowRuleDialog />
             </CardHeader>
             <CardContent>
-                {isLoading ? (
+                {loadingWorkflows ? (
                     <div className="rounded-md border">
                         <Table>
                             <TableHeader><TableRow><TableHead>Rule</TableHead><TableHead>Trigger</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
@@ -298,18 +258,22 @@ export function WorkflowSettings() {
                             </TableHeader>
                             <TableBody>
                                 {workflows && workflows.length > 0 ? (
-                                    workflows.map((rule) => (
+                                    workflows.map((rule: any) => (
                                         <TableRow key={rule.id}>
                                             <TableCell>
                                                 <div className="font-medium">{rule.name}</div>
                                                 <div className="text-sm text-muted-foreground line-clamp-1">{rule.description}</div>
                                             </TableCell>
                                             <TableCell>
-                                                <Badge variant="zinc">{rule.eventType}</Badge>
+                                                <Badge variant="zinc">{rule.trigger_type}</Badge>
                                             </TableCell>
                                             <TableCell>
-                                                <Badge variant={rule.isActive ? 'default' : 'outline'}>
-                                                    {rule.isActive ? 'Active' : 'Inactive'}
+                                                <Badge
+                                                    variant={rule.is_active ? 'default' : 'outline'}
+                                                    className="cursor-pointer"
+                                                    onClick={() => handleToggleActive(rule)}
+                                                >
+                                                    {rule.is_active ? 'Active' : 'Inactive'}
                                                 </Badge>
                                             </TableCell>
                                         </TableRow>

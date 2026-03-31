@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, serverTimestamp, query, where } from 'firebase/firestore';
 import { PlusCircle, Info } from 'lucide-react';
 
 import {
@@ -34,10 +33,8 @@ import {
 import { Input } from '@relentify/ui';
 import { Button } from '@relentify/ui';
 import { Alert, AlertDescription } from '@relentify/ui';
-import { useAuth, useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useApiCollection, apiCreate } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
-import { useUserProfile } from '@/hooks/use-user-profile';
 import { Skeleton } from '@relentify/ui';
 
 const bankAccountFormSchema = z.object({
@@ -52,11 +49,10 @@ type BankAccountFormValues = z.infer<typeof bankAccountFormSchema>;
 
 export function AddBankAccountDialog() {
   const [open, setOpen] = useState(false);
-  const firestore = useFirestore();
-  const auth = useAuth();
   const { toast } = useToast();
-  const { userProfile } = useUserProfile();
-  const organizationId = userProfile?.organizationId;
+
+  const { data: contacts, isLoading: loadingLandlords } = useApiCollection<any>('/api/contacts');
+  const landlords = contacts.filter((c: any) => c.contact_type === 'Landlord');
 
   const form = useForm<BankAccountFormValues>({
     resolver: zodResolver(bankAccountFormSchema),
@@ -69,38 +65,29 @@ export function AddBankAccountDialog() {
     },
   });
 
-  const landlordsQuery = useMemoFirebase(() =>
-    (firestore && organizationId) ? query(collection(firestore, `organizations/${organizationId}/contacts`), where('contactType', '==', 'Landlord')) : null,
-    [firestore, organizationId]
-  );
-  const { data: landlords, isLoading: loadingLandlords } = useCollection<any>(landlordsQuery);
+  async function onSubmit(data: BankAccountFormValues) {
+    try {
+      await apiCreate('/api/bank-accounts', {
+        account_name: data.accountName,
+        bank_name: data.bankName,
+        sort_code: data.sortCode,
+        account_number: data.accountNumberMask,
+      });
 
+      toast({
+        title: 'Bank Account Added',
+        description: `The account for ${data.accountName} has been linked.`,
+      });
 
-  const bankAccountsCollectionRef = useMemoFirebase(() =>
-    (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/bankAccounts`) : null
-  , [firestore, organizationId]);
-
-  function onSubmit(data: BankAccountFormValues) {
-    if (!bankAccountsCollectionRef || !organizationId || !auth.currentUser) return;
-    
-    const newAccountData = {
-      ...data,
-      organizationId,
-      status: 'Active',
-      externalId: `manual_${Date.now()}`, // Simulate an external ID
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    };
-    
-    addDocumentNonBlocking(firestore, auth, organizationId, bankAccountsCollectionRef, newAccountData, `${data.bankName} (${data.accountNumberMask})`);
-    
-    toast({
-      title: 'Bank Account Added',
-      description: `The account for ${data.accountName} has been linked.`,
-    });
-
-    form.reset();
-    setOpen(false);
+      form.reset();
+      setOpen(false);
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.message || 'Failed to add bank account.',
+      });
+    }
   }
 
   return (
@@ -135,7 +122,7 @@ export function AddBankAccountDialog() {
                    {loadingLandlords ? <Skeleton className="h-10 w-full" /> : (
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl><SelectTrigger><SelectValue placeholder="Select a landlord" /></SelectTrigger></FormControl>
-                            <SelectContent>{landlords?.map(l => <SelectItem key={l.id} value={l.id}>{l.firstName} {l.lastName}</SelectItem>)}</SelectContent>
+                            <SelectContent>{landlords?.map((l: any) => <SelectItem key={l.id} value={l.id}>{l.first_name} {l.last_name}</SelectItem>)}</SelectContent>
                         </Select>
                    )}
                   <FormMessage />
@@ -156,7 +143,7 @@ export function AddBankAccountDialog() {
                     <FormItem><FormLabel>Last 4 Digits</FormLabel><FormControl><Input placeholder="1234" {...field} /></FormControl><FormMessage /></FormItem>
                 )}/>
             </div>
-            
+
             <DialogFooter className="pt-4">
               <Button type="submit" disabled={loadingLandlords}>Link Account</Button>
             </DialogFooter>
