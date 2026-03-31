@@ -4,7 +4,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, doc, serverTimestamp, query, setDoc } from 'firebase/firestore';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -33,8 +32,6 @@ import {
 } from '@relentify/ui';
 import { Input } from '@relentify/ui';
 import { Button } from '@relentify/ui';
-import { useCollection, useFirestore, useMemoFirebase, useAuth, useUserProfile } from '@/firebase';
-import { logAuditEvent } from '@/firebase/audit';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@relentify/ui';
 import { Popover, PopoverContent, PopoverTrigger } from '@relentify/ui';
@@ -42,20 +39,19 @@ import { Calendar } from '@relentify/ui';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@relentify/ui';
 import { Separator } from '@relentify/ui';
+import { useApiCollection, apiCreate } from '@/hooks/use-api';
+import { useUserProfile } from '@/hooks/use-user-profile';
 
 const taskFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
-  assignedToUserId: z.string().min(1, 'Please assign this task to a user'),
   priority: z.enum(['High', 'Medium', 'Low']),
-  status: z.enum(['Open', 'In Progress', 'Completed']),
+  status: z.enum(['To Do', 'In Progress', 'Completed']),
   dueDate: z.date({
     required_error: "A due date is required.",
   }),
-  relatedPropertyId: z.string().optional(),
-  relatedContactId: z.string().optional(),
-  relatedTenancyId: z.string().optional(),
-  relatedCommunicationId: z.string().optional(),
+  relatedType: z.string().optional(),
+  relatedId: z.string().optional(),
 });
 
 type TaskFormValues = z.infer<typeof taskFormSchema>;
@@ -69,38 +65,24 @@ interface AddTaskDialogProps {
 
 export function AddTaskDialog({ open, onOpenChange, defaultValues }: AddTaskDialogProps) {
   const [isSaving, setIsSaving] = useState(false);
-  const firestore = useFirestore();
-  const auth = useAuth();
   const { toast } = useToast();
-  const { userProfile: currentUserProfile, isLoading: loadingCurrentUser } = useUserProfile();
-  const organizationId = currentUserProfile?.organizationId;
+  const { userProfile, isLoading: loadingCurrentUser } = useUserProfile();
 
-  const usersQuery = useMemoFirebase(() =>
-    (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/userProfiles`) : null,
-    [firestore, organizationId]
-  );
-  const { data: users, isLoading: loadingUsers } = useCollection<any>(usersQuery);
+  const { data: contacts, isLoading: loadingContacts } = useApiCollection<any>('/api/contacts');
+  const { data: properties, isLoading: loadingProperties } = useApiCollection<any>('/api/properties');
+  const { data: tenancies, isLoading: loadingTenancies } = useApiCollection<any>('/api/tenancies');
 
-  const propertiesQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/properties`) : null, [firestore, organizationId]);
-  const { data: properties, isLoading: loadingProperties } = useCollection<any>(propertiesQuery);
-
-  const contactsQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/contacts`) : null, [firestore, organizationId]);
-  const { data: contacts, isLoading: loadingContacts } = useCollection<any>(contactsQuery);
-
-  const tenanciesQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/tenancies`) : null, [firestore, organizationId]);
-  const { data: tenancies, isLoading: loadingTenancies } = useCollection<any>(tenanciesQuery);
-
-  const contactMap = useMemo(() => new Map(contacts?.map(c => [c.id, `${c.firstName} ${c.lastName}`]) || []), [contacts]);
-  const propertyMap = useMemo(() => new Map(properties?.map(p => [p.id, p.addressLine1]) || []), [properties]);
+  const contactMap = useMemo(() => new Map(contacts?.map((c: any) => [c.id, `${c.first_name} ${c.last_name}`]) || []), [contacts]);
+  const propertyMap = useMemo(() => new Map(properties?.map((p: any) => [p.id, p.address_line1]) || []), [properties]);
 
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskFormSchema),
     defaultValues: {
       priority: 'Medium',
-      status: 'Open',
+      status: 'To Do',
     },
   });
-  
+
   useEffect(() => {
     if (open) {
       if (defaultValues) {
@@ -110,44 +92,25 @@ export function AddTaskDialog({ open, onOpenChange, defaultValues }: AddTaskDial
           title: '',
           description: '',
           priority: 'Medium',
-          status: 'Open',
+          status: 'To Do',
         });
       }
-      if (currentUserProfile?.id) {
-        form.setValue('assignedToUserId', currentUserProfile.id);
-      }
     }
-  }, [defaultValues, form, open, currentUserProfile]);
-
-  const tasksCollectionRef = useMemoFirebase(() =>
-    (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/tasks`) : null
-  , [firestore, organizationId]);
+  }, [defaultValues, form, open]);
 
   async function onSubmit(data: TaskFormValues) {
-    if (!tasksCollectionRef || !auth.currentUser || !organizationId) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Could not add task.',
-      });
-      return;
-    }
-    
     setIsSaving(true);
     try {
-        const newTaskRef = doc(tasksCollectionRef);
-        const newTaskData = {
-          id: newTaskRef.id,
-          ...data,
-          organizationId,
-          createdByUserId: auth.currentUser.uid,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        };
-        
-        await setDoc(newTaskRef, newTaskData);
-        logAuditEvent(firestore, auth, organizationId, 'Created', newTaskRef, data.title);
-        
+        await apiCreate('/api/tasks', {
+          title: data.title,
+          description: data.description || null,
+          due_date: data.dueDate ? format(data.dueDate, 'yyyy-MM-dd') : null,
+          priority: data.priority,
+          status: data.status,
+          related_type: data.relatedType || null,
+          related_id: data.relatedId || null,
+        });
+
         toast({
           title: 'Task Added',
           description: `Task "${data.title}" has been successfully added.`,
@@ -162,7 +125,7 @@ export function AddTaskDialog({ open, onOpenChange, defaultValues }: AddTaskDial
     }
   }
 
-  const isLoading = loadingUsers || loadingCurrentUser || loadingProperties || loadingContacts || loadingTenancies;
+  const isLoading = loadingCurrentUser || loadingProperties || loadingContacts || loadingTenancies;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -202,28 +165,6 @@ export function AddTaskDialog({ open, onOpenChange, defaultValues }: AddTaskDial
               )}
             />
             <div className="grid grid-cols-2 gap-4">
-                <FormField
-                    control={form.control}
-                    name="assignedToUserId"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Assign To</FormLabel>
-                            {isLoading ? <Skeleton className="h-10 w-full" /> : (
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                    <SelectTrigger><SelectValue placeholder="Select a user" /></SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {users?.map(user => (
-                                            <SelectItem key={user.id} value={user.id}>{user.firstName} {user.lastName}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            )}
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
                  <FormField
                     control={form.control}
                     name="dueDate"
@@ -265,8 +206,6 @@ export function AddTaskDialog({ open, onOpenChange, defaultValues }: AddTaskDial
                         </FormItem>
                     )}
                 />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
                 <FormField
                     control={form.control}
                     name="priority"
@@ -287,6 +226,8 @@ export function AddTaskDialog({ open, onOpenChange, defaultValues }: AddTaskDial
                         </FormItem>
                     )}
                 />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
                 <FormField
                     control={form.control}
                     name="status"
@@ -298,7 +239,7 @@ export function AddTaskDialog({ open, onOpenChange, defaultValues }: AddTaskDial
                                 <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                    <SelectItem value="Open">Open</SelectItem>
+                                    <SelectItem value="To Do">To Do</SelectItem>
                                     <SelectItem value="In Progress">In Progress</SelectItem>
                                     <SelectItem value="Completed">Completed</SelectItem>
                                 </SelectContent>
@@ -313,73 +254,62 @@ export function AddTaskDialog({ open, onOpenChange, defaultValues }: AddTaskDial
              <div className="grid grid-cols-2 gap-4">
                 <FormField
                     control={form.control}
-                    name="relatedContactId"
+                    name="relatedType"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Contact</FormLabel>
-                            {isLoading ? <Skeleton className="h-10 w-full" /> : (
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger><SelectValue placeholder="Select a contact" /></SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {contacts?.map(c => <SelectItem key={c.id} value={c.id}>{c.firstName} {c.lastName}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
-                            )}
+                            <FormLabel>Link Type</FormLabel>
+                            <Select onValueChange={(v) => { field.onChange(v); form.setValue('relatedId', ''); }} value={field.value || ''}>
+                                <FormControl>
+                                    <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="">None</SelectItem>
+                                    <SelectItem value="contact">Contact</SelectItem>
+                                    <SelectItem value="property">Property</SelectItem>
+                                    <SelectItem value="tenancy">Tenancy</SelectItem>
+                                </SelectContent>
+                            </Select>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-                 <FormField
+                <FormField
                     control={form.control}
-                    name="relatedPropertyId"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Property</FormLabel>
-                            {isLoading ? <Skeleton className="h-10 w-full" /> : (
-                                <Select onValueChange={field.onChange} value={field.value}>
-                                    <FormControl>
-                                        <SelectTrigger><SelectValue placeholder="Select a property" /></SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {properties?.map(p => <SelectItem key={p.id} value={p.id}>{p.addressLine1}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
-                            )}
-                            <FormMessage />
-                        </FormItem>
-                    )}
+                    name="relatedId"
+                    render={({ field }) => {
+                        const relatedType = form.watch('relatedType');
+                        let items: { id: string; label: string }[] = [];
+                        if (relatedType === 'contact') {
+                          items = contacts?.map((c: any) => ({ id: c.id, label: `${c.first_name} ${c.last_name}` })) || [];
+                        } else if (relatedType === 'property') {
+                          items = properties?.map((p: any) => ({ id: p.id, label: p.address_line1 })) || [];
+                        } else if (relatedType === 'tenancy') {
+                          items = tenancies?.map((t: any) => {
+                            const propertyName = propertyMap.get(t.property_id) || 'Unknown Property';
+                            return { id: t.id, label: propertyName };
+                          }) || [];
+                        }
+                        return (
+                            <FormItem>
+                                <FormLabel>Link To</FormLabel>
+                                {isLoading ? <Skeleton className="h-10 w-full" /> : (
+                                    <Select onValueChange={field.onChange} value={field.value || ''} disabled={!relatedType}>
+                                        <FormControl>
+                                            <SelectTrigger><SelectValue placeholder={relatedType ? "Select..." : "Choose type first"} /></SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            {items.map(item => <SelectItem key={item.id} value={item.id}>{item.label}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                                <FormMessage />
+                            </FormItem>
+                        );
+                    }}
                 />
             </div>
-             <FormField
-                control={form.control}
-                name="relatedTenancyId"
-                render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Tenancy</FormLabel>
-                        {isLoading ? <Skeleton className="h-10 w-full" /> : (
-                            <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                                <SelectTrigger><SelectValue placeholder="Select a tenancy" /></SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                {tenancies?.map(t => {
-                                const propertyName = propertyMap.get(t.propertyId) || 'Unknown Property';
-                                const tenantNames = t.tenantIds.map((id:string) => contactMap.get(id) || '').join(', ');
-                                return (
-                                    <SelectItem key={t.id} value={t.id}>{propertyName} - {tenantNames}</SelectItem>
-                                )
-                                })}
-                            </SelectContent>
-                            </Select>
-                        )}
-                        <FormMessage />
-                    </FormItem>
-                )}
-            />
             <DialogFooter>
-              <Button type="submit" disabled={isLoading || isSaving || !organizationId}>
+              <Button type="submit" disabled={isLoading || isSaving}>
                 {isSaving ? 'Saving...' : 'Save Task'}
               </Button>
             </DialogFooter>

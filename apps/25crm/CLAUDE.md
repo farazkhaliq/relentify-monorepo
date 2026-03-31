@@ -166,6 +166,7 @@ docker logs 25crm --tail 50
 | GET/POST | `/api/tenancies` | Yes | List / create tenancies |
 | GET/PATCH/DELETE | `/api/tenancies/[id]` | Yes | Get / update / delete tenancy |
 | GET/POST | `/api/tasks` | Yes | List / create tasks |
+| GET/PATCH/DELETE | `/api/tasks/[id]` | Yes | Get / update / delete task |
 | GET/POST | `/api/maintenance` | Yes | List / create maintenance requests |
 | GET/PATCH/DELETE | `/api/maintenance/[id]` | Yes | Get / update / delete maintenance request |
 | GET/POST | `/api/listings` | Yes | List / create listings |
@@ -229,6 +230,7 @@ docker logs 25crm --tail 50
 |------|---------|
 | `src/lib/crm.service.ts` | Shared PostgreSQL queries (dashboard, tasks, notifications) |
 | `src/lib/services/maintenance.service.ts` | Maintenance CRUD (full: list, get, create, update, delete) |
+| `src/lib/services/tasks.service.ts` | Tasks CRUD (full: list, get, create, update, delete) |
 | `src/lib/auth.ts` | JWT auth (staff) via `@relentify/auth` |
 | `src/app/api/*/route.ts` | API route handlers |
 | `docker-compose.yml` | Container config (port 3025) |
@@ -240,7 +242,7 @@ docker logs 25crm --tail 50
 - Staff auth uses `@relentify/auth` JWT
 - Portal auth still uses Firebase (needs migration)
 - Real-time subscriptions (`useDoc`/`useCollection`) still use Firestore (needs migration to polling)
-- **Migrated to API + SWR**: contacts, tenancies, properties, maintenance (full CRUD + components)
+- **Migrated to API + SWR**: contacts, tenancies, properties, maintenance, tasks (full CRUD + components)
 - **Maintenance**: service at `src/lib/services/maintenance.service.ts`, API at `/api/maintenance` + `/api/maintenance/[id]`, all 5 components migrated from Firebase to API calls
 
 ---
