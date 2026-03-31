@@ -2,7 +2,6 @@ import type {Metadata} from 'next';
 import { Inter } from 'next/font/google'
 import './globals.css';
 import { Toaster, ThemeProvider, THEME_SCRIPT } from '@relentify/ui';
-import { FirebaseClientProvider } from '@/firebase';
 import { SharedAuthProvider } from '@/hooks/use-shared-auth';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' })
@@ -34,10 +33,8 @@ export default function RootLayout({
       <body className={`${inter.variable} font-body antialiased`}>
         <ThemeProvider>
           <SharedAuthProvider>
-            <FirebaseClientProvider>
-              {children}
-              <Toaster />
-            </FirebaseClientProvider>
+            {children}
+            <Toaster />
           </SharedAuthProvider>
         </ThemeProvider>
       </body>
