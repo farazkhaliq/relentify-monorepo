@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, query, where, serverTimestamp } from 'firebase/firestore';
 import { PlusCircle } from 'lucide-react';
 
 import {
@@ -34,9 +33,8 @@ import {
 } from '@relentify/ui';
 import { Button } from '@relentify/ui';
 import { Textarea } from '@relentify/ui';
-import { useCollection, useFirestore, useMemoFirebase, useAuth } from '@/firebase';
 import { usePortalUserProfile } from '@/hooks/use-portal-user-profile';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { useApiCollection, apiCreate } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@relentify/ui';
 import { Switch } from '@relentify/ui';
@@ -55,12 +53,16 @@ type MaintenanceRequestFormValues = z.infer<typeof portalMaintenanceRequestFormS
 
 export function AddPortalMaintenanceRequestDialog() {
   const [open, setOpen] = useState(false);
-  const firestore = useFirestore();
-  const auth = useAuth();
   const { toast } = useToast();
   const { portalUserProfile, isLoading: loadingProfile } = usePortalUserProfile();
-  const organizationId = portalUserProfile?.organizationId;
   const contactId = portalUserProfile?.contactId;
+
+  // Fetch tenancies to find the portal user's active tenancy and property
+  const { data: tenancies, isLoading: loadingTenancies } = useApiCollection('/api/tenancies');
+  const activeTenancy = tenancies?.find((t: any) =>
+    t.status === 'Active' && t.tenant_ids?.includes(contactId)
+  );
+  const propertyId = activeTenancy?.property_id;
 
   const form = useForm<MaintenanceRequestFormValues>({
     resolver: zodResolver(portalMaintenanceRequestFormSchema),
@@ -71,25 +73,8 @@ export function AddPortalMaintenanceRequestDialog() {
     },
   });
 
-  // Find the user's active tenancy to get their propertyId
-  const tenancyQuery = useMemoFirebase(() =>
-      (firestore && organizationId && contactId) ? query(
-          collection(firestore, `organizations/${organizationId}/tenancies`),
-          where('tenantIds', 'array-contains', contactId),
-          where('status', '==', 'Active')
-      ) : null, [firestore, organizationId, contactId]
-  );
-  const { data: tenancies, isLoading: loadingTenancies } = useCollection<any>(tenancyQuery);
-  const activeTenancy = tenancies?.[0];
-  const propertyId = activeTenancy?.propertyId;
-
-  const maintenanceCollectionRef = useMemoFirebase(() =>
-    (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/maintenanceRequests`) : null, 
-    [firestore, organizationId]
-  );
-
-  function onSubmit(data: MaintenanceRequestFormValues) {
-    if (!maintenanceCollectionRef || !organizationId || !contactId || !propertyId) {
+  async function onSubmit(data: MaintenanceRequestFormValues) {
+    if (!contactId || !propertyId) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -98,27 +83,30 @@ export function AddPortalMaintenanceRequestDialog() {
       return;
     }
 
-    const newRequestData = {
-      ...data,
-      organizationId,
-      reporterContactId: contactId,
-      propertyId: propertyId,
-      tenancyId: activeTenancy.id,
-      status: 'New',
-      reportedDate: serverTimestamp(),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    };
-    
-    addDocumentNonBlocking(firestore, auth, organizationId, maintenanceCollectionRef, newRequestData, data.description);
-    
-    toast({
-      title: 'Request Submitted',
-      description: `Your maintenance request has been successfully submitted.`,
-    });
+    try {
+      await apiCreate('/api/maintenance', {
+        reported_by_id: contactId,
+        property_id: propertyId,
+        title: `[${data.issueType}] ${data.issueLocation}`,
+        description: `[${data.issueType}] [${data.issueLocation}] ${data.description}${data.permissionToEnter ? ' [Permission to enter: Yes]' : ''}`,
+        priority: data.priority,
+        status: 'New',
+      });
 
-    form.reset();
-    setOpen(false);
+      toast({
+        title: 'Request Submitted',
+        description: `Your maintenance request has been successfully submitted.`,
+      });
+
+      form.reset();
+      setOpen(false);
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not submit request.',
+      });
+    }
   }
 
   const isLoading = loadingProfile || loadingTenancies;

@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { collection, query, where, serverTimestamp } from 'firebase/firestore';
 import { PlusCircle } from 'lucide-react';
 
 import {
@@ -34,9 +33,8 @@ import {
 } from '@relentify/ui';
 import { Button } from '@relentify/ui';
 import { Textarea } from '@relentify/ui';
-import { useCollection, useFirestore, useMemoFirebase, useAuth } from '@/firebase';
-import { useUserProfile } from '@/hooks/use-user-profile';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { Input } from '@relentify/ui';
+import { useApiCollection, apiCreate } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@relentify/ui';
 import { Switch } from '@relentify/ui';
@@ -44,7 +42,7 @@ import { Switch } from '@relentify/ui';
 const maintenanceRequestFormSchema = z.object({
   propertyId: z.string().min(1, 'Please select a property'),
   reporterContactId: z.string().min(1, 'Please select a contact'),
-  tenancyId: z.string().optional(),
+  title: z.string().min(1, 'Title is required'),
   issueLocation: z.enum(["Kitchen", "Bathroom", "Bedroom 1", "Bedroom 2", "Bedroom 3", "Living Room", "Dining Room", "Garden", "Exterior", "Communal Area", "Other"]),
   issueType: z.enum(["Plumbing", "Electrical", "Heating", "Appliance", "Structural", "General", "Other"]),
   permissionToEnter: z.boolean().default(false),
@@ -56,94 +54,49 @@ type MaintenanceRequestFormValues = z.infer<typeof maintenanceRequestFormSchema>
 
 export function AddMaintenanceRequestDialog() {
   const [open, setOpen] = useState(false);
-  const firestore = useFirestore();
-  const auth = useAuth();
   const { toast } = useToast();
-  const { userProfile: currentUserProfile, isLoading: loadingCurrentUser } = useUserProfile();
-  const organizationId = currentUserProfile?.organizationId;
+
+  const { data: properties, isLoading: loadingProperties } = useApiCollection('/api/properties');
+  const { data: contacts, isLoading: loadingContacts } = useApiCollection('/api/contacts');
 
   const form = useForm<MaintenanceRequestFormValues>({
     resolver: zodResolver(maintenanceRequestFormSchema),
     defaultValues: {
       description: '',
+      title: '',
       priority: 'Medium',
       permissionToEnter: false,
     },
   });
-  
-  const propertyId = form.watch('propertyId');
 
-  // Fetch properties for the dropdown
-  const propertiesQuery = useMemoFirebase(() =>
-    (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/properties`) : null,
-    [firestore, organizationId]
-  );
-  const { data: properties, isLoading: loadingProperties } = useCollection<any>(propertiesQuery);
-  
-  // Fetch contacts for the dropdown
-  const contactsQuery = useMemoFirebase(() =>
-    (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/contacts`) : null,
-    [firestore, organizationId]
-  );
-  const { data: contacts, isLoading: loadingContacts } = useCollection<any>(contactsQuery);
+  async function onSubmit(data: MaintenanceRequestFormValues) {
+    try {
+      await apiCreate('/api/maintenance', {
+        property_id: data.propertyId,
+        reported_by_id: data.reporterContactId,
+        title: data.title,
+        description: `[${data.issueType}] [${data.issueLocation}] ${data.description}${data.permissionToEnter ? ' [Permission to enter: Yes]' : ''}`,
+        priority: data.priority,
+        status: 'New',
+      });
 
-  // Fetch active tenancies for the selected property
-  const tenanciesQuery = useMemoFirebase(() =>
-    (firestore && organizationId && propertyId)
-      ? query(
-          collection(firestore, `organizations/${organizationId}/tenancies`),
-          where('propertyId', '==', propertyId),
-          where('status', '==', 'Active')
-        )
-      : null,
-    [firestore, organizationId, propertyId]
-  );
-  const { data: activeTenancies, isLoading: loadingTenancies } = useCollection<any>(tenanciesQuery);
+      toast({
+        title: 'Request Added',
+        description: `A new maintenance request has been successfully created.`,
+      });
 
-  const contactNameMap = React.useMemo(() => new Map(contacts?.map(c => [c.id, `${c.firstName} ${c.lastName}`]) || []), [contacts]);
-
-  const getTenantNames = (tenantIds: string[]) => {
-    if (!tenantIds || !contactNameMap) return 'Loading tenants...';
-    return tenantIds.map(id => contactNameMap.get(id) || 'Unknown').join(', ');
-  }
-
-  const maintenanceCollectionRef = useMemoFirebase(() =>
-    (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/maintenanceRequests`) : null
-  , [firestore, organizationId]);
-
-  function onSubmit(data: MaintenanceRequestFormValues) {
-    if (!maintenanceCollectionRef || !organizationId) {
+      form.reset();
+      setOpen(false);
+    } catch (error) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Firestore not available. Could not add request.',
+        description: 'Could not add request.',
       });
-      return;
     }
-
-    const newRequestData = {
-      ...data,
-      organizationId,
-      status: 'New', // Default status for new requests
-      reportedDate: serverTimestamp(),
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    };
-    
-    const entityName = data.description;
-    addDocumentNonBlocking(firestore, auth, organizationId, maintenanceCollectionRef, newRequestData, entityName);
-    
-    toast({
-      title: 'Request Added',
-      description: `A new maintenance request has been successfully created.`,
-    });
-
-    form.reset();
-    setOpen(false);
   }
 
-  const isLoading = loadingProperties || loadingContacts || loadingCurrentUser;
-  const isTenancyLoading = loadingTenancies || loadingContacts;
+  const isLoading = loadingProperties || loadingContacts;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -171,53 +124,17 @@ export function AddMaintenanceRequestDialog() {
                 <FormItem>
                   <FormLabel>Property</FormLabel>
                   {isLoading ? <Skeleton className="h-10 w-full" /> : (
-                    <Select onValueChange={(value) => {
-                      field.onChange(value);
-                      form.setValue('tenancyId', undefined); // Reset tenancy when property changes
-                    }} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger><SelectValue placeholder="Select a property" /></SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {properties?.map(prop => (
-                          <SelectItem key={prop.id} value={prop.id}>{prop.addressLine1}, {prop.city}</SelectItem>
+                        {properties?.map((prop: any) => (
+                          <SelectItem key={prop.id} value={prop.id}>{prop.address_line1}, {prop.city}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name="tenancyId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tenancy (Optional)</FormLabel>
-                  {isTenancyLoading && propertyId ? <Skeleton className="h-10 w-full" /> : (
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      disabled={!propertyId || !activeTenancies || activeTenancies.length === 0}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select an active tenancy" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {activeTenancies?.map(tenancy => (
-                          <SelectItem key={tenancy.id} value={tenancy.id}>
-                            {getTenantNames(tenancy.tenantIds)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                  <FormDescription>
-                    Link this request to an active tenancy at the selected property.
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -234,12 +151,25 @@ export function AddMaintenanceRequestDialog() {
                         <SelectTrigger><SelectValue placeholder="Select a contact" /></SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {contacts?.map(contact => (
-                          <SelectItem key={contact.id} value={contact.id}>{contact.firstName} {contact.lastName}</SelectItem>
+                        {contacts?.map((contact: any) => (
+                          <SelectItem key={contact.id} value={contact.id}>{contact.first_name} {contact.last_name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Leaking kitchen sink" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

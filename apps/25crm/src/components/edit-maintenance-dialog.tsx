@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { doc, serverTimestamp } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { Trash2 } from 'lucide-react';
 
@@ -44,10 +43,8 @@ import {
 } from '@relentify/ui';
 import { Button } from '@relentify/ui';
 import { Textarea } from '@relentify/ui';
-import { useAuth, useFirestore, useMemoFirebase } from '@/firebase';
-import { deleteDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { apiUpdate, apiDelete } from '@/hooks/use-api';
 import { useToast } from '@/hooks/use-toast';
-import { useUserProfile } from '@/hooks/use-user-profile';
 
 const maintenanceFormSchema = z.object({
   status: z.enum(['New', 'In Progress', 'Awaiting Parts', 'On Hold', 'Completed', 'Cancelled']),
@@ -65,12 +62,8 @@ interface EditMaintenanceDialogProps {
 export function EditMaintenanceDialog({ maintenanceRequest, isAdmin }: EditMaintenanceDialogProps) {
   const [open, setOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const firestore = useFirestore();
-  const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  const { userProfile } = useUserProfile();
-  const organizationId = userProfile?.organizationId;
 
   const form = useForm<MaintenanceFormValues>({
     resolver: zodResolver(maintenanceFormSchema),
@@ -81,50 +74,41 @@ export function EditMaintenanceDialog({ maintenanceRequest, isAdmin }: EditMaint
     form.reset(maintenanceRequest);
   }, [maintenanceRequest, form, open]);
 
-  const requestDocRef = useMemoFirebase(() =>
-    (firestore && organizationId) ? doc(firestore, `organizations/${organizationId}/maintenanceRequests`, maintenanceRequest.id) : null
-  , [firestore, organizationId, maintenanceRequest.id]);
+  async function onSubmit(data: MaintenanceFormValues) {
+    try {
+      await apiUpdate(`/api/maintenance/${maintenanceRequest.id}`, {
+        status: data.status,
+        priority: data.priority,
+        description: data.resolutionNotes ? `${maintenanceRequest.description}\n\nResolution: ${data.resolutionNotes}` : undefined,
+      });
 
-  function onSubmit(data: MaintenanceFormValues) {
-    if (!requestDocRef || !organizationId) {
+      toast({
+        title: 'Request Updated',
+        description: `The maintenance request has been successfully updated.`,
+      });
+
+      setOpen(false);
+    } catch (error) {
       toast({
         variant: 'destructive',
         title: 'Error',
         description: 'Could not update request.',
       });
-      return;
     }
-
-    const updatedData = {
-      ...data,
-      updatedAt: serverTimestamp(),
-    };
-    
-    const entityName = maintenanceRequest.description;
-    updateDocumentNonBlocking(firestore, auth, organizationId, requestDocRef, updatedData, entityName);
-    
-    toast({
-      title: 'Request Updated',
-      description: `The maintenance request has been successfully updated.`,
-    });
-
-    setOpen(false);
   }
 
-  const handleDeleteRequest = () => {
-    if (!requestDocRef || !organizationId) {
+  const handleDeleteRequest = async () => {
+    try {
+      await apiDelete(`/api/maintenance/${maintenanceRequest.id}`);
+
+      toast({ title: 'Request Deleted', description: 'The maintenance request has been deleted.' });
+
+      setDeleteDialogOpen(false);
+      setOpen(false);
+      router.push('/maintenance');
+    } catch (error) {
       toast({ variant: 'destructive', title: 'Error', description: 'Could not delete request.' });
-      return;
     }
-    
-    const entityName = maintenanceRequest.description;
-    deleteDocumentNonBlocking(firestore, auth, organizationId, requestDocRef, entityName);
-
-    toast({ title: 'Request Deleted', description: 'The maintenance request has been deleted.' });
-
-    setDeleteDialogOpen(false);
-    setOpen(false);
-    router.push('/maintenance');
   }
 
   return (

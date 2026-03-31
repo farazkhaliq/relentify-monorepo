@@ -1,8 +1,6 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { doc, Timestamp } from 'firebase/firestore';
-import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { Skeleton } from '@relentify/ui';
 import { Card, CardContent, CardHeader, CardTitle } from '@relentify/ui';
 import { Badge } from '@relentify/ui';
@@ -14,57 +12,36 @@ import { EditMaintenanceDialog } from '@/components/edit-maintenance-dialog';
 import { useState } from 'react';
 import { AddTaskDialog } from '@/components/add-task-dialog';
 import { useUserProfile } from '@/hooks/use-user-profile';
+import { useApiDoc, useApiCollection } from '@/hooks/use-api';
 
 interface MaintenanceRequest {
     id: string;
+    title: string;
     description: string;
-    reportedDate: any;
+    created_at: string;
     priority: 'Urgent' | 'High' | 'Medium' | 'Low';
     status: 'New' | 'In Progress' | 'Awaiting Parts' | 'On Hold' | 'Completed' | 'Cancelled';
-    propertyId: string;
-    reporterContactId: string;
-    resolutionNotes?: string;
-    issueLocation?: string;
-    issueType?: string;
-    permissionToEnter?: boolean;
-}
-
-interface Property {
-    addressLine1: string;
-    city: string;
-    postcode: string;
-}
-
-interface Contact {
-    firstName: string;
-    lastName: string;
+    property_id: string;
+    reported_by_id: string;
+    property_address?: string;
 }
 
 export default function MaintenanceDetailPage() {
   const params = useParams();
   const maintenanceId = params.maintenanceId as string;
-  const firestore = useFirestore();
   const [isAddTaskOpen, setAddTaskOpen] = useState(false);
-  const { userProfile: currentUserProfile, isLoading: isLoadingCurrentUser, isAdmin } = useUserProfile();
-  const organizationId = currentUserProfile?.organizationId;
+  const { isAdmin, isLoading: isLoadingCurrentUser } = useUserProfile();
 
-  const requestRef = useMemoFirebase(() => 
-    (firestore && organizationId && maintenanceId) ? doc(firestore, `organizations/${organizationId}/maintenanceRequests`, maintenanceId) : null,
-    [firestore, organizationId, maintenanceId]
+  const { data: request, isLoading: isLoadingRequest } = useApiDoc<MaintenanceRequest>(
+    maintenanceId ? `/api/maintenance/${maintenanceId}` : null
   );
-  const { data: request, isLoading: isLoadingRequest } = useDoc<MaintenanceRequest>(requestRef);
 
-  const propertyRef = useMemoFirebase(() => {
-    if (!firestore || !organizationId || !request?.propertyId) return null;
-    return doc(firestore, `organizations/${organizationId}/properties`, request.propertyId);
-  }, [firestore, organizationId, request?.propertyId]);
-  const { data: property, isLoading: isLoadingProperty } = useDoc<Property>(propertyRef);
+  // Fetch property and reporter contact details
+  const { data: properties } = useApiCollection('/api/properties');
+  const { data: contacts } = useApiCollection('/api/contacts');
 
-  const reporterRef = useMemoFirebase(() => {
-    if (!firestore || !organizationId || !request?.reporterContactId) return null;
-    return doc(firestore, `organizations/${organizationId}/contacts`, request.reporterContactId);
-  }, [firestore, organizationId, request?.reporterContactId]);
-  const { data: reporter, isLoading: isLoadingReporter } = useDoc<Contact>(reporterRef);
+  const property = properties?.find((p: any) => p.id === request?.property_id);
+  const reporter = contacts?.find((c: any) => c.id === request?.reported_by_id);
 
   const getStatusBadgeVariant = (status: string | undefined) => {
     switch (status) {
@@ -86,13 +63,6 @@ export default function MaintenanceDetailPage() {
     }
   }
 
-  const getTimestampAsDate = (timestamp: any): Date => {
-    if (!timestamp) return new Date();
-    if (timestamp instanceof Timestamp) { return timestamp.toDate(); }
-    if (typeof timestamp === 'string') { return new Date(timestamp); }
-    return new Date();
-  };
-  
   const InfoCard = ({ icon: Icon, title, value }: { icon: React.ElementType, title: string, value: string | number | undefined }) => (
     value ? (
         <div className="flex items-center gap-3">
@@ -105,7 +75,7 @@ export default function MaintenanceDetailPage() {
     ) : null
   );
 
-  const isLoading = isLoadingRequest || isLoadingProperty || isLoadingReporter || isLoadingCurrentUser;
+  const isLoading = isLoadingRequest || isLoadingCurrentUser;
 
   if (isLoading) {
     return (
@@ -144,14 +114,14 @@ export default function MaintenanceDetailPage() {
 
   return (
     <>
-    <AddTaskDialog 
-        open={isAddTaskOpen} 
-        onOpenChange={setAddTaskOpen} 
-        defaultValues={{ 
-            relatedPropertyId: request.propertyId,
-            title: `Fix: ${request.description.substring(0, 40)}${request.description.length > 40 ? '...' : ''}`,
+    <AddTaskDialog
+        open={isAddTaskOpen}
+        onOpenChange={setAddTaskOpen}
+        defaultValues={{
+            relatedPropertyId: request.property_id,
+            title: `Fix: ${(request.description || '').substring(0, 40)}${(request.description || '').length > 40 ? '...' : ''}`,
             description: `Follow up on maintenance request: \n\n${request.description}`
-        }} 
+        }}
     />
     <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6">
@@ -162,7 +132,7 @@ export default function MaintenanceDetailPage() {
                 <div>
                     <h1 className="text-3xl font-bold">Maintenance Request</h1>
                     {property && (
-                        <p className="text-muted-foreground">{property.addressLine1}, {property.city}</p>
+                        <p className="text-muted-foreground">{property.address_line1}, {property.city}</p>
                     )}
                 </div>
             </div>
@@ -181,8 +151,8 @@ export default function MaintenanceDetailPage() {
                 </CardHeader>
                 <CardContent className="space-y-1 text-sm">
                     {property ? (
-                        <Link href={`/properties/${request.propertyId}`} className="font-medium hover:underline text-primary">
-                            {property.addressLine1}, {property.city}, {property.postcode}
+                        <Link href={`/properties/${request.property_id}`} className="font-medium hover:underline text-primary">
+                            {property.address_line1}, {property.city}, {property.postcode}
                         </Link>
                     ) : <Skeleton className="h-5 w-3/4" />}
                 </CardContent>
@@ -193,8 +163,8 @@ export default function MaintenanceDetailPage() {
                 </CardHeader>
                 <CardContent className="space-y-1 text-sm">
                     {reporter ? (
-                         <Link href={`/contacts/${request.reporterContactId}`} className="font-medium hover:underline text-primary">
-                            {reporter.firstName} {reporter.lastName}
+                         <Link href={`/contacts/${request.reported_by_id}`} className="font-medium hover:underline text-primary">
+                            {reporter.first_name} {reporter.last_name}
                         </Link>
                     ) : <Skeleton className="h-5 w-1/2" />}
                 </CardContent>
@@ -204,47 +174,17 @@ export default function MaintenanceDetailPage() {
                     <CardTitle className="text-lg flex items-center gap-2"><Calendar className="w-5 h-5 text-muted-foreground" /> Date Reported</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-1 text-sm">
-                   <p>{format(getTimestampAsDate(request.reportedDate), 'PPP p')}</p>
+                   <p>{format(new Date(request.created_at), 'PPP p')}</p>
                 </CardContent>
             </Card>
         </div>
-        
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2"><AlertCircle className="w-5 h-5 text-muted-foreground" /> Issue Details</CardTitle>
-            </CardHeader>
-            <CardContent className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <InfoCard icon={Tag} title="Issue Type" value={request.issueType} />
-                <InfoCard icon={MapPin} title="Location" value={request.issueLocation} />
-                <div className="flex items-center gap-3">
-                    <KeyRound className="w-5 h-5 text-muted-foreground" />
-                    <div className="flex flex-col">
-                        <span className="text-sm text-muted-foreground">Permission to Enter</span>
-                        <span className="font-medium">{request.permissionToEnter ? 'Yes' : 'No'}</span>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-        
+
         <Card>
             <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2"><StickyNote className="w-5 h-5 text-muted-foreground" /> Description</CardTitle>
             </CardHeader>
             <CardContent>
                 <p className="text-sm whitespace-pre-wrap">{request.description}</p>
-            </CardContent>
-        </Card>
-        
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2"><StickyNote className="w-5 h-5 text-muted-foreground" /> Resolution Notes</CardTitle>
-            </CardHeader>
-            <CardContent>
-                {request.resolutionNotes ? (
-                    <p className="text-sm whitespace-pre-wrap">{request.resolutionNotes}</p>
-                ) : (
-                    <p className="text-sm text-muted-foreground">No resolution notes yet.</p>
-                )}
             </CardContent>
         </Card>
 

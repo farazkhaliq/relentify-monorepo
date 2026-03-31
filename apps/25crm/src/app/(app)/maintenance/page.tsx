@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import { format } from 'date-fns';
 import { useRouter } from "next/navigation";
 import { LayoutGrid, List, Flag, Home } from "lucide-react";
@@ -35,24 +35,24 @@ import {
     SelectValue,
 } from "@relentify/ui";
 import { Badge } from "@relentify/ui";
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { useUserProfile } from '@/hooks/use-user-profile';
 import { Skeleton } from '@relentify/ui';
+import { useApiCollection } from '@/hooks/use-api';
 import { AddMaintenanceRequestDialog } from "@/components/add-maintenance-request-dialog";
 import { SortableTableHead } from "@/components/sortable-table-head";
 
 type MaintenanceStatus = 'New' | 'In Progress' | 'Awaiting Parts' | 'On Hold' | 'Completed' | 'Cancelled';
 type SortDirection = 'asc' | 'desc';
-type SortableColumns = 'propertyId' | 'priority' | 'reportedDate' | 'reporterContactId';
 
 interface MaintenanceRequest {
   id: string;
+  title: string;
   description: string;
-  reportedDate: any;
+  created_at: string;
   priority: 'Urgent' | 'High' | 'Medium' | 'Low';
   status: MaintenanceStatus;
-  propertyId: string;
-  reporterContactId: string;
+  property_id: string;
+  reported_by_id: string;
+  property_address?: string;
 }
 
 const statusColumns: MaintenanceStatus[] = ['New', 'In Progress', 'Awaiting Parts', 'On Hold', 'Completed', 'Cancelled'];
@@ -61,41 +61,19 @@ const priorityOrder: Record<string, number> = { Urgent: 4, High: 3, Medium: 2, L
 
 export default function MaintenancePage() {
   const router = useRouter();
-  
-  const [requests, setRequests] = useState<any[]>([]);
-  const [properties, setProperties] = useState<any[]>([]);
-  const [contacts, setContacts] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+
+  const { data: requests, isLoading: loadingRequests } = useApiCollection<MaintenanceRequest>('/api/maintenance');
+  const { data: properties, isLoading: loadingProperties } = useApiCollection('/api/properties');
+  const { data: contacts, isLoading: loadingContacts } = useApiCollection('/api/contacts');
+
+  const isLoading = loadingRequests || loadingProperties || loadingContacts;
 
   const [propertyFilter, setPropertyFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
-  const [sortDescriptor, setSortDescriptor] = useState<{ column: any; direction: SortDirection }>({ column: 'reported_date', direction: 'desc' });
+  const [sortDescriptor, setSortDescriptor] = useState<{ column: any; direction: SortDirection }>({ column: 'created_at', direction: 'desc' });
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const [maintenanceRes, propertiesRes, contactsRes] = await Promise.all([
-          fetch('/api/maintenance'),
-          fetch('/api/properties'),
-          fetch('/api/contacts')
-        ]);
-
-        if (maintenanceRes.ok) setRequests(await maintenanceRes.json());
-        if (propertiesRes.ok) setProperties(await propertiesRes.json());
-        if (contactsRes.ok) setContacts(await contactsRes.json());
-      } catch (error) {
-        console.error('Error fetching maintenance data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const propertyAddressMap = React.useMemo(() => new Map(properties?.map(p => [p.id, `${p.address_line1}, ${p.city}`]) || []), [properties]);
-  const contactNameMap = React.useMemo(() => new Map(contacts?.map(c => [c.id, `${c.first_name} ${c.last_name}`]) || []), [contacts]);
+  const propertyAddressMap = React.useMemo(() => new Map(properties?.map((p: any) => [p.id, `${p.address_line1}, ${p.city}`]) || []), [properties]);
+  const contactNameMap = React.useMemo(() => new Map(contacts?.map((c: any) => [c.id, `${c.first_name} ${c.last_name}`]) || []), [contacts]);
 
   const handleSort = (column: any) => {
     if (sortDescriptor.column === column) {
@@ -130,23 +108,23 @@ export default function MaintenancePage() {
           aValue = contactNameMap.get(a.reported_by_id) || '';
           bValue = contactNameMap.get(b.reported_by_id) || '';
           break;
-        case 'reportedDate': case 'reported_date':
-            aValue = new Date(a.reported_date).getTime();
-            bValue = new Date(b.reported_date).getTime();
+        case 'reportedDate': case 'created_at':
+            aValue = new Date(a.created_at).getTime();
+            bValue = new Date(b.created_at).getTime();
             break;
         case 'priority':
             aValue = priorityOrder[a.priority] || 0;
             bValue = priorityOrder[b.priority] || 0;
             break;
         default:
-          aValue = a[column];
-          bValue = b[column];
+          aValue = (a as any)[column];
+          bValue = (b as any)[column];
       }
-      
+
       let comparison = 0;
       if (aValue > bValue) comparison = 1;
       else if (aValue < bValue) comparison = -1;
-      
+
       return direction === 'desc' ? comparison * -1 : comparison;
     });
 
@@ -188,11 +166,6 @@ export default function MaintenancePage() {
     }
   }
 
-  const getTimestampAsDate = (timestamp: any): Date => {
-    if (!timestamp) return new Date();
-    return new Date(timestamp);
-  };
-
   return (
     <div className="flex flex-col gap-6 h-full">
       <Tabs defaultValue="board" className="flex flex-col gap-4 h-full">
@@ -210,8 +183,8 @@ export default function MaintenancePage() {
               </SelectTrigger>
               <SelectContent>
                   <SelectItem value="all">All Properties</SelectItem>
-                  {properties?.map(prop => (
-                      <SelectItem key={prop.id} value={prop.id}>{prop.addressLine1}</SelectItem>
+                  {properties?.map((prop: any) => (
+                      <SelectItem key={prop.id} value={prop.id}>{prop.address_line1}</SelectItem>
                   ))}
               </SelectContent>
             </Select>
@@ -237,7 +210,7 @@ export default function MaintenancePage() {
               {statusColumns.map((status) => (
               <div key={status} className="flex flex-col gap-4 bg-muted/50 p-4 rounded-lg h-full">
                   <h2 className="font-semibold text-lg flex items-center gap-2">
-                      {status} 
+                      {status}
                       <span className="text-sm text-muted-foreground bg-background rounded-full px-2 py-0.5">
                           {isLoading ? '...' : requestsByStatus[status].length}
                       </span>
@@ -248,10 +221,10 @@ export default function MaintenancePage() {
                               <Card key={i}><CardHeader><Skeleton className="h-5 w-3/4" /></CardHeader><CardContent><Skeleton className="h-10 w-full" /></CardContent><CardFooter><Skeleton className="h-6 w-24" /></CardFooter></Card>
                           ))
                       ) : requestsByStatus[status].length > 0 ? (
-                          requestsByStatus[status].map((request) => (
+                          requestsByStatus[status].map((request: any) => (
                             <Card key={request.id} className="bg-background cursor-pointer hover:bg-muted/50" onClick={() => router.push(`/maintenance/${request.id}`)}>
                                 <CardHeader>
-                                    <CardTitle className="text-base">{propertyAddressMap.get(request.property_id) || 'Loading...'}</CardTitle>
+                                    <CardTitle className="text-base">{request.property_address || propertyAddressMap.get(request.property_id) || 'Loading...'}</CardTitle>
                                     <CardDescription className="line-clamp-2">{request.description}</CardDescription>
                                 </CardHeader>
                                 <CardFooter>
@@ -278,7 +251,7 @@ export default function MaintenancePage() {
                         <SortableTableHead column="reported_by_id" title="Reported By" sortDescriptor={sortDescriptor} onSort={handleSort} />
                         <SortableTableHead column="priority" title="Priority" sortDescriptor={sortDescriptor} onSort={handleSort} className="hidden sm:table-cell" />
                         <TableHead className="hidden sm:table-cell">Status</TableHead>
-                        <SortableTableHead column="reported_date" title="Reported" sortDescriptor={sortDescriptor} onSort={handleSort} className="hidden md:table-cell" />
+                        <SortableTableHead column="created_at" title="Reported" sortDescriptor={sortDescriptor} onSort={handleSort} className="hidden md:table-cell" />
                     </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -295,14 +268,14 @@ export default function MaintenancePage() {
                         ))
                     ) : filteredAndSortedRequests && filteredAndSortedRequests.length > 0 ? (
                         filteredAndSortedRequests.map((request) => (
-                        <TableRow 
+                        <TableRow
                             key={request.id}
                             className="cursor-pointer"
                             onClick={() => router.push(`/maintenance/${request.id}`)}
                         >
                             <TableCell>
                             <div className="font-medium" title={request.property_id}>
-                                {propertyAddressMap.get(request.property_id) || '...'}
+                                {request.property_address || propertyAddressMap.get(request.property_id) || '...'}
                             </div>
                             </TableCell>
                             <TableCell className="truncate max-w-[200px]">{request.description}</TableCell>
@@ -318,7 +291,7 @@ export default function MaintenancePage() {
                             </Badge>
                             </TableCell>
                             <TableCell className="hidden md:table-cell">
-                            {format(new Date(request.reported_date), 'PP')}
+                            {format(new Date(request.created_at), 'PP')}
                             </TableCell>
                         </TableRow>
                         ))
