@@ -1,0 +1,57 @@
+---
+title: Webhooks
+description: Subscribe to real-time events and verify webhook signatures for secure integrations.
+category: api
+order: 7
+appRoute: /dashboard/settings
+relatedArticles:
+  - getting-started
+---
+
+## What this does
+
+Webhooks let Relentify push real-time notifications to your server when events happen, such as an invoice being created or a payment being recorded. You register an endpoint URL, choose which events to subscribe to, and Relentify sends a signed HTTP POST to your server each time the event fires.
+
+## When to use it
+
+Use webhooks to trigger actions in your own systems in real time, for example updating a CRM when an invoice is paid or notifying a Slack channel when an expense is approved.
+
+## Step by step
+
+1. Go to **Settings** and select **Webhooks**
+2. Click **Create Webhook Endpoint**
+3. Enter your **Endpoint URL** (must be HTTPS)
+4. Select the **Events** you want to receive:
+   - `invoice.created` — a new invoice is created
+   - `invoice.paid` — a payment is recorded against an invoice
+   - `bill.created` — a new bill is created
+   - `expense.approved` — an expense is approved
+5. Click **Save**
+6. Copy the **Signing Secret** shown on the confirmation screen
+
+## Verifying signatures
+
+Every webhook request includes an `X-Relentify-Signature` header containing an HMAC-SHA256 hash of the request body, signed with your signing secret.
+
+To verify:
+
+```javascript
+const crypto = require('crypto');
+
+function verifySignature(body, signature, secret) {
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(body, 'utf8')
+    .digest('hex');
+  return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(expected)
+  );
+}
+```
+
+Reject any request where the signature does not match.
+
+## Retry policy
+
+If your endpoint returns a non-2xx status code or times out (30 seconds), Relentify retries the delivery up to 5 times with exponential backoff: 1 minute, 5 minutes, 30 minutes, 2 hours, and 12 hours. After 5 failed attempts, the event is marked as failed and appears in your webhook logs.

@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import '@/src/styles/globals.css'
 import { THEME_SCRIPT, ThemeProvider } from '@relentify/ui'
+import Analytics from '@/src/components/Analytics'
 
 export const metadata: Metadata = {
   title: 'Relentify — Sign In',
@@ -23,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="antialiased font-sans">
         <ThemeProvider initialPreset="B">
+          <Suspense fallback={null}><Analytics /></Suspense>
           {children}
         </ThemeProvider>
       </body>

@@ -5,6 +5,7 @@ import { getUserById } from '@/src/lib/user.service';
 import { getCreditNoteById, updateCreditNoteStatus, voidCreditNote } from '@/src/lib/credit_note.service';
 import { canAccess } from '@/src/lib/tiers';
 import { isDateLocked } from '@/src/lib/period_lock.service';
+import { checkPermission } from '@/src/lib/workspace-auth';
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -30,6 +31,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const denied = checkPermission(auth, 'creditNotes', 'create');
+    if (denied) return denied;
     const entity = await getActiveEntity(auth.userId);
     if (!entity) return NextResponse.json({ error: 'No active entity' }, { status: 400 });
     const user = await getUserById(auth.userId);

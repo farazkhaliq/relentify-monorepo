@@ -8,6 +8,7 @@ import { getActiveEntity } from '@/src/lib/entity.service';
 import { checkPermission } from '@/src/lib/workspace-auth';
 import { getPOSettings, getPOById, fulfillPO } from '@/src/lib/po.service';
 import { isDateLocked } from '@/src/lib/period_lock.service';
+import { detectBillPOMismatch } from '@/src/lib/mismatch.service';
 
 export async function GET() {
   try {
@@ -110,6 +111,11 @@ export async function POST(req: NextRequest) {
         await fulfillPO(poId, entity.id, withVariance);
         await logAudit(auth.userId, 'fulfill', 'purchase_order', poId, { billId: bill.id, billTotal, withVariance });
       }
+    }
+
+    // Detect PO-bill amount mismatch (async, non-blocking)
+    if (poId) {
+      detectBillPOMismatch(auth.userId, entity.id, bill.id, billTotal, poId).catch(() => {});
     }
 
     await logAudit(auth.userId, 'bill.created', 'bill', bill.id, { supplier: supplierName, amount, currency, poId: poId || null });

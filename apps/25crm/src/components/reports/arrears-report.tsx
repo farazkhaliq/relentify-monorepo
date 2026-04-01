@@ -1,41 +1,20 @@
 'use client';
 
 import React from 'react';
-import { collection, query, where } from 'firebase/firestore';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { useUserProfile } from '@/hooks/use-user-profile';
+import { useApiCollection } from '@/hooks/use-api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@relentify/ui';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@relentify/ui';
 import { Skeleton } from '@relentify/ui';
 import { useRouter } from 'next/navigation';
 
 export function ArrearsReport() {
-  const firestore = useFirestore();
   const router = useRouter();
-  const { userProfile: currentUserProfile, isLoading: loadingCurrentUser } = useUserProfile();
-  const organizationId = currentUserProfile?.organizationId;
+  const { data: tenancies, isLoading } = useApiCollection<any>('/api/reports/arrears');
 
-  const arrearsQuery = useMemoFirebase(() =>
-    (firestore && organizationId) ? query(
-        collection(firestore, `organizations/${organizationId}/tenancies`),
-        where('status', '==', 'Arrears')
-    ) : null, [firestore, organizationId]);
-  const { data: tenancies, isLoading: loadingTenancies } = useCollection<any>(arrearsQuery);
-
-  const propertiesQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/properties`) : null, [firestore, organizationId]);
-  const { data: properties, isLoading: loadingProperties } = useCollection<any>(propertiesQuery);
-  const propertyMap = React.useMemo(() => new Map(properties?.map(p => [p.id, p.addressLine1]) || []), [properties]);
-  
-  const contactsQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/contacts`) : null, [firestore, organizationId]);
-  const { data: contacts, isLoading: loadingContacts } = useCollection<any>(contactsQuery);
-  const contactMap = React.useMemo(() => new Map(contacts?.map(c => [c.id, `${c.firstName} ${c.lastName}`]) || []), [contacts]);
-
-  const isLoading = loadingCurrentUser || loadingTenancies || loadingProperties || loadingContacts;
-
-  const getTenantNames = (tenantIds: string[]) => {
-    if (!tenantIds || tenantIds.length === 0) return 'N/A';
-    return tenantIds.map(id => contactMap.get(id) || 'Unknown').join(', ');
-  }
+  const getTenantNames = (tenants: Array<{ id: string; name: string }>) => {
+    if (!tenants || tenants.length === 0) return 'N/A';
+    return tenants.map(t => t.name).join(', ');
+  };
 
   const formatCurrency = (amount: number, currency = 'GBP') => {
       return new Intl.NumberFormat('en-GB', { style: 'currency', currency }).format(amount);
@@ -66,11 +45,11 @@ export function ArrearsReport() {
                 </TableRow>
               ))
             ) : tenancies && tenancies.length > 0 ? (
-              tenancies.map((tenancy) => (
+              tenancies.map((tenancy: any) => (
                 <TableRow key={tenancy.id} className="cursor-pointer" onClick={() => router.push(`/tenancies/${tenancy.id}`)}>
-                  <TableCell className="font-medium">{propertyMap.get(tenancy.propertyId) || 'Unknown Property'}</TableCell>
-                  <TableCell>{getTenantNames(tenancy.tenantIds)}</TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(tenancy.rentAmount)}</TableCell>
+                  <TableCell className="font-medium">{tenancy.property_address || 'Unknown Property'}</TableCell>
+                  <TableCell>{getTenantNames(tenancy.tenants)}</TableCell>
+                  <TableCell className="text-right font-medium">{formatCurrency(tenancy.rent_amount)}</TableCell>
                 </TableRow>
               ))
             ) : (

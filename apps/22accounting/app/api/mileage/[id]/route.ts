@@ -4,12 +4,15 @@ import { deleteMileageClaim } from '@/src/lib/expense.service';
 import { getActiveEntity } from '@/src/lib/entity.service';
 import { isDateLocked } from '@/src/lib/period_lock.service';
 import { query } from '@/src/lib/db';
+import { checkPermission } from '@/src/lib/workspace-auth';
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const denied = checkPermission(auth, 'mileage', 'create');
+    if (denied) return denied;
     const entity = await getActiveEntity(auth.userId);
     if (entity) {
       const r = await query(`SELECT date FROM mileage_claims WHERE id=$1 AND user_id=$2`, [id, auth.userId]);

@@ -1,7 +1,16 @@
 import Stripe from 'stripe';
 
+const stripeOpts: Stripe.StripeConfig = { apiVersion: '2025-02-24.acacia' };
+
+// Allow redirecting Stripe API calls to a mock server for testing
+if (process.env.STRIPE_MOCK_HOST) {
+  stripeOpts.host = process.env.STRIPE_MOCK_HOST;
+  stripeOpts.port = parseInt(process.env.STRIPE_MOCK_PORT || '9999', 10);
+  stripeOpts.protocol = 'http';
+}
+
 const stripe = process.env.STRIPE_SECRET_KEY
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-02-24.acacia' })
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, stripeOpts)
   : null;
 
 export default stripe;

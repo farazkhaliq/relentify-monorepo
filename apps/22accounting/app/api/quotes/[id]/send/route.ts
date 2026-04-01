@@ -4,12 +4,15 @@ import { getQuoteById, updateQuoteStatus } from '@/src/lib/quote.service';
 import { getUserById } from '@/src/lib/user.service';
 import { sendQuoteEmail } from '@/src/lib/email';
 import { logAudit } from '@/src/lib/audit.service';
+import { checkPermission } from '@/src/lib/workspace-auth';
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const denied = checkPermission(auth, 'quotes', 'create');
+    if (denied) return denied;
 
     const quote = await getQuoteById(id, auth.userId);
     if (!quote) return NextResponse.json({ error: 'Quote not found' }, { status: 404 });

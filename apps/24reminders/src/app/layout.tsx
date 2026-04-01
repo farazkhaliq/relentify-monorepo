@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { Inter } from 'next/font/google';
 import '@/styles/globals.css';
 import { THEME_SCRIPT, ThemeProvider, Toaster } from '@relentify/ui';
+import Analytics from '@/components/Analytics';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -28,6 +30,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} min-h-screen antialiased`}>
         <ThemeProvider>
+          <Suspense fallback={null}><Analytics /></Suspense>
           {children}
           <Toaster />
         </ThemeProvider>

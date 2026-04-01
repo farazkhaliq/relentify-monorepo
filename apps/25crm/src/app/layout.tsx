@@ -1,8 +1,10 @@
 import type {Metadata} from 'next';
+import { Suspense } from 'react';
 import { Inter } from 'next/font/google'
 import './globals.css';
 import { Toaster, ThemeProvider, THEME_SCRIPT } from '@relentify/ui';
 import { SharedAuthProvider } from '@/hooks/use-shared-auth';
+import Analytics from '@/components/Analytics';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' })
 
@@ -33,6 +35,7 @@ export default function RootLayout({
       <body className={`${inter.variable} font-body antialiased`}>
         <ThemeProvider>
           <SharedAuthProvider>
+            <Suspense fallback={null}><Analytics /></Suspense>
             {children}
             <Toaster />
           </SharedAuthProvider>

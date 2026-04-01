@@ -7,6 +7,7 @@ import { createPO, getPOsByEntity, getPOSettings } from '@/src/lib/po.service';
 import { logAudit } from '@/src/lib/audit.service';
 import { sendPOApprovalRequestEmail } from '@/src/lib/email';
 import { getApproverForStaff } from '@/src/lib/po_approver_mapping.service';
+import { checkPermission } from '@/src/lib/workspace-auth';
 
 export async function GET(req: NextRequest) {
   try {
@@ -36,6 +37,8 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+    const denied = checkPermission(auth, 'po', 'create');
+    if (denied) return denied;
     const entity = await getActiveEntity(auth.userId);
     if (!entity) return NextResponse.json({ error: 'No active entity' }, { status: 400 });
     const user = await getUserById(auth.userId);

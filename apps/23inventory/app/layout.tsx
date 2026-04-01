@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import '@/styles/globals.css'
 import { SEO } from '@/lib/constants'
 import { ThemeProvider, NoiseOverlay } from '@relentify/ui'
+import Analytics from '@/components/Analytics'
 
 export const metadata: Metadata = {
   title: SEO.title,
@@ -31,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="antialiased font-sans transition-colors duration-700">
         <ThemeProvider initialPreset="B">
           <NoiseOverlay />
+          <Suspense fallback={null}><Analytics /></Suspense>
           {children}
         </ThemeProvider>
       </body>

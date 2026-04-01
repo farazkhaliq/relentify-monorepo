@@ -5,6 +5,7 @@ import {
   buildBillPaymentLines,
 } from './general_ledger.service';
 import { getAccountByCode } from './chart_of_accounts.service';
+import { dispatchWebhookEvent } from './webhook.service';
 
 // Fallback mapping from legacy category strings → nominal codes
 const CATEGORY_TO_CODE: Record<string, number> = {
@@ -65,7 +66,7 @@ export async function createBill(userId: string, data: {
   poVarianceReason?: string;
   skipGLPosting?: boolean; // set true during migration — GL handled by opening balances import
 }) {
-  return withTransaction(async (client) => {
+  const result = await withTransaction(async (client) => {
     const r = await client.query(
       `INSERT INTO bills (user_id, entity_id, supplier_name, amount, vat_rate, vat_amount, currency, invoice_date, due_date, category, coa_account_id, notes, reference, project_id, po_id, po_variance_reason)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *`,
@@ -105,6 +106,10 @@ export async function createBill(userId: string, data: {
 
     return bill;
   });
+
+  dispatchWebhookEvent(data.entityId, 'bill.created', { bill: result }).catch(() => {});
+
+  return result;
 }
 
 export async function getAllBills(userId: string, entityId?: string): Promise<Bill[]> {
@@ -203,7 +208,7 @@ export async function markBillPaid(
 
   const isPrepayment = options?.isPrepayment ?? false;
 
-  return withTransaction(async (client) => {
+  const result = await withTransaction(async (client) => {
     await client.query(
       `UPDATE bills SET status='paid', paid_at=$1::timestamptz WHERE id=$2`,
       [paymentDate, id]
@@ -259,6 +264,10 @@ export async function markBillPaid(
 
     return (await client.query('SELECT * FROM bills WHERE id=$1', [id])).rows[0] as Bill;
   });
+
+  dispatchWebhookEvent(entityId, 'bill.paid', { bill: result }).catch(() => {});
+
+  return result;
 }
 
 export async function getBillStats(userId: string, entityId?: string) {

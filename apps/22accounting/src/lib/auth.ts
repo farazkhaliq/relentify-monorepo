@@ -6,12 +6,24 @@ const COOKIE_NAME = 'relentify_token';
 const CLIENT_COOKIE_NAME = 'relentify_client_token';
 
 export interface WorkspacePermissions {
-  invoices:  { view: boolean; create: boolean; delete: boolean };
-  bills:     { view: boolean; create: boolean; delete: boolean };
-  banking:   { view: boolean; reconcile: boolean };
-  reports:   { view: boolean };
-  settings:  { view: boolean };
-  customers: { view: boolean; manage: boolean };
+  invoices:    { view: boolean; create: boolean; delete: boolean };
+  bills:       { view: boolean; create: boolean; delete: boolean };
+  banking:     { view: boolean; reconcile: boolean };
+  reports:     { view: boolean };
+  settings:    { view: boolean };
+  customers:   { view: boolean; manage: boolean };
+  suppliers:   { view: boolean; manage: boolean };
+  expenses:    { view: boolean; create: boolean; approve: boolean };
+  quotes:      { view: boolean; create: boolean };
+  creditNotes: { view: boolean; create: boolean };
+  journals:    { view: boolean; create: boolean };
+  po:          { view: boolean; create: boolean; approve: boolean };
+  projects:    { view: boolean; manage: boolean };
+  mileage:     { view: boolean; create: boolean; approve: boolean };
+  vat:         { view: boolean; submit: boolean };
+  coa:         { view: boolean; manage: boolean };
+  audit:       { view: boolean };
+  entities:    { view: boolean; manage: boolean };
 }
 
 export interface JWTPayload {

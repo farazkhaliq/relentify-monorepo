@@ -1,0 +1,64 @@
+---
+title: Reports API
+description: Pull profit and loss, balance sheet, trial balance, and aged receivables data via the API.
+category: api
+order: 6
+appRoute: /dashboard/reports
+relatedArticles:
+  - getting-started
+---
+
+## What this does
+
+The Reports API gives you programmatic access to your key financial reports. You can pull profit and loss, balance sheet, trial balance, and aged receivables data in JSON format for use in dashboards, spreadsheets, or external reporting tools.
+
+## When to use it
+
+Use this endpoint to build custom dashboards, feed data into business intelligence tools, or generate automated management reports.
+
+## Endpoints
+
+### Profit and Loss
+
+`GET /api/v1/reports/profit-and-loss?from=2026-01-01&to=2026-03-31`
+
+Returns income, cost of sales, expenses, and net profit for the period.
+
+```json
+{
+  "income": 45000.00,
+  "costOfSales": 12000.00,
+  "grossProfit": 33000.00,
+  "expenses": 18000.00,
+  "netProfit": 15000.00
+}
+```
+
+### Balance Sheet
+
+`GET /api/v1/reports/balance-sheet?date=2026-03-31`
+
+Returns assets, liabilities, and equity as at the specified date.
+
+### Trial Balance
+
+`GET /api/v1/reports/trial-balance?date=2026-03-31`
+
+Returns all accounts with their debit and credit balances. Total debits will equal total credits.
+
+### Aged Receivables
+
+`GET /api/v1/reports/aged-receivables`
+
+Returns outstanding customer invoices grouped into ageing buckets: current, 1-30 days, 31-60 days, 61-90 days, and 90+ days overdue.
+
+```json
+{
+  "current": 5000.00,
+  "days1to30": 3200.00,
+  "days31to60": 1500.00,
+  "days61to90": 800.00,
+  "days90plus": 200.00,
+  "total": 10700.00
+}
+```

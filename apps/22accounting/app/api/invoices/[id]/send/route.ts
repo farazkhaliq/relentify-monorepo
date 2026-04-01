@@ -7,6 +7,7 @@ import { getActiveEntity } from '@/src/lib/entity.service';
 import { createConnectCheckout } from '@/src/lib/stripe';
 import { sendInvoiceEmail } from '@/src/lib/email';
 import { logAudit } from '@/src/lib/audit.service';
+import { dispatchWebhookEvent } from '@/src/lib/webhook.service';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -78,6 +79,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     await logAudit(auth.userId, 'invoice.sent', 'invoice', invoice.id, { invoice_number: invoice.invoice_number, client: invoice.client_name, total: invoice.total });
+
+    dispatchWebhookEvent(entity?.id ?? invoice.entity_id, 'invoice.sent', { invoice: { id: invoice.id, invoice_number: invoice.invoice_number, client_name: invoice.client_name, total: invoice.total } }).catch(() => {});
+
     return NextResponse.json({
       paymentLink,
       emailSent: emailResult.success

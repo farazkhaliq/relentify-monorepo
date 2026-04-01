@@ -8,6 +8,7 @@ import { isDateLocked } from '@/src/lib/period_lock.service';
 import { getExpenseApprovalSettings } from '@/src/lib/expense_approval.service';
 import { sendExpenseApprovalRequestEmail } from '@/src/lib/email';
 import { query } from '@/src/lib/db';
+import { checkPermission } from '@/src/lib/workspace-auth';
 
 export async function GET() {
   try {
@@ -25,6 +26,8 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const denied = checkPermission(auth, 'expenses', 'create');
+    if (denied) return denied;
 
     const user = await getUserById(auth.userId);
     if (!canAccess(user?.tier, 'expenses_mileage')) {

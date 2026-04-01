@@ -1,0 +1,58 @@
+---
+title: Bills API
+description: Create and list bills from suppliers via the API.
+category: api
+order: 5
+appRoute: /dashboard/bills
+relatedArticles:
+  - getting-started
+  - suppliers-api
+---
+
+## What this does
+
+The Bills API lets you create and retrieve bills (purchase invoices) from your suppliers. Use it to automate accounts payable by pushing bills into Relentify from external systems.
+
+## When to use it
+
+Use this endpoint to record supplier invoices automatically, for example when your email inbox or procurement tool receives a new bill.
+
+## Endpoints
+
+### List bills
+
+`GET /api/v1/bills`
+
+Returns a paginated list of bills. Supports `?status=draft|approved|paid` and `?page=1&limit=50` query parameters.
+
+### Create a bill
+
+`POST /api/v1/bills`
+
+```json
+{
+  "supplierId": "sup_def456",
+  "invoiceDate": "2026-03-25",
+  "dueDate": "2026-04-25",
+  "lineItems": [
+    {
+      "description": "Printer paper (5 boxes)",
+      "quantity": 5,
+      "unitPrice": 12.00,
+      "taxRate": 20
+    }
+  ]
+}
+```
+
+**Response** (201 Created):
+
+```json
+{
+  "id": "bill_ghi789",
+  "supplierName": "Office Supplies Co",
+  "status": "draft",
+  "total": 72.00,
+  "createdAt": "2026-03-31T10:00:00Z"
+}
+```

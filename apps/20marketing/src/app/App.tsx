@@ -21,6 +21,8 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ThemeSwitcher from './components/ThemeSwitcher';
 import CookieBanner from './components/CookieBanner';
+import GoogleAnalytics from './components/GoogleAnalytics';
+import PostHogAnalytics from './components/PostHogAnalytics';
 
 export type Region = 'UK' | 'USA' | 'Canada' | 'Australia' | 'New Zealand' | 'EU';
 
@@ -168,6 +170,8 @@ export default function App() {
       <RegionContext.Provider value={{ region, setRegion }}>
         <Router>
           <ScrollToTop />
+          <GoogleAnalytics />
+          <PostHogAnalytics />
           <div
             className={`min-h-screen transition-colors duration-700 ${isDarkMode ? 'dark' : ''}`}
             style={{

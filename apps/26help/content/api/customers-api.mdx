@@ -1,0 +1,72 @@
+---
+title: Customers API
+description: Create, list, update, and delete customers via the API.
+category: api
+order: 3
+appRoute: /dashboard/customers
+relatedArticles:
+  - getting-started
+  - invoices-api
+---
+
+## What this does
+
+The Customers API lets you manage your customer records programmatically. You can create new customers, retrieve the full list, update details, and delete customers you no longer need.
+
+## When to use it
+
+Use this endpoint to sync customer data from your CRM, e-commerce platform, or any external system into Relentify.
+
+## Endpoints
+
+### List customers
+
+`GET /api/v1/customers`
+
+Returns a paginated list of customers. Supports `?page=1&limit=50` and `?search=name` query parameters.
+
+### Create a customer
+
+`POST /api/v1/customers`
+
+```json
+{
+  "name": "Acme Ltd",
+  "email": "accounts@acme.co.uk",
+  "phone": "020 7946 0958",
+  "address": {
+    "line1": "10 Downing Street",
+    "city": "London",
+    "postcode": "SW1A 2AA",
+    "country": "GB"
+  },
+  "vatNumber": "GB123456789"
+}
+```
+
+**Response** (201 Created):
+
+```json
+{
+  "id": "cust_abc123",
+  "name": "Acme Ltd",
+  "email": "accounts@acme.co.uk",
+  "createdAt": "2026-03-31T10:00:00Z"
+}
+```
+
+### Get a single customer
+
+`GET /api/v1/customers/:id`
+
+### Update a customer
+
+`PUT /api/v1/customers/:id`
+
+Pass the full customer object with updated fields.
+
+### Delete a customer
+
+`DELETE /api/v1/customers/:id`
+
+Deletes the customer record. This will fail if the customer has any associated invoices or credit notes. Void or delete those first.

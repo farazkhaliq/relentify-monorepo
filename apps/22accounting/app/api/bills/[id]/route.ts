@@ -4,6 +4,7 @@ import { getBillById, updateBill, deleteBill } from '@/src/lib/bill.service';
 import { logAudit } from '@/src/lib/audit.service';
 import { getActiveEntity } from '@/src/lib/entity.service';
 import { isDateLocked } from '@/src/lib/period_lock.service';
+import { checkPermission } from '@/src/lib/workspace-auth';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -24,6 +25,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const denied = checkPermission(auth, 'bills', 'create');
+    if (denied) return denied;
     const entity = await getActiveEntity(auth.userId);
     const { id } = await params;
     const existingBill = await getBillById(auth.userId, id, entity?.id);
@@ -63,6 +66,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const denied = checkPermission(auth, 'bills', 'delete');
+    if (denied) return denied;
     const entity = await getActiveEntity(auth.userId);
     const { id } = await params;
     const existingBill = await getBillById(auth.userId, id, entity?.id);

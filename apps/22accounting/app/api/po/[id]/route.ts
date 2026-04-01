@@ -5,6 +5,7 @@ import { getUserById } from '@/src/lib/user.service';
 import { canAccess } from '@/src/lib/tiers';
 import { getPOById, cancelPO } from '@/src/lib/po.service';
 import { logAudit } from '@/src/lib/audit.service';
+import { checkPermission } from '@/src/lib/workspace-auth';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -29,6 +30,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+    const denied = checkPermission(auth, 'po', 'create');
+    if (denied) return denied;
     const entity = await getActiveEntity(auth.userId);
     if (!entity) return NextResponse.json({ error: 'No active entity' }, { status: 400 });
     const user = await getUserById(auth.userId);

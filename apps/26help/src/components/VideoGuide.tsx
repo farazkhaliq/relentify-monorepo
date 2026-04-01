@@ -28,7 +28,7 @@ export function VideoGuide({ src, title }: VideoGuideProps) {
   return (
     <div
       ref={containerRef}
-      className="my-6 rounded-xl overflow-hidden border border-[var(--help-border)] bg-[var(--help-card)]"
+      className="my-6 rounded-xl overflow-hidden border border-[var(--theme-border)] bg-[var(--theme-card)]"
       style={{ minHeight: isVisible ? undefined : 200 }}
     >
       {isVisible ? (
@@ -40,16 +40,16 @@ export function VideoGuide({ src, title }: VideoGuideProps) {
           className="w-full"
         >
           <source src={`/videos/${src}`} type="video/webm" />
-          <p className="p-4 text-sm text-[var(--help-muted)]">
+          <p className="p-4 text-sm text-[var(--theme-text-muted)]">
             Your browser doesn&apos;t support video playback.{' '}
-            <a href={`/videos/${src}`} download className="text-[var(--help-accent)]">
+            <a href={`/videos/${src}`} download className="text-[var(--theme-accent)]">
               Download the video
             </a>
             .
           </p>
         </video>
       ) : (
-        <div className="flex items-center justify-center h-48 text-[var(--help-muted)] text-sm">
+        <div className="flex items-center justify-center h-48 text-[var(--theme-text-muted)] text-sm">
           Loading video…
         </div>
       )}

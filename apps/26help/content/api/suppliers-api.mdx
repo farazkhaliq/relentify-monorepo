@@ -1,0 +1,56 @@
+---
+title: Suppliers API
+description: Create and list suppliers via the API.
+category: api
+order: 4
+appRoute: /dashboard/suppliers
+relatedArticles:
+  - getting-started
+  - bills-api
+---
+
+## What this does
+
+The Suppliers API lets you manage your supplier records programmatically. You can create new suppliers and retrieve the full list to keep your purchase ledger in sync with external systems.
+
+## When to use it
+
+Use this endpoint to import supplier data from a procurement system or to create supplier records automatically when you receive a new bill.
+
+## Endpoints
+
+### List suppliers
+
+`GET /api/v1/suppliers`
+
+Returns a paginated list of suppliers. Supports `?page=1&limit=50` and `?search=name` query parameters.
+
+### Create a supplier
+
+`POST /api/v1/suppliers`
+
+```json
+{
+  "name": "Office Supplies Co",
+  "email": "billing@officesupplies.co.uk",
+  "phone": "0121 496 0123",
+  "address": {
+    "line1": "Unit 4, Industrial Estate",
+    "city": "Birmingham",
+    "postcode": "B1 1AA",
+    "country": "GB"
+  },
+  "vatNumber": "GB987654321"
+}
+```
+
+**Response** (201 Created):
+
+```json
+{
+  "id": "sup_def456",
+  "name": "Office Supplies Co",
+  "email": "billing@officesupplies.co.uk",
+  "createdAt": "2026-03-31T10:00:00Z"
+}
+```

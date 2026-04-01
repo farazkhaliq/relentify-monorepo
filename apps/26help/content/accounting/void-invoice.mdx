@@ -1,0 +1,28 @@
+---
+title: How to Void an Invoice
+description: Cancel an invoice that was sent in error and automatically reverse the accounting entries.
+category: accounting
+order: 23
+appRoute: /dashboard/invoices
+relatedArticles:
+  - create-invoice
+  - create-credit-note
+---
+
+## What this does
+
+Voids an invoice so it is marked as cancelled and no longer counts as outstanding. The system automatically creates a general ledger reversal to undo the original accounting entries, keeping your books accurate without any manual journal work.
+
+## When to use it
+
+Use this when an invoice was created or sent in error and should never have existed. If the invoice was correct but the customer deserves a partial or full refund, create a credit note instead.
+
+## Step by step
+
+1. Go to **Invoices** in the Sales menu
+2. Find the invoice you want to void and click it to open the detail page
+3. Click **Void Invoice**
+4. You will be asked to confirm — review the invoice number and amount
+5. Click **Confirm**
+6. The invoice status changes to **Voided** and a GL reversal is posted automatically
+7. The invoice remains visible in your records for audit purposes but no longer affects your accounts receivable or reports

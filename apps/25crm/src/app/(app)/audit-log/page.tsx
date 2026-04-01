@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
-import { collection, query, orderBy, Timestamp } from 'firebase/firestore';
+import React, { useMemo, useState, useEffect } from 'react';
 import { format } from 'date-fns';
 
 import {
@@ -19,7 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from "@relentify/ui";
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { Skeleton } from '@relentify/ui';
 import { Avatar, AvatarFallback } from '@relentify/ui';
@@ -29,10 +27,19 @@ import { User, Edit3, ShieldAlert } from 'lucide-react';
 
 const ENTITY_TYPES = ['Contact', 'Property', 'Tenancy', 'MaintenanceRequest', 'Task', 'Communication', 'UserProfile', 'InventoryItem', 'Document', 'Transaction'];
 
+interface AuditLog {
+  id: string;
+  user_id: string | null;
+  action: string;
+  resource_type: string;
+  resource_id: string | null;
+  resource_name: string | null;
+  user_name: string | null;
+  created_at: string;
+}
+
 export default function AuditLogPage() {
-  const firestore = useFirestore();
   const { userProfile: currentUserProfile, isLoading: loadingCurrentUser } = useUserProfile();
-  const organizationId = currentUserProfile?.organizationId;
 
   // --- State for Filters ---
   const [userFilter, setUserFilter] = useState('all');
@@ -40,63 +47,59 @@ export default function AuditLogPage() {
   const [entityFilter, setEntityFilter] = useState('all');
 
   // --- Data Fetching ---
-  const auditLogsQuery = useMemoFirebase(() =>
-    (firestore && organizationId)
-      ? query(
-          collection(firestore, `organizations/${organizationId}/auditLogs`),
-          orderBy('timestamp', 'desc')
-        )
-      : null,
-    [firestore, organizationId]
-  );
-  const { data: auditLogs, isLoading: loadingLogs } = useCollection<any>(auditLogsQuery);
-  
-  const usersQuery = useMemoFirebase(() =>
-    (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/userProfiles`) : null,
-    [firestore, organizationId]
-  );
-  const { data: users, isLoading: loadingUsers } = useCollection<any>(usersQuery);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[] | null>(null);
+  const [loadingLogs, setLoadingLogs] = useState(true);
 
-  // --- Data Processing & Memos ---
-  const userMap = React.useMemo(() => {
-    if (!users) return new Map<string, { firstName: string, lastName: string }>();
-    return new Map(users.map(u => [u.id, { firstName: u.firstName, lastName: u.lastName }]));
-  }, [users]);
-  
-  const filteredLogs = React.useMemo(() => {
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const res = await fetch('/api/audit-logs');
+        if (res.ok) {
+          const data = await res.json();
+          setAuditLogs(data);
+        }
+      } catch (err) {
+        console.error('Error fetching audit logs:', err);
+      } finally {
+        setLoadingLogs(false);
+      }
+    };
+    fetchLogs();
+  }, []);
+
+  // Build unique user list from logs for the filter dropdown
+  const uniqueUsers = useMemo(() => {
+    if (!auditLogs) return [];
+    const map = new Map<string, string>();
+    auditLogs.forEach(log => {
+      if (log.user_id && log.user_name) {
+        map.set(log.user_id, log.user_name);
+      }
+    });
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [auditLogs]);
+
+  const filteredLogs = useMemo(() => {
     if (!auditLogs) return [];
     return auditLogs.filter(log => {
-      const userMatch = userFilter === 'all' || log.userId === userFilter;
+      const userMatch = userFilter === 'all' || log.user_id === userFilter;
       const actionMatch = actionFilter === 'all' || log.action === actionFilter;
-      const entityMatch = entityFilter === 'all' || log.entityType === entityFilter;
+      const entityMatch = entityFilter === 'all' || log.resource_type === entityFilter;
       return userMatch && actionMatch && entityMatch;
     });
   }, [auditLogs, userFilter, actionFilter, entityFilter]);
 
-  const getTimestampAsDate = (timestamp: any): Date => {
-    if (!timestamp) return new Date();
-    if (timestamp instanceof Timestamp) { return timestamp.toDate(); }
-    if (typeof timestamp === 'string') { return new Date(timestamp); }
-    return new Date();
-  };
-
-  const getAssigneeInitials = (userId: string) => {
-    const user = userMap.get(userId);
-    if (!user) return '??';
-    return `${user.firstName?.substring(0,1) || ''}${user.lastName?.substring(0,1) || ''}`
+  const getAssigneeInitials = (userName: string | null) => {
+    if (!userName) return '??';
+    const parts = userName.trim().split(/\s+/);
+    return `${parts[0]?.substring(0,1) || ''}${parts[1]?.substring(0,1) || ''}`;
   }
 
-  const getAssigneeName = (userId: string) => {
-    const user = userMap.get(userId);
-    if (!user) return 'Unknown User';
-    return `${user.firstName} ${user.lastName}`;
-  }
-
-  const formatActionDetails = (log: any) => {
+  const formatActionDetails = (log: AuditLog) => {
     const action = log.action || 'performed an action';
-    const entityType = log.entityType || 'an entity';
-    const entityId = log.entityId;
-    const entityName = log.entityName;
+    const entityType = log.resource_type || 'an entity';
+    const entityId = log.resource_id;
+    const entityName = log.resource_name;
 
     let entityLink: React.ReactNode = null;
     if (entityId) {
@@ -129,7 +132,7 @@ export default function AuditLogPage() {
     );
   }
 
-  const isLoading = loadingLogs || loadingUsers || loadingCurrentUser;
+  const isLoading = loadingLogs || loadingCurrentUser;
 
   return (
     <div className="flex flex-col gap-6">
@@ -138,15 +141,15 @@ export default function AuditLogPage() {
         <div className="flex items-center gap-2">
             <Select value={userFilter} onValueChange={setUserFilter} disabled={isLoading}>
                 <SelectTrigger className="w-[180px] h-8 text-sm"><User className="h-4 w-4 mr-2" /><SelectValue placeholder="Filter by user..." /></SelectTrigger>
-                <SelectContent><SelectItem value="all">All Users</SelectItem>{users?.map(u => <SelectItem key={u.id} value={u.id}>{u.firstName} {u.lastName}</SelectItem>)}</SelectContent>
+                <SelectContent><SelectItem value="all">All Users</SelectItem>{uniqueUsers.map(u => <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>)}</SelectContent>
             </Select>
             <Select value={actionFilter} onValueChange={setActionFilter} disabled={isLoading}>
                 <SelectTrigger className="w-[160px] h-8 text-sm"><Edit3 className="h-4 w-4 mr-2" /><SelectValue placeholder="Filter by action..." /></SelectTrigger>
                 <SelectContent>
                     <SelectItem value="all">All Actions</SelectItem>
-                    <SelectItem value="Created">Created</SelectItem>
-                    <SelectItem value="Updated">Updated</SelectItem>
-                    <SelectItem value="Deleted">Deleted</SelectItem>
+                    <SelectItem value="Create">Created</SelectItem>
+                    <SelectItem value="Update">Updated</SelectItem>
+                    <SelectItem value="Delete">Deleted</SelectItem>
                 </SelectContent>
             </Select>
             <Select value={entityFilter} onValueChange={setEntityFilter} disabled={isLoading}>
@@ -186,16 +189,16 @@ export default function AuditLogPage() {
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9">
-                          <AvatarFallback>{getAssigneeInitials(log.userId)}</AvatarFallback>
+                          <AvatarFallback>{getAssigneeInitials(log.user_name)}</AvatarFallback>
                         </Avatar>
-                        <span className="font-medium">{getAssigneeName(log.userId)}</span>
+                        <span className="font-medium">{log.user_name || 'Unknown User'}</span>
                       </div>
                     </TableCell>
                     <TableCell>
                       {formatActionDetails(log)}
                     </TableCell>
                     <TableCell className="text-right text-sm text-muted-foreground">
-                        {format(getTimestampAsDate(log.timestamp), 'PPpp')}
+                        {log.created_at ? format(new Date(log.created_at), 'PPpp') : ''}
                     </TableCell>
                   </TableRow>
                 ))

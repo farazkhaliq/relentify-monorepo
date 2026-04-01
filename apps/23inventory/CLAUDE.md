@@ -84,6 +84,21 @@ Property inventory management for landlords and letting agents. Create check-in 
 
 ---
 
+## UI Pages
+
+| Path | Auth | Purpose |
+|------|------|---------|
+| `/` | Yes | Dashboard — list all inventories with counts |
+| `/inventory/new` | Yes | Create new inventory form |
+| `/inventory/[id]` | Yes | Inventory detail + photos + confirmation link |
+| `/inventory/[id]/edit` | Yes | Edit inventory form |
+| `/report/[id]` | Yes | Print-ready PDF report with photos |
+| `/confirm/[token]` | No | Public tenant confirmation page |
+
+**Total**: 6 pages (4 authenticated + 1 report + 1 public)
+
+---
+
 ## Multi-tenancy
 - Every `Inventory` row has `userId` tied to the JWT `userId`
 - ALL queries include `where: { userId }` — never query without it

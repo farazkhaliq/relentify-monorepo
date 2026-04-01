@@ -20,11 +20,15 @@ export interface Contact {
   updated_at: Date
 }
 
-export async function getAllContacts(entityId: string): Promise<Contact[]> {
-  const { rows } = await pool.query(
-    'SELECT * FROM crm_contacts WHERE entity_id = $1 ORDER BY last_name ASC, first_name ASC',
-    [entityId]
-  )
+export async function getAllContacts(entityId: string, contactType?: string): Promise<Contact[]> {
+  let sql = 'SELECT * FROM crm_contacts WHERE entity_id = $1'
+  const params: any[] = [entityId]
+  if (contactType) {
+    params.push(contactType)
+    sql += ` AND contact_type = $${params.length}`
+  }
+  sql += ' ORDER BY last_name ASC, first_name ASC'
+  const { rows } = await pool.query(sql, params)
   return rows
 }
 

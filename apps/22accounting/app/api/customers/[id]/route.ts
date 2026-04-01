@@ -3,6 +3,7 @@ import { getAuthUser } from '@/src/lib/auth';
 import { updateCustomer, deleteCustomer, getCustomerById } from '@/src/lib/customer.service';
 import { getInvoicesByCustomer } from '@/src/lib/invoice.service';
 import { getActiveEntity } from '@/src/lib/entity.service';
+import { checkPermission } from '@/src/lib/workspace-auth';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -23,6 +24,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const denied = checkPermission(auth, 'customers', 'manage');
+    if (denied) return denied;
     const entity = await getActiveEntity(auth.userId);
     const { id } = await params;
     const body = await req.json();
@@ -52,6 +55,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const denied = checkPermission(auth, 'customers', 'manage');
+    if (denied) return denied;
     const entity = await getActiveEntity(auth.userId);
     const { id } = await params;
 

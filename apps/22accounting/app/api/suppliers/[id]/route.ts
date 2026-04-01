@@ -24,7 +24,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const denied = checkPermission(auth, 'bills', 'manage');
+    const denied = checkPermission(auth, 'suppliers', 'manage');
     if (denied) return denied;
     const entity = await getActiveEntity(auth.userId);
     const { id } = await params;
@@ -51,7 +51,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const denied = checkPermission(auth, 'bills', 'manage');
+    const denied = checkPermission(auth, 'suppliers', 'manage');
     if (denied) return denied;
     const entity = await getActiveEntity(auth.userId);
     const { id } = await params;

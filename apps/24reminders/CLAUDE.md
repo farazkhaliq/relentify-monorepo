@@ -70,6 +70,41 @@
 
 ---
 
+## API Routes
+
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET | `/api/health` | No | Health check |
+| GET/POST | `/api/tasks` | Yes | List tasks (by listId) / create task |
+| GET/PATCH/DELETE | `/api/tasks/[id]` | Yes | Get / update / delete task (added 2026-03-28) |
+| GET/POST | `/api/workspaces` | Yes | List / create workspace |
+| GET/POST | `/api/workspaces/[id]/lists` | Yes | List / create lists in workspace |
+
+**Total**: 5 route files, 10 HTTP methods
+
+### Missing API routes (service exists, no endpoint)
+| Missing route | Service function | Notes |
+|---------------|-----------------|-------|
+| `GET /api/gamification/leaderboard` | `getLeaderboard()` | DB-only |
+| `POST /api/audit/undo` | `undoLastAction()` | DB-only |
+| `POST /api/notifications` | `scheduleNotification()` | DB-only |
+
+---
+
+## UI Pages
+
+| Path | Auth | Purpose |
+|------|------|---------|
+| `/` | Yes | Home / redirect |
+| `/dashboard` | Yes | Main task dashboard |
+| `/dashboard/activity` | Yes | Activity log |
+| `/dashboard/momentum` | Yes | Momentum mode (focus timer) |
+| `/dashboard/settings` | Yes | User settings |
+
+**Total**: 5 pages
+
+---
+
 ## Feature Status (2026-03-25 assessment)
 
 ### ✅ Implemented and tested

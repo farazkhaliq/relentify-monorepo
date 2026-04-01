@@ -1,4 +1,5 @@
 import { query } from './db';
+import { dispatchWebhookEvent } from './webhook.service';
 
 export interface Supplier {
   id: string;
@@ -35,7 +36,11 @@ export async function createSupplier(data: {
      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
     [data.userId, data.entityId, data.name, data.email || null, data.phone || null, data.address || null, data.notes || null]
   );
-  return r.rows[0] as Supplier;
+  const supplier = r.rows[0] as Supplier;
+
+  dispatchWebhookEvent(data.entityId, 'supplier.created', { supplier }).catch(() => {});
+
+  return supplier;
 }
 
 export async function getSupplierById(supplierId: string, userId: string, entityId?: string): Promise<Supplier | null> {

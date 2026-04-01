@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/src/lib/auth';
 import { getActiveEntity } from '@/src/lib/entity.service';
 import { getExpenseApprovalSettings, upsertExpenseApprovalSettings } from '@/src/lib/expense_approval.service';
+import { checkPermission } from '@/src/lib/workspace-auth';
 
 export async function GET() {
   try {
@@ -21,6 +22,8 @@ export async function PATCH(req: NextRequest) {
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const denied = checkPermission(auth, 'expenses', 'approve');
+    if (denied) return denied;
     const entity = await getActiveEntity(auth.userId);
     if (!entity) return NextResponse.json({ error: 'No active entity' }, { status: 400 });
 

@@ -13,12 +13,24 @@ interface Member {
 }
 
 const MODULE_CONFIG: { module: keyof WorkspacePermissions; label: string; actions: { key: string; label: string }[] }[] = [
-  { module: 'invoices',  label: 'Invoices',  actions: [{ key: 'view', label: 'View' }, { key: 'create', label: 'Create' }, { key: 'delete', label: 'Delete' }] },
-  { module: 'bills',     label: 'Bills',     actions: [{ key: 'view', label: 'View' }, { key: 'create', label: 'Create' }, { key: 'delete', label: 'Delete' }] },
-  { module: 'banking',   label: 'Banking',   actions: [{ key: 'view', label: 'View' }, { key: 'reconcile', label: 'Reconcile' }] },
-  { module: 'reports',   label: 'Reports',   actions: [{ key: 'view', label: 'View' }] },
-  { module: 'settings',  label: 'Settings',  actions: [{ key: 'view', label: 'View' }] },
-  { module: 'customers', label: 'Customers', actions: [{ key: 'view', label: 'View' }, { key: 'manage', label: 'Manage' }] },
+  { module: 'invoices',    label: 'Invoices',       actions: [{ key: 'view', label: 'View' }, { key: 'create', label: 'Create' }, { key: 'delete', label: 'Delete' }] },
+  { module: 'bills',       label: 'Bills',          actions: [{ key: 'view', label: 'View' }, { key: 'create', label: 'Create' }, { key: 'delete', label: 'Delete' }] },
+  { module: 'quotes',      label: 'Quotes',         actions: [{ key: 'view', label: 'View' }, { key: 'create', label: 'Create' }] },
+  { module: 'creditNotes', label: 'Credit Notes',   actions: [{ key: 'view', label: 'View' }, { key: 'create', label: 'Create' }] },
+  { module: 'expenses',    label: 'Expenses',       actions: [{ key: 'view', label: 'View' }, { key: 'create', label: 'Create' }, { key: 'approve', label: 'Approve' }] },
+  { module: 'mileage',     label: 'Mileage',        actions: [{ key: 'view', label: 'View' }, { key: 'create', label: 'Create' }, { key: 'approve', label: 'Approve' }] },
+  { module: 'po',          label: 'Purchase Orders', actions: [{ key: 'view', label: 'View' }, { key: 'create', label: 'Create' }, { key: 'approve', label: 'Approve' }] },
+  { module: 'customers',   label: 'Customers',      actions: [{ key: 'view', label: 'View' }, { key: 'manage', label: 'Manage' }] },
+  { module: 'suppliers',   label: 'Suppliers',      actions: [{ key: 'view', label: 'View' }, { key: 'manage', label: 'Manage' }] },
+  { module: 'banking',     label: 'Banking',        actions: [{ key: 'view', label: 'View' }, { key: 'reconcile', label: 'Reconcile' }] },
+  { module: 'journals',    label: 'Journals',       actions: [{ key: 'view', label: 'View' }, { key: 'create', label: 'Create' }] },
+  { module: 'coa',         label: 'Chart of Accounts', actions: [{ key: 'view', label: 'View' }, { key: 'manage', label: 'Manage' }] },
+  { module: 'projects',    label: 'Projects',       actions: [{ key: 'view', label: 'View' }, { key: 'manage', label: 'Manage' }] },
+  { module: 'vat',         label: 'VAT',            actions: [{ key: 'view', label: 'View' }, { key: 'submit', label: 'Submit' }] },
+  { module: 'reports',     label: 'Reports',        actions: [{ key: 'view', label: 'View' }] },
+  { module: 'audit',       label: 'Audit Log',      actions: [{ key: 'view', label: 'View' }] },
+  { module: 'entities',    label: 'Organisations',  actions: [{ key: 'view', label: 'View' }, { key: 'manage', label: 'Manage' }] },
+  { module: 'settings',    label: 'Settings',       actions: [{ key: 'view', label: 'View' }] },
 ];
 
 function PermissionMatrix({

@@ -6,6 +6,7 @@ import { logAudit } from '@/src/lib/audit.service';
 import { isDateLocked } from '@/src/lib/period_lock.service';
 import { requireGLRole } from '@/src/lib/team.service';
 import { query } from '@/src/lib/db';
+import { checkPermission } from '@/src/lib/workspace-auth';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -44,6 +45,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const denied = checkPermission(auth, 'journals', 'create');
+    if (denied) return denied;
     const entity = await getActiveEntity(auth.userId);
     if (!entity) return NextResponse.json({ error: 'No active entity' }, { status: 400 });
 
@@ -97,6 +100,8 @@ export async function PATCH(_req: NextRequest, { params }: { params: Promise<{ i
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const denied2 = checkPermission(auth, 'journals', 'create');
+    if (denied2) return denied2;
     const entity = await getActiveEntity(auth.userId);
     if (!entity) return NextResponse.json({ error: 'No active entity' }, { status: 400 });
 

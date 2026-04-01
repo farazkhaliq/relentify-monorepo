@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/src/lib/auth';
 import { getEntityById, updateEntity, deleteEntity } from '@/src/lib/entity.service';
+import { checkPermission } from '@/src/lib/workspace-auth';
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -20,6 +21,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+    const denied = checkPermission(auth, 'entities', 'manage');
+    if (denied) return denied;
     const { id } = await params;
     const body = await req.json();
     const entity = await updateEntity(id, auth.userId, body);
@@ -35,6 +38,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+    const denied2 = checkPermission(auth, 'entities', 'manage');
+    if (denied2) return denied2;
     const { id } = await params;
     const result = await deleteEntity(id, auth.userId);
     if (!result.success) return NextResponse.json({ error: result.error }, { status: 400 });

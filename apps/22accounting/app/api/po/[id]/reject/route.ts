@@ -6,11 +6,14 @@ import { canAccess } from '@/src/lib/tiers';
 import { rejectPO, getPOById } from '@/src/lib/po.service';
 import { logAudit } from '@/src/lib/audit.service';
 import { sendPODecisionEmail } from '@/src/lib/email';
+import { checkPermission } from '@/src/lib/workspace-auth';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+    const denied = checkPermission(auth, 'po', 'approve');
+    if (denied) return denied;
     const entity = await getActiveEntity(auth.userId);
     if (!entity) return NextResponse.json({ error: 'No active entity' }, { status: 400 });
     const user = await getUserById(auth.userId);

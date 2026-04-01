@@ -4,10 +4,13 @@ import { getUserById } from '@/src/lib/user.service';
 import { getActiveEntity } from '@/src/lib/entity.service';
 import { getValidHmrcToken, calculateVatReturn, submitVatReturn } from '@/src/lib/hmrc.service';
 import { lockPeriod } from '@/src/lib/period_lock.service';
+import { checkPermission } from '@/src/lib/workspace-auth';
 
 export async function POST(req: NextRequest) {
   const auth = await getAuthUser();
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const denied = checkPermission(auth, 'vat', 'submit');
+  if (denied) return denied;
 
   const user = await getUserById(auth.userId);
   if (!user?.vat_number) return NextResponse.json({ error: 'VAT number not set' }, { status: 400 });

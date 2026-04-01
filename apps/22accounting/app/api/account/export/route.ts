@@ -19,14 +19,14 @@ export async function GET() {
     customersResult,
     suppliersResult,
   ] = await Promise.all([
-    query(`SELECT id, email, full_name, company_name, vat_number, created_at FROM users WHERE id = $1`, [userId]),
-    query(`SELECT id, name, type, vat_registered, vat_number, created_at FROM entities WHERE user_id = $1`, [userId]),
+    query(`SELECT id, email, full_name, company_number, vat_number, created_at FROM users WHERE id = $1`, [userId]),
+    query(`SELECT id, name, business_structure, vat_registered, vat_number, created_at FROM entities WHERE user_id = $1`, [userId]),
     query(`SELECT i.invoice_number, i.status, i.subtotal, i.tax_amount, i.total, i.issue_date, i.due_date, c.name as customer_name FROM invoices i LEFT JOIN customers c ON i.customer_id = c.id WHERE i.user_id = $1 ORDER BY i.issue_date DESC`, [userId]),
-    query(`SELECT b.bill_number, b.status, b.subtotal, b.tax_amount, b.total, b.invoice_date, b.due_date, s.name as supplier_name FROM bills b LEFT JOIN suppliers s ON b.supplier_id = s.id WHERE b.user_id = $1 ORDER BY b.invoice_date DESC`, [userId]),
-    query(`SELECT description, amount, category, status, date FROM expenses WHERE user_id = $1 ORDER BY date DESC`, [userId]),
-    query(`SELECT description, miles, rate_per_mile, total_amount, travel_date, status FROM mileage_claims WHERE user_id = $1 ORDER BY travel_date DESC`, [userId]),
-    query(`SELECT name, email, phone, address_line1, address_line2, city, postcode, country FROM customers WHERE user_id = $1 ORDER BY name`, [userId]),
-    query(`SELECT name, email, phone, address_line1, city, postcode, country FROM suppliers WHERE user_id = $1 ORDER BY name`, [userId]),
+    query(`SELECT b.reference, b.status, b.amount, b.vat_amount, b.invoice_date, b.due_date, b.supplier_name FROM bills b WHERE b.user_id = $1 ORDER BY b.invoice_date DESC`, [userId]),
+    query(`SELECT description, gross_amount, category, status, date FROM expenses WHERE user_id = $1 ORDER BY date DESC`, [userId]),
+    query(`SELECT description, miles, rate, amount, date, status FROM mileage_claims WHERE user_id = $1 ORDER BY date DESC`, [userId]),
+    query(`SELECT name, email, phone, address FROM customers WHERE user_id = $1 ORDER BY name`, [userId]),
+    query(`SELECT name, email, phone, address FROM suppliers WHERE user_id = $1 ORDER BY name`, [userId]),
   ]);
 
   function toCsv(rows: Record<string, unknown>[]): string {

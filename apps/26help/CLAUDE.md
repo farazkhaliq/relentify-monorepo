@@ -77,7 +77,7 @@ Every feature tested by the 22accounting MCP suite (48 tools, 28 UI pages) must 
 an article AND a video. The MCP test suite at `/opt/infra/mcp/22accounting-mcp/` is the
 authoritative list of what the app can do.
 
-### Written ✅ (20 articles)
+### Written ✅ (51 accounting + 7 API articles, all complete as of 2026-03-31)
 
 | Slug | Feature |
 |------|---------|
@@ -101,79 +101,41 @@ authoritative list of what the app can do.
 | `vat-return` | Calculate and review VAT (9-box) |
 | `import-opening-balances` | Import opening balances |
 | `invite-team-member` | Invite a team member |
-
-### Still needed ❌ (priority order for launch)
-
-**Customers & Suppliers**
-| Slug | Feature |
-|------|---------|
 | `update-customer` | Edit or deactivate a customer |
 | `update-supplier` | Edit or deactivate a supplier |
-
-**Invoicing & Quotes**
-| Slug | Feature |
-|------|---------|
 | `void-invoice` | Void an invoice |
-| `void-credit-note` | Void a credit note |
-| `attachments` | Attach receipts/files to invoices, bills, expenses |
-| `comments` | Add comments and view activity on transactions |
-
-**Expenses & Mileage**
-| Slug | Feature |
-|------|---------|
-| `mileage-expense` | Log a mileage claim |
 | `expense-approval-settings` | Enable/disable expense approval workflow |
-
-**Purchase Orders**
-| Slug | Feature |
-|------|---------|
 | `create-purchase-order` | Create a purchase order |
 | `submit-purchase-order` | Submit a PO for approval |
 | `approve-purchase-order` | Approve or reject a PO |
 | `purchase-order-settings` | Enable PO approval workflow |
-
-**Projects**
-| Slug | Feature |
-|------|---------|
-| `create-project` | Create a project |
-| `assign-costs-to-project` | Link bills and expenses to a project |
-
-**Chart of Accounts**
-| Slug | Feature |
-|------|---------|
 | `chart-of-accounts` | View and understand your chart of accounts |
-| `create-account` | Create a custom account |
-| `deactivate-account` | Deactivate an account |
-
-**Banking**
-| Slug | Feature |
-|------|---------|
-| `connect-bank` | Connect a bank account |
-| `sync-transactions` | Sync and categorise bank transactions |
-
-**Reports**
-| Slug | Feature |
-|------|---------|
-| `aged-receivables` | Aged receivables — chase outstanding invoices |
-| `aged-payables` | Aged payables — monitor what you owe |
 | `general-ledger` | General ledger — full transaction history |
 | `cash-flow` | Cash flow statement |
 | `kpi-dashboard` | KPI dashboard — key business metrics |
 | `health-score` | Financial health score — what it means |
 | `custom-report` | Build a custom report |
-
-**Multi-Entity & Access Control**
-| Slug | Feature |
-|------|---------|
 | `multi-entity` | Create and switch between organisations |
 | `accountant-access` | Invite your accountant, manage permissions |
 | `period-lock` | Lock a period to prevent back-dating |
-
-**Settings & Compliance**
-| Slug | Feature |
-|------|---------|
 | `company-settings` | Update company name, address, VAT number, financial year |
 | `audit-log` | View the audit log |
+
+### API Articles ✅ (7 articles in `content/api/`)
+
+| Slug | Feature |
+|------|---------|
+| `getting-started` | API introduction, auth, rate limits, error format |
+| `invoices-api` | Invoices API endpoints |
+| `customers-api` | Customers API endpoints |
+| `suppliers-api` | Suppliers API endpoints |
+| `bills-api` | Bills API endpoints |
+| `reports-api` | Reports API endpoints |
+| `webhooks-api` | Webhooks setup, events, HMAC verification, retries |
+
+### Still needed
+
+All articles are written. No gaps remaining.
 
 ---
 
@@ -203,31 +165,30 @@ supply the URL.
 
 ---
 
-## Article Automation (not yet built)
+## Article Automation ✅ (built 2026-03-31)
 
 **Goal**: Keep articles accurate as 22accounting evolves — automatically detect
 when app behaviour changes and update the relevant MDX.
 
-**Planned implementation**: `scripts/update-help-articles.ts` at monorepo root
+**Script**: `scripts/update-help-articles.sh` at monorepo root
 
 ```
-1. Read all MDX files in apps/26help/content/
-2. Run MCP test suite: cd /opt/infra/mcp/22accounting-mcp && python3 run_tests.py
-3. Call Claude API (claude-sonnet-4-6) with:
-     - existing article content
+1. Run MCP test suite (22accounting-mcp, 48 tests) — captures current app behaviour
+2. Gather git log + diff of recent 22accounting changes (last 7 days)
+3. Invoke Claude Code CLI (claude -p, Sonnet model) non-interactively with:
      - MCP test output (proves current behaviour)
-     - git diff of recent app changes (context for what changed)
-4. Write updated MDX back to disk (preserve frontmatter, update body only)
-5. Rebuild and redeploy 26help
+     - recent git changes (context for what changed)
+     - instruction to read all MDX articles and update any that are stale
+4. If articles were edited: rebuild + redeploy 26help container, commit changes
 ```
 
-**Trigger options** (implement both):
-- Weekly cron: `0 9 * * 1` — catches drift even without a deploy
-- Post-deploy hook: run after every successful 22accounting rebuild
-
+**Trigger**: Weekly cron — `0 9 * * 1` (every Monday 09:00 UK)
 **Log**: `/var/log/help-articles.log`
+**Dry run**: `./scripts/update-help-articles.sh --dry-run` (review only, no edits)
 
-This is a separate task — implement after videos are done and all articles exist.
+**How it works**: Uses the `claude` CLI from the Max subscription (no API key needed).
+Claude reads all MDX files via its file tools, compares against MCP test output and
+recent code changes, then edits any articles that are inaccurate or incomplete.
 
 ---
 
@@ -237,8 +198,56 @@ The same article + video requirement applies to each product when launched:
 
 | Category | Status |
 |----------|--------|
-| `accounting` | 20/~35 articles written — see above |
-| `crm` | Placeholder articles exist — need full coverage when 25crm launches |
-| `reminders` | Placeholder articles exist — need full coverage when 24reminders launches |
+| `accounting` | ✅ 51 articles written (2026-03-31) |
+| `crm` | Placeholder articles exist — see CRM article plan below |
+| `reminders` | Placeholder articles exist — see Reminders article plan below |
 | `api` | Placeholder articles exist — needs developer-focused coverage |
 | `migration` | Placeholder articles exist — needs coverage for CSV import, data migration flows |
+
+### CRM Articles Needed (when 25crm launches)
+
+| Slug | Feature |
+|------|---------|
+| `add-contact` | Add a contact (Lead/Tenant/Landlord/Contractor) |
+| `manage-properties` | Add and manage properties |
+| `create-tenancy` | Create a tenancy agreement |
+| `tenancy-pipeline` | Use the tenancy pipeline (Kanban) |
+| `maintenance-requests` | Submit and manage maintenance requests |
+| `crm-tasks` | Create and manage tasks |
+| `communications` | Email, calls, and WhatsApp logging |
+| `documents` | Upload and manage documents |
+| `crm-reports` | View reports (P&L, landlord, vacancy, arrears, maintenance) |
+| `tenant-portal` | Tenant portal — login, maintenance, documents |
+| `landlord-portal` | Landlord portal — financials, properties |
+| `crm-settings` | Organisation settings and user management |
+| `audit-log-crm` | View the CRM audit log |
+
+### Reminders Articles Needed (when 24reminders launches)
+
+| Slug | Feature |
+|------|---------|
+| `create-task-reminders` | Create a task with priority and due date |
+| `workspaces` | Create and manage workspaces |
+| `lists` | Organise tasks into lists |
+| `subtasks` | Break tasks into subtasks |
+| `momentum-mode` | Use momentum mode for focused work |
+| `activity-log` | View your activity history |
+| `gamification` | Points, streaks, and the leaderboard |
+
+---
+
+## UI Pages
+
+| Path | Purpose |
+|------|---------|
+| `/` | Help centre home — search + category cards |
+| `/[category]` | Category page — list articles in category |
+| `/[category]/[article]` | Article detail — MDX content + video |
+
+**Total**: 3 page templates (dynamic routes)
+
+---
+
+## API Routes
+
+None — this is a fully static export (`output: 'export'`). No server-side endpoints.

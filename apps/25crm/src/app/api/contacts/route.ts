@@ -4,12 +4,13 @@ import { getAllContacts, createContact } from '@/lib/services/contacts.service'
 import { createTask } from '@/lib/services/tasks.service'
 import { logAuditEvent } from '@/lib/audit'
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const auth = await getAuthUser()
   if (!auth?.activeEntityId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   try {
-    const contacts = await getAllContacts(auth.activeEntityId)
+    const contactType = req.nextUrl.searchParams.get('type') || undefined
+    const contacts = await getAllContacts(auth.activeEntityId, contactType)
     return NextResponse.json(contacts)
   } catch (error) {
     console.error('GET /api/contacts error:', error)

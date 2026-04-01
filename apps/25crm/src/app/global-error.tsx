@@ -1,5 +1,6 @@
 'use client'
- 
+
+import * as Sentry from '@sentry/nextjs'
 import { Button } from '@relentify/ui'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@relentify/ui'
 import { useEffect } from 'react'
@@ -12,6 +13,7 @@ export default function GlobalError({
   reset: () => void
 }) {
   useEffect(() => {
+    Sentry.captureException(error)
     console.error(error)
   }, [error])
 

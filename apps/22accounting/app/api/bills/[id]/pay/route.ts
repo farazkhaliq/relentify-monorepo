@@ -4,12 +4,15 @@ import { markBillPaid } from '@/src/lib/bill.service';
 import { getActiveEntity } from '@/src/lib/entity.service';
 import { logAudit } from '@/src/lib/audit.service';
 import { isDateLocked } from '@/src/lib/period_lock.service';
+import { checkPermission } from '@/src/lib/workspace-auth';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const denied = checkPermission(auth, 'bills', 'create');
+    if (denied) return denied;
     const entity = await getActiveEntity(auth.userId);
     if (!entity) return NextResponse.json({ error: 'No active entity' }, { status: 400 });
 

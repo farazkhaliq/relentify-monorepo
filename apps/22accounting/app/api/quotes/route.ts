@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/src/lib/auth';
 import { getQuotesByUser, createQuote } from '@/src/lib/quote.service';
+import { checkPermission } from '@/src/lib/workspace-auth';
 
 export async function GET() {
   try {
@@ -18,6 +19,8 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const denied = checkPermission(auth, 'quotes', 'create');
+    if (denied) return denied;
 
     const body = await req.json();
     const { customerId, clientName, clientEmail, clientAddress, issueDate, validUntil, taxRate, currency, notes, items } = body;

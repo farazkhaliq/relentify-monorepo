@@ -509,6 +509,29 @@ Use this when the vulnerable package is deep in a dep chain you don't control (e
 
 ---
 
+## Database Schema
+
+**Live schema explorer**: https://db.relentify.com/schema (basic auth, same as n8n)
+
+### Key concepts
+- **`users`** — every person with an account. Has `subscription_plan` (updated by Stripe webhooks).
+- **`entities`** — a business/organisation. One user can own multiple entities (multi-tenancy). `users.active_entity_id` points to the currently selected entity.
+- Most tables have `user_id` + `entity_id` columns to scope data per-user per-entity.
+
+### Which app owns which tables
+| App | Tables (prefix/pattern) |
+|-----|------------------------|
+| 22accounting | invoices, bills, customers, suppliers, quotes, credit_notes, expenses, purchase_orders, journal_entries, journal_lines, chart_of_accounts, bank_*, projects, attachments, period_locks |
+| 25crm | crm_* (contacts, properties, tenancies, transactions, communications, maintenance_requests) |
+| 24reminders | reminders_* (tasks, lists, workspaces, notifications, task_dependencies) |
+| 21auth | users, entities, app_access |
+| Standalone | tweet_drafts, contact_submissions, waitlist_signups, snoozed_emails, voice_assistant_state |
+
+### Cross-app relationships
+The three main app groups (Accounting, CRM, Reminders) are **self-contained** — no foreign keys cross between them. They only share `users` and `entities`.
+
+---
+
 ## Development
 
 ```bash

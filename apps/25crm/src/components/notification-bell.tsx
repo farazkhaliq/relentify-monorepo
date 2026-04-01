@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { collection, query, where, orderBy, limit, doc } from 'firebase/firestore';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Bell } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
@@ -12,8 +11,6 @@ import {
   PopoverTrigger,
 } from '@relentify/ui';
 import { Button } from '@relentify/ui';
-import { useCollection, useFirestore, useMemoFirebase, useAuth, updateDocumentNonBlocking } from '@/firebase';
-import { useUserProfile } from '@/hooks/use-user-profile';
 import { Skeleton } from '@relentify/ui';
 import { Separator } from '@relentify/ui';
 
@@ -22,8 +19,8 @@ interface Notification {
     title: string;
     message: string;
     link?: string;
-    isRead: boolean;
-    createdAt: any;
+    is_read: boolean;
+    created_at: string;
 }
 
 export function NotificationBell() {
@@ -31,36 +28,47 @@ export function NotificationBell() {
     const [isLoading, setIsLoading] = useState(true);
     const [isOpen, setIsOpen] = useState(false);
 
-    useEffect(() => {
-        const fetchNotifications = async () => {
-            try {
-                const res = await fetch('/api/notifications');
-                if (res.ok) {
-                    const data = await res.json();
-                    setNotifications(data);
-                }
-            } catch (error) {
-                console.error('Error fetching notifications:', error);
-            } finally {
-                setIsLoading(false);
+    const fetchNotifications = useCallback(async () => {
+        try {
+            const res = await fetch('/api/notifications');
+            if (res.ok) {
+                const data = await res.json();
+                setNotifications(data);
             }
-        };
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
 
+    useEffect(() => {
         fetchNotifications();
-        // Refresh every minute
         const interval = setInterval(fetchNotifications, 60000);
         return () => clearInterval(interval);
-    }, []);
-    
+    }, [fetchNotifications]);
+
     const unreadCount = notifications?.filter(n => !n.is_read).length || 0;
-    
+
     useEffect(() => {
         if (isOpen && unreadCount > 0) {
-            // Mark all as read logic - will implement API for this if needed
-            // For now, just a client-side update
-            setNotifications(notifications.map(n => ({ ...n, is_read: true })));
+            // Mark all unread as read via API
+            const unread = notifications.filter(n => !n.is_read);
+            Promise.all(
+                unread.map(n =>
+                    fetch(`/api/notifications/${n.id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ is_read: true }),
+                    }).catch(() => {})
+                )
+            ).then(() => {
+                setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+            });
         }
-    }, [isOpen, unreadCount, notifications]);
+    // Only trigger when popover opens with unread items
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen]);
 
     return (
         <Popover open={isOpen} onOpenChange={setIsOpen}>

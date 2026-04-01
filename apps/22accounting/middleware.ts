@@ -8,6 +8,7 @@ const PUBLIC_PATHS = [
   '/api/cron',
   '/api/stripe/callback',
   '/api/hmrc/callback',
+  '/api/v1/',
 ]
 
 function getPublicUrl(req: NextRequest) {
@@ -79,7 +80,7 @@ function isAllowed(ip: string, pathname: string): boolean {
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // Rate limit all API routes
+  // Rate limit all API routes (v1 routes handle their own auth + rate limiting in route handlers)
   if (pathname.startsWith('/api/')) {
     const ip =
       req.headers.get('x-real-ip') ||

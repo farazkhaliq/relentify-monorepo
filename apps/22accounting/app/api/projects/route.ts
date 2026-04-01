@@ -4,6 +4,7 @@ import { getActiveEntity } from '@/src/lib/entity.service';
 import { getProjectsByEntity, createProject } from '@/src/lib/project.service';
 import { getUserById } from '@/src/lib/user.service';
 import { canAccess } from '@/src/lib/tiers';
+import { checkPermission } from '@/src/lib/workspace-auth';
 
 export async function GET() {
   try {
@@ -23,6 +24,8 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 });
+    const denied = checkPermission(auth, 'projects', 'manage');
+    if (denied) return denied;
 
     const user = await getUserById(auth.userId);
     if (!canAccess(user?.tier, 'project_tracking')) {

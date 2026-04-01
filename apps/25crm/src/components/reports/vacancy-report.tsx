@@ -1,8 +1,6 @@
 'use client';
 
-import { collection, query, where } from 'firebase/firestore';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { useUserProfile } from '@/hooks/use-user-profile';
+import { useApiCollection } from '@/hooks/use-api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@relentify/ui';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@relentify/ui';
 import { Skeleton } from '@relentify/ui';
@@ -10,18 +8,8 @@ import { Badge } from '@relentify/ui';
 import { useRouter } from 'next/navigation';
 
 export function VacancyReport() {
-  const firestore = useFirestore();
   const router = useRouter();
-  const { userProfile: currentUserProfile, isLoading: loadingCurrentUser } = useUserProfile();
-  const organizationId = currentUserProfile?.organizationId;
-
-  const vacantPropertiesQuery = useMemoFirebase(() =>
-    (firestore && organizationId) ? query(
-        collection(firestore, `organizations/${organizationId}/properties`),
-        where('status', '==', 'Available')
-    ) : null, [firestore, organizationId]);
-  const { data: properties, isLoading: loadingProperties } = useCollection<any>(vacantPropertiesQuery);
-  const isLoading = loadingCurrentUser || loadingProperties;
+  const { data: properties, isLoading } = useApiCollection<any>('/api/reports/vacancy');
 
   const formatCurrency = (amount: number, currency = 'GBP') => {
       return new Intl.NumberFormat('en-GB', { style: 'currency', currency }).format(amount);
@@ -52,14 +40,14 @@ export function VacancyReport() {
                 </TableRow>
               ))
             ) : properties && properties.length > 0 ? (
-              properties.map((prop) => (
+              properties.map((prop: any) => (
                 <TableRow key={prop.id} className="cursor-pointer" onClick={() => router.push(`/properties/${prop.id}`)}>
                   <TableCell>
-                    <div className="font-medium">{prop.addressLine1}</div>
+                    <div className="font-medium">{prop.address_line1}</div>
                     <div className="text-sm text-muted-foreground">{prop.city}, {prop.postcode}</div>
                   </TableCell>
-                  <TableCell><Badge variant="outline">{prop.propertyType}</Badge></TableCell>
-                  <TableCell className="text-right font-medium">{formatCurrency(prop.rentAmount)}</TableCell>
+                  <TableCell><Badge variant="outline">{prop.property_type}</Badge></TableCell>
+                  <TableCell className="text-right font-medium">{formatCurrency(prop.rent_amount)}</TableCell>
                 </TableRow>
               ))
             ) : (

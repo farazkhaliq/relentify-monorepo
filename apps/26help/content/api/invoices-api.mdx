@@ -1,0 +1,87 @@
+---
+title: Invoices API
+description: Create, retrieve, update, send, and record payments against invoices via the API.
+category: api
+order: 2
+appRoute: /dashboard/invoices
+relatedArticles:
+  - getting-started
+  - customers-api
+---
+
+## What this does
+
+The Invoices API lets you manage the full invoice lifecycle programmatically: create invoices, retrieve them individually or as a list, update line items, send by email, and record payments.
+
+## When to use it
+
+Use this endpoint when you need to generate invoices from an external system, sync invoice data with your CRM, or automate payment recording.
+
+## Endpoints
+
+### List invoices
+
+`GET /api/v1/invoices`
+
+Returns a paginated list of invoices. Supports `?status=draft|sent|paid|void` and `?page=1&limit=50` query parameters.
+
+### Create an invoice
+
+`POST /api/v1/invoices`
+
+```json
+{
+  "customerId": "cust_abc123",
+  "dueDate": "2026-04-30",
+  "lineItems": [
+    {
+      "description": "Web design services",
+      "quantity": 1,
+      "unitPrice": 1500.00,
+      "taxRate": 20
+    }
+  ]
+}
+```
+
+**Response** (201 Created):
+
+```json
+{
+  "id": "inv_xyz789",
+  "number": "INV-0042",
+  "status": "draft",
+  "total": 1800.00,
+  "createdAt": "2026-03-31T10:00:00Z"
+}
+```
+
+### Get a single invoice
+
+`GET /api/v1/invoices/:id`
+
+### Update an invoice
+
+`PATCH /api/v1/invoices/:id`
+
+Only draft invoices can be updated. Pass the fields you want to change.
+
+### Send an invoice
+
+`POST /api/v1/invoices/:id/send`
+
+Sends the invoice by email to the customer's registered email address. Changes status to `sent`.
+
+### Record a payment
+
+`POST /api/v1/invoices/:id/payments`
+
+```json
+{
+  "amount": 1800.00,
+  "date": "2026-04-15",
+  "method": "bank_transfer"
+}
+```
+
+Records a payment against the invoice. If the full amount is paid, the status changes to `paid`.

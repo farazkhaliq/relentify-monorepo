@@ -6,6 +6,7 @@ import { logAudit } from '@/src/lib/audit.service';
 import { isDateLocked } from '@/src/lib/period_lock.service';
 import { requireGLRole } from '@/src/lib/team.service';
 import { query, withTransaction } from '@/src/lib/db';
+import { checkPermission } from '@/src/lib/workspace-auth';
 
 export async function GET() {
   try {
@@ -39,6 +40,8 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const denied = checkPermission(auth, 'journals', 'create');
+    if (denied) return denied;
     const entity = await getActiveEntity(auth.userId);
     if (!entity) return NextResponse.json({ error: 'No active entity' }, { status: 400 });
 

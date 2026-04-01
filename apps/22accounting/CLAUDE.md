@@ -63,6 +63,327 @@ Cron container: none currently — escalation cron runs via `/api/cron/po-escala
 
 ---
 
+## Complete API Route Inventory
+
+**Total: ~150 endpoints across 35+ route groups** (includes `/api/v1/`, `/api/mismatches/`, `/api/webhooks-ui/`)
+
+### Authentication & User
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| POST | `/api/auth/logout` | Yes | Logout, clear cookie |
+| GET | `/api/auth/me` | Yes | Current user info |
+| GET | `/api/health` | No | Health check |
+| GET | `/api/user` | Yes | Get user profile + company settings |
+| PATCH | `/api/user/update` | Yes | Update user profile |
+| POST | `/api/user/change-password` | Yes | Change password |
+| DELETE | `/api/account/delete` | Yes | Delete account |
+| GET | `/api/account/export` | Yes | Export account data |
+
+### Customers & Suppliers
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET/POST | `/api/customers` | Yes | List / create customer |
+| GET/PATCH/DELETE | `/api/customers/[id]` | Yes | Get / update / delete customer |
+| GET/POST | `/api/suppliers` | Yes | List / create supplier |
+| GET/PATCH/DELETE | `/api/suppliers/[id]` | Yes | Get / update / delete supplier |
+
+### Invoices
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET/POST | `/api/invoices` | Yes | List / create invoice |
+| GET/PATCH/DELETE | `/api/invoices/[id]` | Yes | Get / update / delete invoice |
+| POST | `/api/invoices/[id]/pay` | Yes | Record payment |
+| POST | `/api/invoices/[id]/send` | Yes | Send invoice email |
+| GET | `/api/invoices/stats` | Yes | Invoice statistics |
+
+### Quotes
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET/POST | `/api/quotes` | Yes | List / create quote |
+| GET/PATCH/DELETE | `/api/quotes/[id]` | Yes | Get / update / delete quote |
+| POST | `/api/quotes/[id]/convert` | Yes | Convert to invoice |
+| POST | `/api/quotes/[id]/send` | Yes | Send quote email |
+
+### Bills
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET/POST | `/api/bills` | Yes | List / create bill |
+| GET/PATCH/DELETE | `/api/bills/[id]` | Yes | Get / update / delete bill |
+| POST | `/api/bills/[id]/pay` | Yes | Record bill payment |
+| GET | `/api/bills/bank-accounts` | Yes | List bank accounts for bill payment |
+
+### Credit Notes
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET/POST | `/api/credit-notes` | Yes | List / create credit note |
+| GET/PATCH | `/api/credit-notes/[id]` | Yes | Get / void credit note |
+
+### Expenses & Mileage
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET/POST | `/api/expenses` | Yes | List / create expense |
+| GET/PATCH/DELETE | `/api/expenses/[id]` | Yes | Get / update / delete expense |
+| POST | `/api/expenses/[id]/approve` | Yes | Approve expense |
+| POST | `/api/expenses/[id]/reject` | Yes | Reject expense |
+| GET | `/api/expenses/pending-approvals` | Yes | List pending approvals |
+| GET/PATCH | `/api/expense-approval-settings` | Yes | Get / update approval settings |
+| GET/POST | `/api/mileage` | Yes | List / create mileage claim |
+| GET/DELETE | `/api/mileage/[id]` | Yes | Get / delete mileage claim |
+| POST | `/api/mileage/[id]/approve` | Yes | Approve mileage |
+| POST | `/api/mileage/[id]/reject` | Yes | Reject mileage |
+
+### Purchase Orders
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET/POST | `/api/po` | Yes | List / create PO |
+| GET/PATCH | `/api/po/[id]` | Yes | Get / update PO |
+| POST | `/api/po/[id]/approve` | Yes | Approve PO |
+| POST | `/api/po/[id]/reject` | Yes | Reject PO |
+| GET/PATCH | `/api/po/settings` | Yes | PO settings (enable/disable) |
+| GET | `/api/po/approve-link` | No | PO approval via email link |
+| GET/POST | `/api/po/approver-mappings` | Yes | List / create approver mappings |
+| DELETE | `/api/po/approver-mappings/[staffId]` | Yes | Delete approver mapping |
+
+### Projects
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET/POST | `/api/projects` | Yes | List / create project |
+| GET/PATCH/DELETE | `/api/projects/[id]` | Yes | Get / update / delete project |
+
+### Chart of Accounts & Journals
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET/POST | `/api/accounts` | Yes | List COA / create account |
+| GET/PATCH/DELETE | `/api/accounts/[id]` | Yes | Get / update / deactivate account |
+| GET/POST | `/api/journals` | Yes | List / create journal entry |
+| GET/PATCH/DELETE | `/api/journals/[id]` | Yes | Get / reverse / delete journal |
+| GET | `/api/ledger` | Yes | General ledger report |
+
+### Banking
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET | `/api/banking` | Yes | List bank accounts + transactions |
+| POST | `/api/banking/[id]/match` | Yes | Manually match transaction |
+
+### OpenBanking (TrueLayer)
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| POST | `/api/openbanking/connect` | Yes | Initiate bank connection |
+| POST | `/api/openbanking/disconnect` | Yes | Disconnect bank |
+| GET | `/api/openbanking/callback` | No | OAuth callback |
+| POST | `/api/openbanking/sync` | Yes | Sync transactions |
+
+### Reports
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET | `/api/reports/pl` | Yes | Profit & Loss |
+| GET | `/api/reports/balance-sheet` | Yes | Balance Sheet |
+| GET | `/api/reports/trial-balance` | Yes | Trial Balance |
+| GET | `/api/reports/cashflow` | Yes | Cash Flow |
+| GET | `/api/reports/aged-receivables` | Yes | Aged Receivables |
+| GET | `/api/reports/aged-payables` | Yes | Aged Payables |
+| GET | `/api/reports/kpi` | Yes | KPI Dashboard |
+| GET | `/api/reports/health` | Yes | Health Score |
+| GET | `/api/reports/custom` | Yes | Custom Report |
+| GET | `/api/reports/consolidated` | Yes | Consolidated (multi-entity) |
+
+### HMRC / VAT
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| POST | `/api/hmrc/connect` | Yes | Connect to HMRC |
+| POST | `/api/hmrc/disconnect` | Yes | Disconnect HMRC |
+| GET | `/api/hmrc/callback` | No | OAuth callback |
+| GET | `/api/hmrc/client-info` | Yes | HMRC client info |
+| GET | `/api/hmrc/obligations` | Yes | VAT obligations |
+| POST | `/api/hmrc/vat/calculate` | Yes | Calculate 9-box return |
+| POST | `/api/hmrc/vat/submit` | Yes | Submit VAT return |
+
+### Period Locks
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET/POST | `/api/period-locks` | Yes | Get / set lock date |
+| GET | `/api/period-locks/earliest-open` | Yes | Earliest open date |
+| GET/POST | `/api/period-locks/overrides` | Yes | List / grant overrides |
+| DELETE | `/api/period-locks/overrides/[userId]` | Yes | Revoke override |
+
+### Year-End
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET | `/api/year-end/preview` | Yes | Preview year-end close |
+| POST | `/api/year-end/close` | Yes | Execute year-end close |
+
+### Stripe
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| POST | `/api/stripe/checkout` | Yes | Create checkout session |
+| POST | `/api/stripe/connect` | Yes | Connect Stripe account |
+| POST | `/api/stripe/disconnect` | Yes | Disconnect Stripe |
+| GET | `/api/stripe/callback` | No | OAuth callback |
+| GET | `/api/stripe/status` | Yes | Connection status |
+| POST | `/api/webhooks/stripe` | No | Stripe webhook handler |
+
+### Entities (Multi-Entity)
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET/POST | `/api/entities` | Yes | List / create entity |
+| GET/PATCH/DELETE | `/api/entities/[id]` | Yes | Get / update / delete entity |
+| POST | `/api/entities/[id]/activate` | Yes | Activate entity |
+
+### Intercompany
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| POST | `/api/intercompany` | Yes | Create intercompany transaction |
+
+### Accountant
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET/PATCH | `/api/accountant/bank-details` | Yes | Get / update bank details |
+| GET | `/api/accountant/clients` | Yes | List clients |
+| GET | `/api/accountant/clients/[id]` | Yes | Get client details |
+| GET | `/api/accountant/earnings` | Yes | View referral earnings |
+| POST | `/api/accountant/invite` | Yes | Send client invitation |
+| POST | `/api/accountant/invite/accept` | No | Accept invitation |
+| POST | `/api/accountant/switch` | Yes | Switch to client account |
+
+### Team
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET/POST | `/api/team` | Yes | List / invite team member |
+| PATCH/DELETE | `/api/team/[memberId]` | Yes | Update / remove member |
+| POST | `/api/team/accept` | No | Accept team invitation |
+
+### Workspace
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET | `/api/workspace/list` | Yes | List workspaces |
+| POST | `/api/workspace/switch` | Yes | Switch workspace |
+| POST | `/api/workspace/leave` | Yes | Leave workspace |
+
+### Comments & Attachments
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET/POST | `/api/comments` | Yes | List / create comment |
+| DELETE | `/api/comments/[id]` | Yes | Delete comment |
+| GET | `/api/comments/conversations` | Yes | List conversations |
+| GET/POST | `/api/attachments` | Yes | List / upload attachment |
+| GET/DELETE | `/api/attachments/[id]` | Yes | Download / delete attachment |
+
+### Audit & Settings
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET | `/api/audit` | Yes | Audit log |
+| PATCH | `/api/settings/accountant` | Yes | Update accountant settings |
+
+### Import & Migration
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET/POST | `/api/import` | Yes | Import data (CSV/XLSX) |
+| GET | `/api/import/template` | Yes | Download import template |
+| POST | `/api/import/opening-balances` | Yes | Import opening balances |
+| GET | `/api/import/opening-balances/template` | Yes | Download OB template |
+| POST | `/api/migration/import` | Yes | Migration import (SSE streaming) |
+| POST | `/api/migration/server-parse` | Yes | Server-side file parse |
+
+### Recordings
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| GET | `/api/recordings` | Yes | List recordings |
+| POST | `/api/recordings/upload` | Yes | Upload recording |
+| GET | `/api/recordings/[id]/stream` | Yes | Stream recording |
+
+### Cron Jobs (internal, protected by x-cron-secret)
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| POST | `/api/cron/reminders` | Cron | Send payment reminders |
+| POST | `/api/cron/po-escalation` | Cron | Escalate overdue PO approvals |
+| POST | `/api/cron/accrual-reversals` | Cron | Reverse accrual journals |
+| POST | `/api/cron/prepayment-release` | Cron | Release prepayment portions |
+
+---
+
+## Complete UI Page Map
+
+**Total: 55+ pages**
+
+### Top-Level
+| Path | Purpose |
+|------|---------|
+| `/` | Landing / redirect |
+| `/payment/success` | Stripe payment success |
+| `/payment/cancel` | Stripe payment cancel |
+| `/po-reject` | PO rejection via email link |
+
+### Dashboard
+| Path | Purpose |
+|------|---------|
+| `/dashboard` | Main dashboard (net position, forecast, charts) |
+| `/dashboard/invoices` | Invoice list |
+| `/dashboard/invoices/new` | Create invoice |
+| `/dashboard/invoices/[id]` | Invoice detail |
+| `/dashboard/invoices/[id]/edit` | Edit invoice |
+| `/dashboard/quotes` | Quote list |
+| `/dashboard/quotes/new` | Create quote |
+| `/dashboard/quotes/[id]` | Quote detail |
+| `/dashboard/bills` | Bill list |
+| `/dashboard/bills/new` | Create bill |
+| `/dashboard/bills/[id]` | Bill detail |
+| `/dashboard/credit-notes` | Credit note list |
+| `/dashboard/credit-notes/new` | Create credit note |
+| `/dashboard/credit-notes/[id]` | Credit note detail |
+| `/dashboard/expenses` | Expenses + mileage list |
+| `/dashboard/po` | Purchase order list |
+| `/dashboard/po/new` | Create PO |
+| `/dashboard/po/[id]` | PO detail |
+| `/dashboard/customers` | Customer list |
+| `/dashboard/customers/new` | Create customer |
+| `/dashboard/customers/[id]` | Customer detail |
+| `/dashboard/suppliers` | Supplier list |
+| `/dashboard/suppliers/new` | Create supplier |
+| `/dashboard/suppliers/[id]` | Supplier detail |
+| `/dashboard/projects` | Project list |
+| `/dashboard/projects/new` | Create project |
+| `/dashboard/projects/[id]` | Project detail |
+| `/dashboard/journals` | Journal entry list |
+| `/dashboard/journals/new` | Create journal entry |
+| `/dashboard/chart-of-accounts` | Chart of Accounts |
+| `/dashboard/banking` | Bank accounts + transactions |
+| `/dashboard/vat` | VAT returns + HMRC |
+| `/dashboard/import` | Import data + opening balances |
+| `/dashboard/migrate` | Migration wizard (Xero/QB) |
+
+### Reports
+| Path | Purpose |
+|------|---------|
+| `/dashboard/reports/pl` | Profit & Loss |
+| `/dashboard/reports/balance-sheet` | Balance Sheet |
+| `/dashboard/reports/trial-balance` | Trial Balance |
+| `/dashboard/reports/general-ledger` | General Ledger |
+| `/dashboard/reports/cashflow` | Cash Flow |
+| `/dashboard/reports/aged` | Aged Receivables + Payables |
+| `/dashboard/reports/kpi` | KPI Dashboard |
+| `/dashboard/reports/health` | Health Score |
+| `/dashboard/reports/custom` | Custom Report |
+| `/dashboard/reports/consolidated` | Consolidated (multi-entity) |
+
+### Admin & Settings
+| Path | Purpose |
+|------|---------|
+| `/dashboard/settings` | Company settings (tabs: general, bank, period locks, PO) |
+| `/dashboard/team` | Team management |
+| `/dashboard/team/accept` | Accept team invitation |
+| `/dashboard/entities` | Entity list (multi-entity) |
+| `/dashboard/entities/new` | Create entity |
+| `/dashboard/entities/[id]/edit` | Edit entity |
+| `/dashboard/audit` | Audit log |
+| `/dashboard/conversations` | Comments/threads |
+| `/dashboard/receipts` | Receipt management |
+| `/dashboard/recordings` | Screen recordings |
+| `/dashboard/upgrade` | Upgrade plan |
+| `/dashboard/accountant` | Accountant portal (client list) |
+| `/dashboard/accountant/settings` | Accountant settings |
+
+---
+
 ## Tier System
 
 Defined in `lib/tiers.ts`. Never hardcode tier names in components — always use `canAccess()`.
@@ -255,18 +576,20 @@ All pre-launch priority groups are done. See **Remaining Work — Launch Blocker
 - **v0.6** Project tracking, Purchase order approvals
 - **v0.6** Chart of Accounts + Double-Entry GL (migrations 013–015, new services, new pages)
 - **v0.6** Suppliers page, Credit notes, nav cleanup
+- **v0.7** Developer API + Webhooks (`/api/v1/`), API key management, webhook delivery system
+- **v0.7** Help system (`apps/26help`), migration tool, recording system, UI animations
 
 ### ❌ Future roadmap
-- **v0.7** CIS (Construction Industry Scheme)
-- **v0.8** Domestic bill payments / E-Banking
-- **v0.9** International payments
+- **v0.8** CIS (Construction Industry Scheme)
+- **v0.9** Domestic bill payments / E-Banking
+- **v1.0** International payments
 - **Payroll** — separate tool, not this app
 
 ---
 
 ## GL / Chart of Accounts
 
-**Migrations applied:** 013 (chart_of_accounts), 014 (journal_entries + journal_lines), 015 (coa_account_id on bills/expenses/mileage_claims), 016 (credit_notes + credit_note_items), 017 (period_locks: `locked_through_date` on entities, `period_lock_history`, `period_lock_overrides`), 018 (`last_fy_end_date` on entities), 019 (approval workflows: `po_approver_mappings`, `expense_approval_settings`, approval columns on `expenses`/`mileage_claims`, `escalated_at` on `purchase_orders`), 020 (`attachments` metadata table + `attachment_data` bytea table), 021 (company details: `registered_address`, `bank_account_name`, `sort_code`, `account_number` on `users`), 022 (accountant multi-client: `accountant_clients`, `accountant_referral_earnings`), 023 (comments/threads: `transaction_comments`), 024 (HMRC client info), **025 (accounting engine: `idempotency_keys`, `cron_runs` tables; UNIQUE constraint on `journal_entries(entity_id, source_type, source_id)`; `status`/`is_accrual`/`reversal_date`/`reversed_by` on `journal_entries`; `is_prepayment`/`prepayment_months`/`prepayment_exp_acct` on `bank_transactions`; `is_control_account`/`control_type` on `chart_of_accounts`; `actor_id`/`workspace_entity_id` on `audit_log`; `role` on `workspace_members`; 4 performance indexes)**
+**Migrations applied:** 013 (chart_of_accounts), 014 (journal_entries + journal_lines), 015 (coa_account_id on bills/expenses/mileage_claims), 016 (credit_notes + credit_note_items), 017 (period_locks: `locked_through_date` on entities, `period_lock_history`, `period_lock_overrides`), 018 (`last_fy_end_date` on entities), 019 (approval workflows: `po_approver_mappings`, `expense_approval_settings`, approval columns on `expenses`/`mileage_claims`, `escalated_at` on `purchase_orders`), 020 (`attachments` metadata table + `attachment_data` bytea table), 021 (company details: `registered_address`, `bank_account_name`, `sort_code`, `account_number` on `users`), 022 (accountant multi-client: `accountant_clients`, `accountant_referral_earnings`), 023 (comments/threads: `transaction_comments`), 024 (HMRC client info), **025 (accounting engine: `idempotency_keys`, `cron_runs` tables; UNIQUE constraint on `journal_entries(entity_id, source_type, source_id)`; `status`/`is_accrual`/`reversal_date`/`reversed_by` on `journal_entries`; `is_prepayment`/`prepayment_months`/`prepayment_exp_acct` on `bank_transactions`; `is_control_account`/`control_type` on `chart_of_accounts`; `actor_id`/`workspace_entity_id` on `audit_log`; `role` on `workspace_members`; 4 performance indexes)**, 026 (migration_runs), 027 (recording_uploads), **028 (mismatches)**, **029 (api_keys, webhook_endpoints, webhook_deliveries, api_requests)**
 
 **COA ranges:** ASSET 1000–1999 | LIABILITY 2000–2999 | EQUITY 3000–3999 | INCOME 4000–4999 | COGS 5000–6999 | EXPENSE 7000–9998 | SUSPENSE 9999
 
@@ -383,153 +706,37 @@ Every item below must be complete before 22accounting launches publicly.
 
 | # | Workstream | Status | Detail |
 |---|-----------|--------|--------|
-| 1 | Help articles (27 remaining + 7 API docs) | 20/47 written | See `apps/26help/CLAUDE.md` |
-| 2 | Help videos (every article needs a recording) | 0/47 recorded | See `apps/26help/CLAUDE.md` |
-| 3 | Help automation (weekly cron) | Not built | See `apps/26help/CLAUDE.md` |
-| 4 | Developer API + Webhooks (15 tasks) | Not started | See `docs/superpowers/plans/2026-03-28-developer-api.md` |
-| 5 | Granular permissions (~40 routes) | Not started | Detail below |
-| 6 | Mismatch flagging (PO-bill + bank-invoice) | Not started | Detail below |
-| 7 | Migration 026 numbering conflict | Not resolved | Renumber recording system's 026 to 027 |
+| 1 | Help articles | ✅ 51 accounting + 7 API written (2026-03-31) | See `apps/26help/CLAUDE.md` |
+| 2 | Help automation (weekly cron) | ✅ Built (2026-03-31) | `scripts/update-help-articles.sh`, cron `0 9 * * 1` |
+| 3 | Granular permissions (~40 routes) | ✅ Done (2026-03-31) | 42 route files, 18 permission modules, 128/128 MCP tests |
+| 4 | Mismatch flagging (PO-bill + bank-invoice) | ✅ Done (2026-03-31) | migration 028, service + routes + integration hooks |
+| 5 | Migration 026 numbering conflict | ✅ Already resolved | 026=migration_runs, 027=recording_uploads, no conflict |
+| 6 | Developer API + Webhooks (15 tasks) | ✅ Done (2026-03-31) | migration 029, API key auth, webhooks, v1 routes, settings UI |
+| 7 | Help videos (every article needs a recording) | 0/47 recorded | See `apps/26help/CLAUDE.md` |
 
-### Granular Permissions
+### Granular Permissions (✅ Complete 2026-03-31)
 
-Expand `checkPermission()` from 7 route handlers to ~40. The utility exists in `src/lib/workspace-auth.ts` — it just needs wiring into unprotected routes.
+`checkPermission()` expanded from 7 route handlers to 42 files (92 total checks). 18 permission modules in `WorkspacePermissions` interface. Team page shows all modules in the permission matrix.
 
-**Step 1: Expand WorkspacePermissions type** (`src/lib/auth.ts`)
+**Files changed:**
+- `src/lib/auth.ts` — expanded `WorkspacePermissions` (6 → 18 modules)
+- `src/lib/team-defaults.ts` — expanded `DEFAULT_PERMISSIONS` (all new modules: `view: true`, write actions `false`)
+- `app/dashboard/team/page.tsx` — `MODULE_CONFIG` expanded (6 → 18 entries)
 
-```ts
-export interface WorkspacePermissions {
-  // Existing
-  invoices:    { view: boolean; create: boolean; delete: boolean };
-  bills:       { view: boolean; create: boolean; delete: boolean };
-  banking:     { view: boolean; reconcile: boolean };
-  reports:     { view: boolean };
-  settings:    { view: boolean };
-  customers:   { view: boolean; manage: boolean };
-  // New
-  suppliers:   { view: boolean; manage: boolean };
-  expenses:    { view: boolean; create: boolean; approve: boolean };
-  quotes:      { view: boolean; create: boolean };
-  creditNotes: { view: boolean; create: boolean };
-  journals:    { view: boolean; create: boolean };
-  po:          { view: boolean; create: boolean; approve: boolean };
-  projects:    { view: boolean; manage: boolean };
-  mileage:     { view: boolean; create: boolean; approve: boolean };
-  vat:         { view: boolean; submit: boolean };
-  coa:         { view: boolean; manage: boolean };
-  audit:       { view: boolean };
-  entities:    { view: boolean; manage: boolean };
-}
-```
+**Routes excluded from permissions**: `auth/*`, `workspace/*`, `team/*` (owner-only), `account/*`, `user/*`, `accountant/*` (own access model), Stripe `webhooks/*`, `recordings/*` (user-level), `period-locks/*` and `year-end/*` (admin-only via role check), `comments/*` and `attachments/*` (follow parent entity permissions).
 
-**Step 2: Expand DEFAULT_PERMISSIONS** (`src/lib/team-defaults.ts`) — all new modules: `view: true`, write actions `false`.
+### Mismatch Flagging (✅ Complete 2026-03-31)
 
-**Step 3: Update team page module config** (`app/dashboard/team/page.tsx` lines 15-22) — add all new modules to the checkbox grid.
+PO-to-bill and bank-to-invoice amount discrepancy tracking. Migration `028_mismatches.sql`.
 
-**Step 4: Wire checkPermission into routes**
+**Files:**
+- `src/lib/mismatch.service.ts` — `detectBillPOMismatch` (threshold: diff > £1 AND > 2%), `detectBankMismatch`, `getMismatches`, `resolveMismatch`, `getMismatchCount`
+- `app/api/mismatches/route.ts` — GET list (tier-gated to `mismatch_flagging`)
+- `app/api/mismatches/[id]/route.ts` — PATCH resolve/ignore
 
-Each route gets `checkPermission(auth, module, action)` after `getAuthUser()`. Owner and accountant bypass automatically.
-
-| Module | Route file | Handler | Action |
-|--------|-----------|---------|--------|
-| `suppliers` | `suppliers/[id]/route.ts` | PATCH, DELETE | `manage` |
-| `bills` | `bills/[id]/route.ts` | PATCH | `create` |
-| `bills` | `bills/[id]/route.ts` | DELETE | `delete` |
-| `bills` | `bills/[id]/pay/route.ts` | POST | `create` |
-| `customers` | `customers/[id]/route.ts` | PATCH, DELETE | `manage` |
-| `expenses` | `expenses/route.ts` | POST | `create` |
-| `expenses` | `expenses/[id]/route.ts` | PATCH, DELETE | `create` |
-| `expenses` | `expenses/[id]/approve/route.ts` | POST | `approve` |
-| `expenses` | `expenses/[id]/reject/route.ts` | POST | `approve` |
-| `expenses` | `expense-approval-settings/route.ts` | PATCH | `approve` |
-| `quotes` | `quotes/route.ts` | POST | `create` |
-| `quotes` | `quotes/[id]/route.ts` | PATCH, DELETE | `create` |
-| `quotes` | `quotes/[id]/send/route.ts` | POST | `create` |
-| `quotes` | `quotes/[id]/convert/route.ts` | POST | `create` |
-| `creditNotes` | `credit-notes/route.ts` | POST | `create` |
-| `creditNotes` | `credit-notes/[id]/route.ts` | PATCH | `create` |
-| `journals` | `journals/route.ts` | POST | `create` |
-| `journals` | `journals/[id]/route.ts` | DELETE, PATCH | `create` |
-| `po` | `po/route.ts` | POST | `create` |
-| `po` | `po/[id]/route.ts` | PATCH | `create` |
-| `po` | `po/[id]/approve/route.ts` | POST | `approve` |
-| `po` | `po/[id]/reject/route.ts` | POST | `approve` |
-| `po` | `po/settings/route.ts` | PATCH | `approve` |
-| `po` | `po/approver-mappings/route.ts` | POST | `approve` |
-| `projects` | `projects/route.ts` | POST | `manage` |
-| `projects` | `projects/[id]/route.ts` | PATCH | `manage` |
-| `mileage` | `mileage/route.ts` | POST | `create` |
-| `mileage` | `mileage/[id]/route.ts` | DELETE | `create` |
-| `mileage` | `mileage/[id]/approve/route.ts` | POST | `approve` |
-| `mileage` | `mileage/[id]/reject/route.ts` | POST | `approve` |
-| `vat` | `hmrc/vat/submit/route.ts` | POST | `submit` |
-| `coa` | `accounts/route.ts` | POST | `manage` |
-| `coa` | `accounts/[id]/route.ts` | PATCH, DELETE | `manage` |
-| `entities` | `entities/[id]/route.ts` | PATCH, DELETE | `manage` |
-| `settings` | `settings/route.ts` | PATCH | `view` |
-| `banking` | `banking/[id]/match/route.ts` | POST | `reconcile` |
-
-**Routes intentionally excluded**: `auth/*`, `workspace/*`, `team/*` (owner-only), `account/*`, `user/*`, `accountant/*` (own access model), Stripe `webhooks/*`, `recordings/*` (user-level), `period-locks/*` and `year-end/*` (admin-only via role check), `comments/*` and `attachments/*` (follow parent entity permissions).
-
-**Pattern per route:**
-```ts
-import { checkPermission } from '@/src/lib/workspace-auth';
-// In handler, after auth check:
-const denied = checkPermission(auth, 'module', 'action');
-if (denied) return denied;
-```
-
-**Verification**: MCP tests (48) should still pass (MCP user is owner → always allowed). Also test with a restricted workspace member to verify 403s.
-
-### Mismatch Flagging
-
-Persistent tracking of PO-to-bill and bank-to-invoice amount discrepancies.
-
-**New DB table** (migration — renumber as needed):
-
-```sql
-CREATE TABLE mismatches (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  entity_id UUID NOT NULL,
-  type TEXT NOT NULL,
-  severity TEXT DEFAULT 'warning',
-  source_type TEXT NOT NULL,
-  source_id UUID NOT NULL,
-  reference_type TEXT NOT NULL,
-  reference_id UUID NOT NULL,
-  source_amount DECIMAL(12,2),
-  reference_amount DECIMAL(12,2),
-  difference DECIMAL(12,2),
-  message TEXT,
-  status TEXT DEFAULT 'open',
-  resolved_at TIMESTAMPTZ,
-  resolved_by UUID,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-CREATE INDEX idx_mismatches_user_status ON mismatches(user_id, status);
-CREATE INDEX idx_mismatches_entity ON mismatches(entity_id);
-```
-
-**New file: `src/lib/mismatch.service.ts`**
-
-- `detectBillPOMismatch(userId, entityId, billId, billAmount, poId)` — creates mismatch if diff > £1 AND > 2%. Type: `po_bill_amount`.
-- `detectBankMismatch(userId, entityId, txId, txAmount, matchType, matchId)` — creates mismatch if amounts differ. Type: `bank_invoice_amount` or `bank_bill_amount`.
-- `getMismatches(userId, entityId, status?)` — list with optional status filter
-- `resolveMismatch(id, userId, action: 'resolved' | 'ignored')` — update status
-- `getMismatchCount(userId, entityId)` — open mismatch count
-
-**New routes:**
-- `GET /api/mismatches` — list, tier-gated to `mismatch_flagging`
-- `PATCH /api/mismatches/[id]` — resolve/ignore
-
-**Integration points:**
-- `app/api/bills/route.ts` POST — after bill creation, call `detectBillPOMismatch()` if `poId` present
-- `app/api/banking/[id]/match/route.ts` POST — after `manualMatch()`, call `detectBankMismatch()` for bill/invoice matches
-
-**Tier gate**: `mismatch_flagging` already exists in `tiers.ts` FEATURE_ACCESS.
-
-**Verification**: Create PO £1000 → bill £1200 → mismatch auto-created. GET /api/mismatches returns it. PATCH to resolve.
+**Integration hooks** (fire-and-forget, non-blocking):
+- `app/api/bills/route.ts` POST — calls `detectBillPOMismatch()` if `poId` present
+- `app/api/banking/[id]/match/route.ts` POST — calls `detectBankMismatch()` after invoice/bill match
 
 ---
 
@@ -545,55 +752,40 @@ CREATE INDEX idx_mismatches_entity ON mismatches(entity_id);
 | Help System (apps/26help) | — | `2026-03-28-help-system.md` | ✅ Complete (2026-03-30) |
 | Migration Tool (Xero/QB import) | `2026-03-26-migration-tool-design.md` | `2026-03-28-migration-tool.md` | ✅ Complete (2026-03-30) |
 | Recording System (screen capture) | `2026-03-26-recording-system-design.md` | `2026-03-28-recording-system.md` | ✅ Complete (2026-03-30) |
-| Developer API + Webhooks | `2026-03-26-developer-api-design.md` | `2026-03-28-developer-api.md` | 🔴 Not started |
+| Developer API + Webhooks | `2026-03-26-developer-api-design.md` | `2026-03-28-developer-api.md` | ✅ Complete (2026-03-31) |
+| Granular Permissions | — | `2026-03-31-blockers-3-4-6.md` | ✅ Complete (2026-03-31) |
+| Mismatch Flagging | — | `2026-03-31-blockers-3-4-6.md` | ✅ Complete (2026-03-31) |
 
 ---
 
-## Developer API + Webhooks Workstream
+## Developer API + Webhooks Workstream (✅ Complete 2026-03-31)
 
-**Plan:** `docs/superpowers/plans/2026-03-28-developer-api.md` — **15 tasks, all remaining**
+**Plan:** `docs/superpowers/plans/2026-03-28-developer-api.md` (15 tasks)
 **Spec:** `docs/superpowers/specs/2026-03-26-developer-api-design.md`
-**To implement:** Read the plan file and work through tasks 1–15 using subagent-driven development.
+**Migration:** `029_api_keys.sql` (4 tables: `api_keys`, `webhook_endpoints`, `webhook_deliveries`, `api_requests`)
 
-Opens 22accounting to external callers via an authenticated REST API and webhook delivery system.
+### What was built
 
-### What it builds
+- **API key auth layer:** Bearer token → SHA-256 hash → `api_keys` table lookup. Key format: `rly_` + 64 hex chars. Auth runs in route handlers via `requireApiKeyContext()` in `v1-helpers.ts` (not middleware — Edge Runtime can't use Node.js `crypto`).
+- **Versioned public API:** 15 route files under `app/api/v1/` (invoices, bills, customers, suppliers, expenses, reports, webhooks, keys). Each validates key + scopes + rate limits via `v1-helpers.ts`.
+- **Scoped access:** 11 scopes (`invoices:read/write`, `customers:read/write`, etc.). IP allowlist optional per key.
+- **Sandbox/test mode:** Keys with `is_test_mode=TRUE` skip DB writes; response includes `"test": true`.
+- **Rate limiting:** In-memory sliding window in `rate-limiter.ts`. Tier-based: 30/min (invoicing) → 600/min (corporate).
+- **Webhook delivery:** `dispatchWebhookEvent()` in `webhook.service.ts` fires async on invoice/bill/customer/supplier/expense events. Exponential backoff (6 attempts). Dead-letter after failures.
+- **Settings UI:** 3 tabs on `/dashboard/settings`: General, API Keys (`ApiKeysPanel.tsx`), Webhooks (`WebhooksPanel.tsx`). Cookie-auth management routes at `/api/v1/keys/` and `/api/webhooks-ui/`.
+- **Webhook event hooks:** Added to `invoice.service.ts`, `bill.service.ts`, `customer.service.ts`, `supplier.service.ts`, `expense_approval.service.ts` (all fire-and-forget).
 
-- **API key auth layer:** Bearer token → SHA-256 hash → `api_keys` table lookup. No JWT/cookie required for external callers. Key format: `rly_` + 64 hex chars (32 random bytes). First 8 chars stored as `key_prefix` for display.
-- **Versioned public API:** `/api/v1/` route surface wraps existing service logic. Routes rewrite `/api/v1/*` → `/api/*` internally; handlers read `x-api-entity-id`, `x-api-user-id`, `x-api-scopes` headers set by middleware.
-- **Scoped access:** Each key has a scopes array (e.g. `invoices:read`, `invoices:write`). IP allowlist optional per key.
-- **Sandbox/test mode:** Keys with `is_test_mode=TRUE` run full validation but skip GL/DB writes; response includes `"test": true`.
-- **Tier-based rate limiting:** In-memory sliding window per API key, limits vary by subscription tier.
-- **Webhook delivery:** `dispatchWebhookEvent(entityId, 'invoice.paid', payload)` inserts `webhook_deliveries` rows and fires async delivery. Cron at `/api/cron/webhooks` retries with exponential backoff. Dead-lettered after 5 failures; endpoint deactivated + email alert sent.
-- **Settings UI:** API Keys panel (list/create/revoke/rotate) + Webhooks panel (endpoints + event subscriptions) added to `/dashboard/settings`.
-
-### New DB tables (migration 026_developer_api.sql)
-
-| Table | Purpose |
-|-------|---------|
-| `api_keys` | `key_hash` (SHA-256), `key_prefix`, `entity_id`, `user_id`, `scopes[]`, `ip_allowlist[]`, `is_test_mode`, `revoked_at`, `rotated_key_id` |
-| `webhook_endpoints` | `url`, `entity_id`, `events[]`, `signing_secret`, `is_active` |
-| `webhook_deliveries` | `endpoint_id`, `event`, `payload`, `status`, `retry_count`, `next_retry_at`, `dead_lettered_at` |
-| `api_requests` | Async-logged per-request audit: `key_id`, `path`, `method`, `status_code`, `duration_ms` |
-
-### New files
+### Key files
 
 | File | Purpose |
 |------|---------|
-| `src/lib/api-key.service.ts` | `createApiKey`, `validateApiKey`, `revokeKey`, `rotateKey` |
-| `src/lib/webhook.service.ts` | `dispatchWebhookEvent`, `processDelivery`, `signPayload` (HMAC-SHA256) |
-| `app/api/v1/invoices/route.ts` | Public GET invoices, POST create invoice |
-| `app/api/v1/bills/route.ts` | Public GET bills, POST create bill |
-| `app/api/v1/customers/route.ts` | Public CRUD customers |
-| `app/api/cron/webhooks/route.ts` | Webhook retry cron (every minute) |
-
-### Key technical decisions
-
-- SHA-256 hash storage: raw token never stored, only the hash — same pattern as HMRC tokens
-- Webhook HMAC: `Relentify-Signature: sha256=<hex>` header, signed with per-endpoint secret
-- Delivery headers: `Relentify-Delivery-Id`, `Relentify-Retry-Count`, `Relentify-Event`
-- Dead-letter: after 5 failures status=`dead_lettered`, endpoint `is_active=FALSE`, email to owner
-- Rate limits do NOT use the same in-process IP throttle as `middleware.ts` — separate per-key counter
+| `src/lib/api-key.service.ts` | `generateApiKey`, `validateApiKey`, `rotateApiKey`, `revokeApiKey`, `listApiKeys`, `logApiRequest` |
+| `src/lib/webhook.service.ts` | `createWebhookEndpoint`, `dispatchWebhookEvent`, `processDelivery`, `processPendingDeliveries`, `retryDeadLettered` |
+| `src/lib/rate-limiter.ts` | `checkRateLimit` — in-memory sliding window, tier-based limits |
+| `src/lib/v1-helpers.ts` | `requireApiKeyContext` (validates key + rate limit), `requireScope`, `apiSuccess`, `apiError`, `parseListParams` |
+| `src/components/settings/ApiKeysPanel.tsx` | API key management UI |
+| `src/components/settings/WebhooksPanel.tsx` | Webhook endpoint management UI |
+| `src/components/settings/SettingsTabs.tsx` | Tab wrapper for settings page |
 
 ---
 
@@ -775,11 +967,190 @@ Full documentation lives in `apps/26help/CLAUDE.md`. Summary:
 
 - **Live at**: `help.relentify.com/accounting` — container `26help`, port 3026
 - **Content**: `apps/26help/content/accounting/` — one MDX file per feature
-- **Status**: 20 of ~35 articles written. Every feature in this app needs an article AND a video.
-- **Videos**: embed via `videoUrl` frontmatter → `<VideoGuide>` component. Not yet recorded.
-- **Automation**: `scripts/update-help-articles.ts` (not yet built) — weekly cron runs MCP tests, calls Claude API, rewrites stale articles automatically.
+- **Status**: ✅ All articles written (51 accounting + 7 API, 2026-03-31). Videos not yet recorded.
+- **Videos**: embed via `video` frontmatter + `<VideoGuide>` component. Currently stripped from articles so pages look complete without them.
+- **Automation**: ✅ `scripts/update-help-articles.sh` — weekly cron (Mon 09:00) runs MCP tests, invokes Claude Code CLI to review and update stale articles automatically.
 
 **This must be complete before accounting launches publicly.** See `apps/26help/CLAUDE.md` for the full article checklist, video recording guidelines, and automation spec.
+
+---
+
+## MCP Test Expansion (2026-03-31)
+
+**MCP server:** `/opt/infra/mcp/22accounting-mcp/`
+**Current result:** 128/128 passing (2026-03-31) — all API routes covered, permissions + mismatch + dev API verified
+**Approach:** Single `run_tests.py` — monolithic sequential runner, `chk()`/`get_id()`/`chk_smoke()` pattern.
+
+### New tests on existing tool files (functions exist, not called in runner)
+
+| Area | Current | Target | New Tests |
+|------|---------|--------|-----------|
+| Customers | 2 | 4 | update, delete |
+| Suppliers | 1 | 4 | list, update, delete |
+| Invoices | 4 | 7 | list, get, stats |
+| Quotes | 2 | 4 | list, send |
+| Bills | 2 | 4 | list, get |
+| Credit Notes | 2 | 3 | list |
+| Expenses & Mileage | 5 | 10 | list_expenses, reject (2nd), list_mileage, approve_mileage, get_approval_settings |
+| Purchase Orders | 3 | 7 | list, get, approve, get_settings |
+| Projects | 1 | 4 | list, update, delete |
+| COA | 1 | 3 | create_account, deactivate |
+| Journals | 2 | 3 | list |
+| Banking | 1 | 3 | list_transactions, connect_mock |
+| Reports | 10 | 11 | consolidated |
+| Period Locks | 1 | 4 | get, overrides, earliest_open |
+| Attachments | 2 | 4 | list, delete |
+| Comments | 2 | 4 | list, update |
+| Multi-Entity | 1 | 3 | list_entities, intercompany |
+| Cron | 1 | 4 | reminders, accrual_reversals, prepayment_release |
+
+### New tool files needed
+
+| File | Routes | Test Type |
+|------|--------|-----------|
+| `tools/workspace.py` | list, switch, leave | Real |
+| `tools/user_profile.py` | GET/PATCH user, change-password, auth/me | Real |
+| `tools/auth_tools.py` | logout (run last), account export/delete | Smoke |
+| `tools/openbanking.py` | connect, callback, disconnect, sync | Smoke (expect 400/401) |
+| `tools/hmrc.py` | connect, callback, disconnect, obligations, client-info, vat/submit | Smoke (expect 400/401) |
+| `tools/recordings.py` | list, upload, stream | Smoke (expect 200 empty or 400) |
+| `tools/year_end.py` | preview, close | Real |
+
+Extend existing: `tools/stripe.py` (checkout/connect/disconnect/callback/status), `tools/import_data.py` (template downloads, OB template), `tools/cron.py` (accrual_reversals, prepayment_release), `tools/team.py` (wire into runner)
+
+### New tool file details
+
+| File | Tests | Type | Details |
+|------|-------|------|---------|
+| `tools/user_profile.py` | 4 | Real | get_user, update_user, change_password (smoke—no real pw), auth_me |
+| `tools/auth_tools.py` | 3 | Smoke | export_account, delete_account (expect 400, don't delete), logout (very last) |
+| `tools/workspace.py` | 3 | Real | list, switch, leave (smoke on non-default entity) |
+| `tools/openbanking.py` | 4 | Smoke | connect/disconnect/callback/sync (expect 400/401 without TrueLayer) |
+| `tools/hmrc.py` | 6 | Smoke | connect/disconnect/callback/obligations/client-info/vat-submit (expect 400/401) |
+| `tools/year_end.py` | 2 | Real | preview, close |
+| `tools/recordings.py` | 3 | Smoke | list (expect 200 empty), upload (expect 400 no file), stream (expect 404) |
+
+Extend existing: `stripe.py` +6 smoke (checkout/connect/disconnect/callback/status/webhook), `cron.py` +2 (accrual_reversals, prepayment_release), `import_data.py` +2 (template download, OB template)
+
+### Smoke test pattern
+
+New `chk_smoke()` helper — passes if response is NOT a server error (500/502/503). Asserts route exists and handles gracefully (400/401/403/404 all count as pass).
+
+### Final test count target: ~126
+
+- Existing expanded: 48 → ~87
+- New tool files: ~25
+- Extended existing files: ~10
+- Smoke tests: ~22
+
+### Test ordering constraints
+- Supplier delete after bills (no CASCADE)
+- Customer delete after invoices/quotes/credit notes
+- Auth logout = very last test (invalidates token)
+- Account delete: smoke only, do NOT actually delete
+
+### Phase 2 — Mock Server for External Services (complete, 2026-03-31)
+
+**Result:** 128/128 passing. OpenBanking sync, HMRC obligations, HMRC VAT submit, and quote send all now return real 200s via mock server. Stripe checkout remains smoke (needs `STRIPE_MOCK_HOST` env var — implemented but not yet fully tested for checkout flow).
+**Mock server:** `/opt/infra/mcp/22accounting-mcp/mock_server.py` on port 9999
+**iptables rule required:** `iptables -I INPUT -s 172.18.0.0/16 -p tcp --dport 9999 -j ACCEPT`
+**Env backup:** `.env.bak` has original external service URLs
+
+**Goal:** Replace smoke tests with real end-to-end tests using a local mock HTTP server.
+
+**Architecture:** Python `http.server` on port 9999 inside the MCP venv. Mimics Stripe, HMRC, and TrueLayer API responses. The 22accounting app's env vars get pointed at `http://localhost:9999` instead of real APIs.
+
+#### Mock server: `mock_server.py`
+
+Single Python file at `/opt/infra/mcp/22accounting-mcp/mock_server.py`. Routes incoming requests by path prefix:
+
+| Prefix | Mocks | Key Endpoints |
+|--------|-------|---------------|
+| `/stripe/` | Stripe API | `POST /v1/customers` (create customer), `POST /v1/checkout/sessions` (create session), `GET /v1/accounts/:id` (retrieve account), `POST /oauth/deauthorize` |
+| `/hmrc/` | HMRC MTD API | `GET /organisations/vat/:vrn/obligations` (VAT obligations), `POST /organisations/vat/:vrn/returns` (submit return), `POST /oauth/token` (refresh token) |
+| `/truelayer/` | TrueLayer API | `POST /connect/token` (refresh token), `GET /data/v1/accounts/:id/balance`, `GET /data/v1/accounts/:id/transactions` |
+
+Returns canned JSON responses with correct shapes. Logs all requests for assertion in tests.
+
+#### Env var overrides
+
+Set these in the 22accounting `.env` during test runs (restore originals after):
+
+```
+HMRC_BASE_URL=http://host.docker.internal:9999/hmrc
+TRUELAYER_API_URL=http://host.docker.internal:9999/truelayer
+STRIPE_SECRET_KEY=sk_test_mock_key
+STRIPE_CLIENT_ID=ca_mock_client
+```
+
+Note: `host.docker.internal` lets the container reach the host's port 9999. On Linux, add `--add-host=host.docker.internal:host-gateway` to docker-compose.yml or use the infra_default network IP.
+
+Alternatively: run mock server inside Docker on the `infra_default` network so 22accounting can reach it by container name.
+
+#### DB seeding for external services
+
+Add to `setup_test_env()`:
+
+```python
+# HMRC: seed tokens so obligations/submit routes proceed past "not connected" check
+db_execute("""UPDATE users SET vat_number='123456789',
+    hmrc_access_token='mock_token', hmrc_refresh_token='mock_refresh',
+    hmrc_token_expires_at=NOW() + interval '1 hour'
+    WHERE id=%s""", [user_id])
+
+# Stripe: seed customer ID so checkout/disconnect/status routes proceed
+db_execute("""UPDATE users SET stripe_customer_id='cus_mock_123',
+    stripe_account_id='acct_mock_456', stripe_account_status='verified'
+    WHERE id=%s""", [user_id])
+
+# OpenBanking: seed a bank connection so sync route proceeds
+db_execute("""INSERT INTO bank_connections
+    (id, user_id, entity_id, truelayer_account_id, access_token, refresh_token,
+     token_expires_at, display_name, account_type, currency)
+    VALUES (%s, %s, %s, 'acc_mock', 'mock_token', 'mock_refresh',
+     NOW() + interval '1 hour', 'Mock Current Account', 'CURRENT_ACCOUNT', 'GBP')""",
+    [str(uuid.uuid4()), user_id, entity_id])
+```
+
+#### Routes that need NO outbound call (DB-only, already fully tested)
+
+| Route | Why no mock needed |
+|-------|--------------------|
+| hmrc/disconnect | Only clears DB tokens |
+| hmrc/client-info | Only writes device info to DB |
+| openbanking/disconnect | Only deletes bank_connections row |
+| webhooks/stripe | Only validates signature + updates DB |
+
+#### Routes that need mock responses
+
+| Route | Mock endpoint | Response shape |
+|-------|---------------|----------------|
+| hmrc/obligations | `GET /hmrc/organisations/vat/:vrn/obligations` | `{ obligations: [{ periodKey, start, end, due, status }] }` |
+| hmrc/vat/submit | `POST /hmrc/organisations/vat/:vrn/returns` | `{ processingDate: "2026-03-31", formBundleNumber: "123456789" }` |
+| openbanking/sync | `GET /truelayer/data/v1/accounts/:id/balance` | `{ results: [{ available: 5000, current: 5000 }] }` |
+| openbanking/sync | `GET /truelayer/data/v1/accounts/:id/transactions` | `{ results: [{ transaction_id, timestamp, description, amount }] }` |
+| stripe/checkout | `POST /stripe/v1/checkout/sessions` | `{ id: "cs_mock", url: "http://localhost:9999/checkout" }` |
+| stripe/status | `GET /stripe/v1/accounts/:id` | `{ id: "acct_mock", charges_enabled: true, payouts_enabled: true }` |
+| stripe/disconnect | `POST /stripe/oauth/deauthorize` | `{ stripe_user_id: "acct_mock" }` |
+
+#### Implementation tasks
+
+1. Create `mock_server.py` with ThreadingHTTPServer on port 9999
+2. Add route handlers for all 7 mock endpoints above
+3. Add DB seeding to `setup_test_env()` for HMRC tokens, Stripe IDs, bank connection
+4. Add DB cleanup for new seeded rows to `teardown_test_env()`
+5. Update `run_tests.py`: start mock server in background thread before tests, stop after
+6. Update env var handling: either patch env before container start, or use `http_client` to pass mock URLs
+7. Convert smoke tests to real `chk()` assertions (expect 200, not just "not 500")
+8. Add `teardown_test_env()` entries for: `bank_connections`, HMRC token columns, Stripe columns
+9. Test end-to-end: all 128 tests still green, smoke tests now return real 200s
+
+#### Key decision: env var injection
+
+The 22accounting container reads env vars at startup. Two options:
+- **A) Restart container with mock URLs** — cleanest but slow (5s restart per test run)
+- **B) Override at service level** — if services read `process.env` per-request (they do for HMRC/TrueLayer), just changing `.env` and restarting once works
+- **Recommended:** Change `.env` once, rebuild/restart, run all tests, restore `.env` after. The mock server stays running on the host during the test run.
 
 ---
 

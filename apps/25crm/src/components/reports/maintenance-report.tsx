@@ -1,16 +1,13 @@
 'use client';
 
 import React from 'react';
-import { collection, query, where, orderBy } from 'firebase/firestore';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { useUserProfile } from '@/hooks/use-user-profile';
+import { useApiDoc } from '@/hooks/use-api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@relentify/ui';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@relentify/ui';
 import { Skeleton } from '@relentify/ui';
 import { Badge } from '@relentify/ui';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { Timestamp } from 'firebase/firestore';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import {
   ChartContainer,
@@ -26,46 +23,33 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+interface MaintenanceReportData {
+  summary: Array<{ status: string; priority: string; count: number }>;
+  requests: Array<{
+    id: string;
+    property_id?: string;
+    title: string;
+    description?: string;
+    priority: string;
+    status: string;
+    reported_date: string;
+    property_address?: string;
+  }>;
+  chartData: Array<{ type: string; count: number }>;
+}
+
 export function MaintenanceReport() {
-  const firestore = useFirestore();
   const router = useRouter();
-  const { userProfile: currentUserProfile, isLoading: loadingCurrentUser } = useUserProfile();
-  const organizationId = currentUserProfile?.organizationId;
+  const { data: reportData, isLoading } = useApiDoc<MaintenanceReportData>('/api/reports/maintenance-report');
 
-  const openMaintenanceQuery = useMemoFirebase(() =>
-    (firestore && organizationId) ? query(
-        collection(firestore, `organizations/${organizationId}/maintenanceRequests`),
-        where('status', 'in', ['New', 'In Progress', 'Awaiting Parts', 'On Hold']),
-        orderBy('reportedDate', 'desc')
-    ) : null, [firestore, organizationId]);
-  const { data: requests, isLoading: loadingRequests } = useCollection<any>(openMaintenanceQuery);
-
-  const propertiesQuery = useMemoFirebase(() => (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/properties`) : null, [firestore, organizationId]);
-  const { data: properties, isLoading: loadingProperties } = useCollection<any>(propertiesQuery);
-  const propertyMap = React.useMemo(() => new Map(properties?.map(p => [p.id, p.addressLine1]) || []), [properties]);
-
-  const isLoading = loadingCurrentUser || loadingRequests || loadingProperties;
-
-  const chartData = React.useMemo(() => {
-    if (!requests) return [];
-    
-    const typeCounts = requests.reduce((acc, req) => {
-      const type = req.issueType || 'Other';
-      acc[type] = (acc[type] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return Object.entries(typeCounts).map(([type, count]) => ({
-      type,
-      count,
-    }));
-  }, [requests]);
+  const requests = reportData?.requests ?? [];
+  const chartData = reportData?.chartData ?? [];
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
         case 'New': return 'default';
         case 'In Progress': return 'secondary';
-        case 'Awaiting Parts': case 'On Hold': return 'outline';
+        case 'Awaiting Quote': case 'Scheduled': return 'outline';
         default: return 'secondary';
     }
   }
@@ -79,13 +63,6 @@ export function MaintenanceReport() {
         default: return 'outline';
     }
   }
-
-  const getTimestampAsDate = (timestamp: any): Date => {
-    if (!timestamp) return new Date();
-    if (timestamp instanceof Timestamp) { return timestamp.toDate(); }
-    if (typeof timestamp === 'string') { return new Date(timestamp); }
-    return new Date();
-  };
 
   return (
     <Card>
@@ -137,14 +114,14 @@ export function MaintenanceReport() {
                   <TableCell className="text-right"><Skeleton className="h-5 w-24 ml-auto" /></TableCell>
                 </TableRow>
               ))
-            ) : requests && requests.length > 0 ? (
+            ) : requests.length > 0 ? (
               requests.map((req) => (
                 <TableRow key={req.id} className="cursor-pointer" onClick={() => router.push(`/maintenance/${req.id}`)}>
-                  <TableCell className="font-medium">{propertyMap.get(req.propertyId) || 'Unknown Property'}</TableCell>
+                  <TableCell className="font-medium">{req.property_address || 'Unknown Property'}</TableCell>
                   <TableCell className="truncate max-w-xs">{req.description}</TableCell>
                   <TableCell><Badge variant={getPriorityBadgeVariant(req.priority)}>{req.priority}</Badge></TableCell>
                   <TableCell><Badge variant={getStatusBadgeVariant(req.status)}>{req.status}</Badge></TableCell>
-                  <TableCell className="text-right text-sm text-muted-foreground">{format(getTimestampAsDate(req.reportedDate), 'PP')}</TableCell>
+                  <TableCell className="text-right text-sm text-muted-foreground">{format(new Date(req.reported_date), 'PP')}</TableCell>
                 </TableRow>
               ))
             ) : (

@@ -1,79 +1,51 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { collection, query, where, orderBy, Timestamp } from 'firebase/firestore';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
-import { useUserProfile } from '@/hooks/use-user-profile';
+import React, { useState } from 'react';
+import { useApiDoc } from '@/hooks/use-api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@relentify/ui';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@relentify/ui';
 import { Skeleton } from '@relentify/ui';
 import { Button } from '@relentify/ui';
 import { DateRange } from 'react-day-picker';
 import { DateRangePicker } from '@/components/date-range-picker';
-import { addDays, format, startOfYear } from 'date-fns';
-import { Badge } from '@relentify/ui';
+import { format, startOfYear } from 'date-fns';
 import { cn } from '@/lib/utils';
 
-interface Transaction {
-    id: string;
-    transactionType: 'Rent Payment' | 'Management Fee' | 'Commission' | 'Landlord Payout' | 'Contractor Payment' | 'Agency Expense' | 'Deposit';
-    amount: number;
-    currency: string;
-    transactionDate: any;
-    description: string;
+interface ReportData {
+    transactions: Array<{
+        id: string;
+        type: string;
+        amount: number;
+        currency: string;
+        description: string;
+        transaction_date: string;
+    }>;
+    total_income: number;
+    total_expenses: number;
+    net: number;
 }
 
 export function ProfitLossReport() {
-    const firestore = useFirestore();
-    const { userProfile: currentUserProfile, isLoading: loadingCurrentUser } = useUserProfile();
-    const organizationId = currentUserProfile?.organizationId;
-    
     const [dateRange, setDateRange] = useState<DateRange | undefined>({ from: startOfYear(new Date()), to: new Date() });
-    const [reportData, setReportData] = useState<any[] | null>(null);
-    const [isGenerating, setIsGenerating] = useState(false);
+    const [apiUrl, setApiUrl] = useState<string | null>(null);
 
-    // Fetch all transactions for the org
-    const transactionsQuery = useMemoFirebase(() => 
-        (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/transactions`) : null, 
-    [firestore, organizationId]);
-    const { data: allTransactions, isLoading: loadingTransactions } = useCollection<any>(transactionsQuery);
-    
-    const isLoading = loadingCurrentUser || loadingTransactions;
+    const { data: reportData, isLoading } = useApiDoc<ReportData>(apiUrl);
 
     const generateReport = () => {
-        if (!dateRange?.from || !dateRange?.to || !allTransactions) return;
-        
-        setIsGenerating(true);
-        
-        const fromTimestamp = Timestamp.fromDate(dateRange.from);
-        const toTimestamp = Timestamp.fromDate(dateRange.to);
-
-        const relevantTransactions = allTransactions.filter(t => {
-            const transactionDate = t.transactionDate instanceof Timestamp ? t.transactionDate : Timestamp.fromDate(new Date(t.transactionDate));
-            const isDateInRange = transactionDate >= fromTimestamp && transactionDate <= toTimestamp;
-            if (!isDateInRange) return false;
-
-            return ['Management Fee', 'Commission', 'Agency Expense'].includes(t.transactionType);
-        });
-
-        setReportData(relevantTransactions.sort((a,b) => getTimestampAsDate(a.transactionDate).getTime() - getTimestampAsDate(b.transactionDate).getTime()));
-        setIsGenerating(false);
+        if (!dateRange?.from || !dateRange?.to) return;
+        const from = format(dateRange.from, 'yyyy-MM-dd');
+        const to = format(dateRange.to, 'yyyy-MM-dd');
+        setApiUrl(`/api/reports/profit-loss?from=${from}&to=${to}`);
     };
 
     const formatCurrency = (amount: number, currency = 'GBP') => {
         return new Intl.NumberFormat('en-GB', { style: 'currency', currency }).format(amount);
     };
 
-    const getTimestampAsDate = (timestamp: any): Date => {
-        if (!timestamp) return new Date();
-        if (timestamp instanceof Timestamp) { return timestamp.toDate(); }
-        if (typeof timestamp === 'string') { return new Date(timestamp); }
-        return new Date();
-    };
-
-    const income = reportData?.filter(t => ['Management Fee', 'Commission'].includes(t.transactionType)).reduce((sum, t) => sum + t.amount, 0) ?? 0;
-    const expenses = reportData?.filter(t => t.transactionType === 'Agency Expense').reduce((sum, t) => sum + t.amount, 0) ?? 0;
-    const netProfit = income - expenses;
+    const income = reportData?.total_income ?? 0;
+    const expenses = reportData?.total_expenses ?? 0;
+    const netProfit = reportData?.net ?? 0;
+    const transactions = reportData?.transactions ?? [];
 
     return (
         <Card>
@@ -84,14 +56,14 @@ export function ProfitLossReport() {
             <CardContent className="space-y-4">
                 <div className="flex flex-col sm:flex-row gap-2">
                     <DateRangePicker date={dateRange} setDate={setDateRange} />
-                    
-                    <Button onClick={generateReport} disabled={!dateRange || isGenerating || isLoading}>
-                        {isGenerating ? 'Generating...' : 'Generate Report'}
+
+                    <Button onClick={generateReport} disabled={!dateRange || isLoading}>
+                        {isLoading ? 'Generating...' : 'Generate Report'}
                     </Button>
                 </div>
 
-                {isGenerating && <Skeleton className="h-40 w-full" />}
-                
+                {isLoading && <Skeleton className="h-40 w-full" />}
+
                 {reportData && (
                     <div className="space-y-4 pt-4">
                          <div className="grid gap-4 md:grid-cols-3">
@@ -103,12 +75,12 @@ export function ProfitLossReport() {
                         <Table>
                             <TableHeader><TableRow><TableHead>Date</TableHead><TableHead>Description</TableHead><TableHead className="text-right">Amount</TableHead></TableRow></TableHeader>
                             <TableBody>
-                                {reportData.length > 0 ? reportData.map(t => (
+                                {transactions.length > 0 ? transactions.map(t => (
                                     <TableRow key={t.id}>
-                                        <TableCell>{format(getTimestampAsDate(t.transactionDate), 'PP')}</TableCell>
+                                        <TableCell>{format(new Date(t.transaction_date), 'PP')}</TableCell>
                                         <TableCell>{t.description}</TableCell>
-                                        <TableCell className={cn("text-right font-medium", ['Management Fee', 'Commission'].includes(t.transactionType) ? 'text-[var(--theme-success)]' : 'text-[var(--theme-destructive)]')}>
-                                            {t.transactionType === 'Agency Expense' ? '-' : ''}
+                                        <TableCell className={cn("text-right font-medium", ['Management Fee', 'Commission'].includes(t.type) ? 'text-[var(--theme-success)]' : 'text-[var(--theme-destructive)]')}>
+                                            {t.type === 'Agency Expense' ? '-' : ''}
                                             {formatCurrency(t.amount)}
                                         </TableCell>
                                     </TableRow>

@@ -5,6 +5,7 @@ import { getExpenseApprovalSettings, rejectMileage } from '@/src/lib/expense_app
 import { sendExpenseDecisionEmail } from '@/src/lib/email';
 import { query } from '@/src/lib/db';
 import { logAudit } from '@/src/lib/audit.service';
+import { checkPermission } from '@/src/lib/workspace-auth';
 
 export async function POST(
   req: NextRequest,
@@ -14,6 +15,8 @@ export async function POST(
     const { id } = await params;
     const auth = await getAuthUser();
     if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const denied = checkPermission(auth, 'mileage', 'approve');
+    if (denied) return denied;
     const entity = await getActiveEntity(auth.userId);
     if (!entity) return NextResponse.json({ error: 'No active entity' }, { status: 400 });
 

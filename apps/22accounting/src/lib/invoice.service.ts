@@ -6,6 +6,7 @@ import {
   buildInvoiceCreationLines,
   buildInvoicePaymentLines,
 } from './general_ledger.service';
+import { dispatchWebhookEvent } from './webhook.service';
 
 export async function generateInvoiceNumber() {
   const year = new Date().getFullYear();
@@ -36,7 +37,7 @@ export async function createInvoice(data: {
   const total = subtotal + taxAmount;
   const fee = total * 0.025;
 
-  return withTransaction(async (client) => {
+  const result = await withTransaction(async (client) => {
     const r = await client.query(
       `INSERT INTO invoices (user_id,entity_id,customer_id,project_id,invoice_number,client_name,client_email,client_address,issue_date,due_date,subtotal,tax_rate,tax_amount,total,currency,relentify_fee_amount,notes,terms,payment_terms)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) RETURNING *`,
@@ -81,6 +82,10 @@ export async function createInvoice(data: {
 
     return inv;
   });
+
+  dispatchWebhookEvent(data.entityId, 'invoice.created', { invoice: result }).catch(() => {});
+
+  return result;
 }
 
 export async function getInvoicesByUser(userId: string, entityId?: string) {
@@ -161,7 +166,7 @@ export async function markInvoicePaidManually(
 
   const amount = options?.amount ?? parseFloat(invoice.total);
 
-  return withTransaction(async (client) => {
+  const result = await withTransaction(async (client) => {
     await client.query(
       `UPDATE invoices SET status='paid', paid_at=$1::timestamptz, payment_method='bank_transfer' WHERE id=$2`,
       [paymentDate, invoiceId]
@@ -193,13 +198,18 @@ export async function markInvoicePaidManually(
     const updated = await client.query('SELECT * FROM invoices WHERE id=$1', [invoiceId]);
     return updated.rows[0];
   });
+
+  dispatchWebhookEvent(entityId, 'invoice.paid', { invoice: result }).catch(() => {});
+
+  return result;
 }
 
 export async function voidInvoice(invoiceId: string, userId: string) {
   const inv = await query('SELECT * FROM invoices WHERE id=$1', [invoiceId]);
   if (!inv.rows[0]) throw new Error('Invoice not found');
+  const invoice = inv.rows[0];
 
-  return withTransaction(async (client) => {
+  await withTransaction(async (client) => {
     await client.query(`UPDATE invoices SET status='void' WHERE id=$1`, [invoiceId]);
 
     // Find and reverse the original GL entry (no is_locked filter — reversal creates a new entry)
@@ -218,6 +228,8 @@ export async function voidInvoice(invoiceId: string, userId: string) {
       );
     }
   });
+
+  dispatchWebhookEvent(invoice.entity_id, 'invoice.voided', { invoice: { id: invoiceId, status: 'void' } }).catch(() => {});
 }
 
 export async function getDashboardStats(userId: string, entityId?: string) {

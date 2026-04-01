@@ -1,4 +1,5 @@
 import { query } from './db';
+import { dispatchWebhookEvent } from './webhook.service';
 
 export async function getAllCustomers(userId: string, entityId?: string) {
   if (entityId) {
@@ -47,7 +48,11 @@ export async function createCustomer(data: {
      RETURNING *`,
     [data.userId, data.entityId, data.name, data.email || null, data.phone || null, data.address || null, data.notes || null]
   );
-  return r.rows[0];
+  const customer = r.rows[0];
+
+  dispatchWebhookEvent(data.entityId, 'customer.created', { customer }).catch(() => {});
+
+  return customer;
 }
 
 export async function updateCustomer(

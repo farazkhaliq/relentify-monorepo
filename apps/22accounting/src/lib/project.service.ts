@@ -152,3 +152,14 @@ export async function updateProject(projectId: string, userId: string, entityId:
 export async function archiveProject(projectId: string, userId: string, entityId: string): Promise<Project | null> {
   return updateProject(projectId, userId, entityId, { status: 'archived' });
 }
+
+export async function deleteProject(projectId: string, userId: string, entityId: string): Promise<boolean> {
+  // Null out project_id references on invoices and bills first
+  await query(`UPDATE invoices SET project_id = NULL WHERE project_id = $1 AND user_id = $2`, [projectId, userId]);
+  await query(`UPDATE bills SET project_id = NULL WHERE project_id = $1 AND user_id = $2`, [projectId, userId]);
+  const r = await query(
+    `DELETE FROM projects WHERE id = $1 AND entity_id = $2 AND user_id = $3`,
+    [projectId, entityId, userId]
+  );
+  return (r.rowCount ?? 0) > 0;
+}

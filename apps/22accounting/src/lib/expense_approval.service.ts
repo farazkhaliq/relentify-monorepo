@@ -1,6 +1,7 @@
 import { query, withTransaction } from './db';
 import { postJournalEntry, buildExpenseLines, buildMileageLines } from './general_ledger.service';
 import { getAccountByCode } from './chart_of_accounts.service';
+import { dispatchWebhookEvent } from './webhook.service';
 
 const EXPENSE_CATEGORY_TO_CODE: Record<string, number> = {
   advertising: 7100, entertainment: 7200, equipment: 1700, general: 7900,
@@ -51,7 +52,7 @@ export async function approveExpense(
   approverId: string,
   entityId: string
 ): Promise<boolean> {
-  return withTransaction(async (client) => {
+  const approved = await withTransaction(async (client) => {
     const r = await client.query(
       `UPDATE expenses SET
          status = 'approved',
@@ -86,6 +87,12 @@ export async function approveExpense(
 
     return true;
   });
+
+  if (approved) {
+    dispatchWebhookEvent(entityId, 'expense.approved', { expense: { id: expenseId } }).catch(() => {});
+  }
+
+  return approved;
 }
 
 export async function rejectExpense(

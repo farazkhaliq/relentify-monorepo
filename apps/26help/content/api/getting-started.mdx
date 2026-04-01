@@ -1,0 +1,39 @@
+---
+title: Getting Started with the Relentify API
+description: Authenticate, make your first request, and understand error responses.
+category: api
+order: 1
+appRoute: /dashboard/settings
+relatedArticles:
+  - invoices-api
+  - customers-api
+---
+
+## What this does
+
+The Relentify API lets you programmatically create invoices, manage customers, pull reports, and automate your accounting workflows. This guide covers authentication, rate limits, and error handling so you can start integrating quickly.
+
+## When to use it
+
+Use the API when you want to connect Relentify to your own systems, build custom integrations, or automate repetitive tasks.
+
+## Step by step
+
+1. Go to **Settings** and select **API Keys**
+2. Click **Generate API Key** to create a new key (prefixed with `rly_`)
+3. Copy the key and store it securely — it will not be shown again
+4. Set the `Authorization` header on all requests: `Bearer rly_your_key_here`
+5. Use the base URL: `https://accounting.relentify.com/api/v1`
+6. All request and response bodies use JSON — set `Content-Type: application/json`
+7. Rate limits are 100 requests per minute per key — a `429` response means you should back off and retry
+8. Errors return a JSON object with `error` (machine-readable code) and `message` (human-readable description):
+
+```json
+{
+  "error": "validation_error",
+  "message": "The field 'email' is required."
+}
+```
+
+9. To test without affecting live data, append `?test_mode=true` to any request
+10. Check the individual endpoint guides for request and response examples

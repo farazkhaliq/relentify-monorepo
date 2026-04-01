@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-import { collection, query, doc } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
 import { MoreHorizontal } from 'lucide-react';
 
 import {
@@ -32,63 +31,76 @@ import {
     DropdownMenuTrigger,
 } from '@relentify/ui';
 import { Button } from '@relentify/ui';
-import { useCollection, useFirestore, useMemoFirebase, useAuth } from '@/firebase';
 import { useUserProfile } from '@/hooks/use-user-profile';
 import { Skeleton } from '@relentify/ui';
 import { Avatar, AvatarFallback } from '@relentify/ui';
 import { Badge } from '@relentify/ui';
-import { updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { useToast } from '@/hooks/use-toast';
 
+interface UserProfileItem {
+    id: string;
+    user_id: string;
+    role: string;
+    email?: string;
+    full_name?: string;
+}
+
 export function UserManagement() {
-    const firestore = useFirestore();
     const { toast } = useToast();
-    const auth = useAuth();
     const { userProfile: currentUserProfile, isLoading: isCurrentUserLoading } = useUserProfile();
-    const organizationId = currentUserProfile?.organizationId;
 
-    const usersQuery = useMemoFirebase(() =>
-        (firestore && organizationId) ? collection(firestore, `organizations/${organizationId}/userProfiles`) : null,
-        [firestore, organizationId]
-    );
-    const { data: users, isLoading: loadingUsers } = useCollection<any>(usersQuery);
+    const [users, setUsers] = useState<UserProfileItem[] | null>(null);
+    const [loadingUsers, setLoadingUsers] = useState(true);
 
-    const handleChangeRole = (userId: string, userName: string, newRole: 'Admin' | 'Staff') => {
-        if (!firestore || !auth || !organizationId) return;
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const res = await fetch('/api/user-profiles');
+                if (res.ok) {
+                    const data = await res.json();
+                    setUsers(data);
+                }
+            } catch (err) {
+                console.error('Error fetching user profiles:', err);
+            } finally {
+                setLoadingUsers(false);
+            }
+        };
+        fetchUsers();
+    }, []);
 
-        const userDocRef = doc(firestore, `organizations/${organizationId}/userProfiles`, userId);
-        const entityName = userName;
-        updateDocumentNonBlocking(firestore, auth, organizationId, userDocRef, { role: newRole }, entityName);
-
-        toast({
-            title: 'Role Updated',
-            description: `${userName}'s role has been changed to ${newRole}.`,
-        });
-    }
-
-    const handleChangeStatus = (userId: string, userName: string, newStatus: 'Active' | 'Inactive') => {
-        if (!firestore || !auth || !organizationId) return;
-
-        const userDocRef = doc(firestore, `organizations/${organizationId}/userProfiles`, userId);
-        const entityName = userName;
-        updateDocumentNonBlocking(firestore, auth, organizationId, userDocRef, { status: newStatus }, entityName);
-
-        toast({
-            title: 'User Status Updated',
-            description: `${userName}'s account has been set to ${newStatus}.`,
-        });
+    const handleChangeRole = async (profileId: string, userName: string, newRole: 'Admin' | 'Staff') => {
+        try {
+            const res = await fetch(`/api/user-profiles/${profileId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ role: newRole }),
+            });
+            if (res.ok) {
+                setUsers(prev => prev?.map(u => u.id === profileId ? { ...u, role: newRole } : u) || null);
+                toast({
+                    title: 'Role Updated',
+                    description: `${userName}'s role has been changed to ${newRole}.`,
+                });
+            }
+        } catch (err) {
+            console.error('Error updating role:', err);
+            toast({ variant: 'destructive', title: 'Error', description: 'Failed to update role.' });
+        }
     }
 
     const getRoleBadgeVariant = (role: string) => {
         return role === 'Admin' ? 'default' : 'secondary';
     }
 
-    const getStatusBadgeVariant = (status?: string) => {
-        return status === 'Active' ? 'default' : 'destructive';
+    const getInitials = (fullName?: string) => {
+        if (!fullName) return '??';
+        const parts = fullName.trim().split(/\s+/);
+        return `${parts[0]?.substring(0,1) || ''}${parts[1]?.substring(0,1) || ''}`;
     }
 
     const isLoading = isCurrentUserLoading || loadingUsers;
-    
+
     return (
         <Card>
             <CardHeader>
@@ -105,7 +117,6 @@ export function UserManagement() {
                                 <TableRow>
                                     <TableHead>User</TableHead>
                                     <TableHead>Role</TableHead>
-                                    <TableHead>Status</TableHead>
                                     <TableHead><span className="sr-only">Actions</span></TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -114,7 +125,6 @@ export function UserManagement() {
                                     <TableRow key={i}>
                                         <TableCell><div className="flex items-center gap-3"><Skeleton className="h-9 w-9 rounded-full" /><div className="space-y-1"><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-40" /></div></div></TableCell>
                                         <TableCell><Skeleton className="h-6 w-16 rounded-full" /></TableCell>
-                                        <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
                                         <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                                     </TableRow>
                                 ))}
@@ -128,7 +138,6 @@ export function UserManagement() {
                                 <TableRow>
                                     <TableHead>User</TableHead>
                                     <TableHead>Role</TableHead>
-                                    <TableHead>Status</TableHead>
                                     <TableHead><span className="sr-only">Actions</span></TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -138,41 +147,34 @@ export function UserManagement() {
                                         <TableRow key={u.id}>
                                             <TableCell>
                                                 <div className="flex items-center gap-3">
-                                                    <Avatar className="h-9 w-9"><AvatarFallback>{u.firstName?.substring(0,1)}{u.lastName?.substring(0,1)}</AvatarFallback></Avatar>
+                                                    <Avatar className="h-9 w-9"><AvatarFallback>{getInitials(u.full_name)}</AvatarFallback></Avatar>
                                                     <div>
-                                                        <div className="font-medium">{u.firstName} {u.lastName}</div>
+                                                        <div className="font-medium">{u.full_name || 'Unknown'}</div>
                                                         <div className="text-sm text-muted-foreground">{u.email}</div>
                                                     </div>
                                                 </div>
                                             </TableCell>
                                             <TableCell><Badge variant={getRoleBadgeVariant(u.role)}>{u.role}</Badge></TableCell>
-                                            <TableCell><Badge variant={getStatusBadgeVariant(u.status)}>{u.status}</Badge></TableCell>
                                             <TableCell>
                                                 <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild><Button aria-haspopup="true" size="icon" variant="ghost" disabled={u.id === currentUserProfile?.id}><MoreHorizontal className="h-4 w-4" /><span className="sr-only">Toggle menu</span></Button></DropdownMenuTrigger>
+                                                    <DropdownMenuTrigger asChild><Button aria-haspopup="true" size="icon" variant="ghost" disabled={u.user_id === currentUserProfile?.uid}><MoreHorizontal className="h-4 w-4" /><span className="sr-only">Toggle menu</span></Button></DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
                                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                                         <DropdownMenuSub>
                                                             <DropdownMenuSubTrigger>Change Role</DropdownMenuSubTrigger>
                                                             <DropdownMenuPortal>
                                                                 <DropdownMenuSubContent>
-                                                                    <DropdownMenuItem onSelect={() => handleChangeRole(u.id, `${u.firstName} ${u.lastName}`, 'Admin')}>Admin</DropdownMenuItem>
-                                                                    <DropdownMenuItem onSelect={() => handleChangeRole(u.id, `${u.firstName} ${u.lastName}`, 'Staff')}>Staff</DropdownMenuItem>
+                                                                    <DropdownMenuItem onSelect={() => handleChangeRole(u.id, u.full_name || 'User', 'Admin')}>Admin</DropdownMenuItem>
+                                                                    <DropdownMenuItem onSelect={() => handleChangeRole(u.id, u.full_name || 'User', 'Staff')}>Staff</DropdownMenuItem>
                                                                 </DropdownMenuSubContent>
                                                             </DropdownMenuPortal>
                                                         </DropdownMenuSub>
-                                                        <DropdownMenuSeparator />
-                                                        {u.status === 'Active' ? (
-                                                            <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={() => handleChangeStatus(u.id, `${u.firstName} ${u.lastName}`, 'Inactive')}>Deactivate User</DropdownMenuItem>
-                                                        ) : (
-                                                            <DropdownMenuItem onSelect={() => handleChangeStatus(u.id, `${u.firstName} ${u.lastName}`, 'Active')}>Activate User</DropdownMenuItem>
-                                                        )}
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </TableCell>
                                         </TableRow>
                                     ))
-                                ) : (<TableRow><TableCell colSpan={4} className="h-24 text-center">No other users found.</TableCell></TableRow>)}
+                                ) : (<TableRow><TableCell colSpan={3} className="h-24 text-center">No other users found.</TableCell></TableRow>)}
                             </TableBody>
                         </Table>
                     </div>
