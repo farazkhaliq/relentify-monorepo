@@ -1,4 +1,5 @@
-import { prisma } from '@/lib/prisma'
+import { query } from '@/lib/db'
+import { toInventory, toPhoto, InventoryWithPhotos } from '@/lib/types'
 import { getAuthUser } from '@/lib/auth'
 import { notFound, redirect } from 'next/navigation'
 import PrintButton from '@/components/PrintButton'
@@ -16,11 +17,19 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   const user = await getAuthUser()
   if (!user) redirect('https://login.relentify.com/login')
 
-  const inventory = await prisma.inventory.findUnique({
-    where: { id: id, userId: user.userId },
-    include: { photos: { orderBy: [{ room: 'asc' }, { uploadedAt: 'asc' }] } },
-  })
-  if (!inventory) notFound()
+  const { rows: invRows } = await query(
+    'SELECT * FROM inv_items WHERE id=$1 AND user_id=$2',
+    [id, user.userId]
+  )
+  if (!invRows.length) notFound()
+  const { rows: photoRows } = await query(
+    'SELECT * FROM inv_photos WHERE inventory_id=$1 ORDER BY room ASC, uploaded_at ASC',
+    [id]
+  )
+  const inventory: InventoryWithPhotos = {
+    ...toInventory(invRows[0]),
+    photos: photoRows.map(toPhoto),
+  }
 
   const rooms = Array.from(new Set(inventory.photos.map(p => p.room)))
   const byRoom = rooms.reduce((acc, room) => {
@@ -36,10 +45,11 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
     <>
       <style>{`
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: var(--font-sans); color: var(--theme-text); background: white; }
+        body { font-family: var(--font-sans); color: var(--theme-text); background: var(--theme-background); }
+        @media print { body { background: white; } }
         .topbar { background: var(--theme-background); padding: 10px 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--theme-border); }
         .topbar span { font-size: var(--theme-text-80); color: var(--theme-text-muted); }
-        .header { background: var(--theme-primary); color: white; padding: 32px 40px; }
+        .header { background: var(--theme-primary); color: var(--theme-text); padding: 32px 40px; }
         .header h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
         .header p { font-size: var(--theme-text-80); color: var(--theme-text-dim); opacity: 0.8; }
         .meta { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--theme-border); }
@@ -50,9 +60,9 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
         
         /* Specialized print-safe badges */
         .print-badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: var(--theme-text-70); font-weight: 500; }
-        .badge-in { background: var(--theme-success); color: white; }
-        .badge-out { background: var(--theme-warning); color: white; }
-        .badge-conf { background: var(--theme-accent); color: white; }
+        .badge-in { background: var(--theme-success); color: var(--theme-text); }
+        .badge-out { background: var(--theme-warning); color: var(--theme-text); }
+        .badge-conf { background: var(--theme-accent); color: var(--theme-text); }
         
         .notes-bar { padding: 14px 32px; background: var(--theme-background); border-bottom: 1px solid var(--theme-border); font-size: var(--theme-text-80); color: var(--theme-text-muted); }
         .notes-label { font-size: var(--theme-text-9); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--theme-text-dim); margin-bottom: 3px; }
@@ -142,7 +152,14 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
       ))}
       <div className="sigs">
         <div><div className="sig-box">Agent Signature · {inventory.createdBy}</div></div>
-        <div><div className="sig-box">Tenant Signature</div></div>
+        <div>
+          <div className="sig-box">
+            Tenant Signature
+            {inventory.tenantSignatureData && (
+              <img src={inventory.tenantSignatureData} alt="Tenant signature" style={{maxHeight: '80px', marginTop: '8px'}} />
+            )}
+          </div>
+        </div>
       </div>
       {inventory.tenantConfirmed && inventory.confirmedAt && (
         <div className="confirm-note">

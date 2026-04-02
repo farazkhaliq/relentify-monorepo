@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Sun, Moon, ChevronDown } from 'lucide-react';
+import { Sun, Moon, ChevronDown, Menu, X } from 'lucide-react';
 import { useTheme } from '../../hooks/useTheme';
 import { cn } from '../../lib/utils';
 import { motion } from 'framer-motion';
@@ -18,6 +18,8 @@ interface TopBarProps {
 export function TopBar({ logo, navLinks, primaryAction, children, centerSlot, className }: TopBarProps) {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,58 +29,103 @@ export function TopBar({ logo, navLinks, primaryAction, children, centerSlot, cl
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close mobile menu on outside click
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(e.target as Node)) {
+        setMobileMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [mobileMenuOpen]);
+
   return (
     <header className={cn(
       "fixed top-6 left-0 right-0 z-50 flex justify-center px-4",
       className
     )}>
-      <motion.div
-        initial={false}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        className={cn(
-          "flex items-center w-full max-w-6xl px-6 py-3 rounded-full border transition-all duration-500",
-          "shadow-cinematic backdrop-blur-3xl",
-          isDarkMode
-            ? "bg-black/40 border-white/5"
-            : "bg-white/70 border-black/5",
-          isScrolled ? "scale-[0.98]" : "scale-100"
-        )}
-      >
-        {/* Logo - fixed left */}
-        <div className="flex-shrink-0 mr-6">
-          {logo}
-        </div>
-
-        {/* Nav links - grows to fill available space */}
-        <div className="flex-1 flex items-center gap-4 min-w-0">
-          <nav className="flex items-center gap-4 flex-wrap">
-            {navLinks}
-          </nav>
-          {primaryAction}
-        </div>
-
-        {/* Center slot (optional) */}
-        {centerSlot && (
-          <div className="flex justify-center mx-4 flex-shrink-0">
-            {centerSlot}
+      <div ref={mobileMenuRef} className="w-full max-w-6xl relative">
+        <motion.div
+          initial={false}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className={cn(
+            "flex items-center w-full px-6 py-3 rounded-full border transition-all duration-500",
+            "shadow-cinematic backdrop-blur-3xl",
+            isDarkMode
+              ? "bg-black/40 border-white/5"
+              : "bg-white/70 border-black/5",
+            isScrolled ? "scale-[0.98]" : "scale-100"
+          )}
+        >
+          {/* Logo - fixed left */}
+          <div className="flex-shrink-0 mr-6">
+            {logo}
           </div>
-        )}
 
-        {/* Right: dark mode toggle + user menu */}
-        <div className="flex-shrink-0 flex items-center gap-4 ml-4">
+          {/* Hamburger button - mobile only */}
           <button
-            onClick={toggleDarkMode}
-            className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white transition-all flex items-center justify-center"
-            aria-label="Toggle Dark Mode"
+            onClick={() => setMobileMenuOpen(o => !o)}
+            className="sm:hidden p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-black/60 dark:text-white/60 transition-all mr-auto"
+            aria-label="Toggle menu"
           >
-            {isDarkMode ? <Sun size={14} /> : <Moon size={14} />}
+            {mobileMenuOpen ? <X size={16} /> : <Menu size={16} />}
           </button>
-          <div className="flex items-center">
-            {children}
+
+          {/* Nav links - hidden on mobile, visible on sm+ */}
+          <div className="flex-1 hidden sm:flex items-center gap-4 min-w-0">
+            <nav className="flex items-center gap-4 flex-wrap">
+              {navLinks}
+            </nav>
+            {primaryAction}
           </div>
-        </div>
-      </motion.div>
+
+          {/* Center slot (optional) */}
+          {centerSlot && (
+            <div className="hidden sm:flex justify-center mx-4 flex-shrink-0">
+              {centerSlot}
+            </div>
+          )}
+
+          {/* Right: dark mode toggle + user menu */}
+          <div className="flex-shrink-0 flex items-center gap-4 ml-4">
+            <button
+              onClick={toggleDarkMode}
+              className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-black/40 dark:text-white/40 hover:text-black dark:hover:text-white transition-all flex items-center justify-center"
+              aria-label="Toggle Dark Mode"
+            >
+              {isDarkMode ? <Sun size={14} /> : <Moon size={14} />}
+            </button>
+            <div className="flex items-center">
+              {children}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Mobile dropdown menu */}
+        {mobileMenuOpen && (
+          <div
+            className={cn(
+              "sm:hidden absolute top-full left-0 right-0 mt-2 mx-2 rounded-2xl border py-4 px-4 shadow-lg z-50 space-y-3",
+              isDarkMode
+                ? "bg-black/90 border-white/10 backdrop-blur-xl"
+                : "bg-white/95 border-black/5 backdrop-blur-xl"
+            )}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <nav className="flex flex-col gap-3">
+              {navLinks}
+            </nav>
+            {primaryAction && (
+              <div className="pt-2 border-t border-[var(--theme-border)]">
+                {primaryAction}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </header>
   );
 }

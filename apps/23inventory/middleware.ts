@@ -8,7 +8,7 @@ export async function middleware(req: NextRequest) {
   const requestHeaders = new Headers(req.headers)
   requestHeaders.set('x-pathname', pathname)
 
-  if (pathname.startsWith('/confirm') || pathname.startsWith('/api/confirm') || pathname === '/api/health') {
+  if (pathname.startsWith('/confirm') || pathname.startsWith('/api/confirm') || pathname === '/api/health' || pathname.startsWith('/api/webhooks/')) {
     return NextResponse.next({
       request: {
         headers: requestHeaders,

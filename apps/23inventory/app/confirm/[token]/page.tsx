@@ -60,14 +60,14 @@ export default function ConfirmPage({ params }: { params: Promise<{ token: strin
 
           <Card className="shadow-cinematic overflow-hidden">
             {status === 'loading' && (
-              <CardContent className="p-24 text-center">
+              <CardContent className="p-12 sm:p-24 text-center">
                 <Loader2 size={40} className="animate-spin text-[var(--theme-accent)] mx-auto mb-6" />
                 <div className="text-[var(--theme-text-dim)] font-mono text-[var(--theme-text-10)] uppercase tracking-widest">Initialising Secure Link...</div>
               </CardContent>
             )}
 
             {status === 'error' && (
-              <CardContent className="p-20 text-center space-y-6">
+              <CardContent className="p-10 sm:p-20 text-center space-y-6">
                 <div className="w-20 h-20 bg-[var(--theme-destructive)]/10 rounded-full flex items-center justify-center mx-auto border border-[var(--theme-destructive)]/20">
                   <XCircle size={40} className="text-[var(--theme-destructive)]" />
                 </div>
@@ -81,14 +81,14 @@ export default function ConfirmPage({ params }: { params: Promise<{ token: strin
 
             {(status === 'ready' || status === 'confirming') && inventory && (
               <>
-                <div className="bg-[var(--theme-border)] border-b border-[var(--theme-border)] p-10 space-y-4">
+                <div className="bg-[var(--theme-border)] border-b border-[var(--theme-border)] p-6 sm:p-10 space-y-4">
                   <div className="flex items-center gap-3">
                     <Badge variant={inventory.type === 'check-in' ? 'accent' : 'warning'}>{inventory.type}</Badge>
                     <span className="text-[var(--theme-text-10)] font-mono text-[var(--theme-text-dim)] uppercase tracking-widest">{new Date(inventory.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                   </div>
                   <h2 className="text-2xl font-bold text-[var(--theme-text)] tracking-tight leading-tight">{inventory.propertyAddress}</h2>
                 </div>
-                <CardContent className="p-10 space-y-8">
+                <CardContent className="p-6 sm:p-10 space-y-8">
                   <p className="text-[var(--theme-text-85)] text-[var(--theme-text-muted)] leading-relaxed italic">
                     I, the undersigned, acknowledge the physical state of the property as documented by <strong>{inventory.createdBy}</strong>.
                   </p>
@@ -118,7 +118,7 @@ export default function ConfirmPage({ params }: { params: Promise<{ token: strin
             )}
 
             {status === 'done' && (
-              <CardContent className="p-24 text-center space-y-8">
+              <CardContent className="p-12 sm:p-24 text-center space-y-8">
                 <div className="w-24 h-24 bg-[var(--theme-success)]/10 rounded-full flex items-center justify-center mx-auto border border-[var(--theme-success)]/20">
                   <CheckCircle2 size={48} className="text-[var(--theme-success)]" />
                 </div>

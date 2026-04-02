@@ -1,4 +1,5 @@
-import { prisma } from '@/lib/prisma'
+import { query } from '@/lib/db'
+import { toInventory, toPhoto, InventoryRow, PhotoRow, InventoryWithPhotos } from '@/lib/types'
 import { getAuthUser } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -30,11 +31,24 @@ export default async function Dashboard() {
   const user = await getAuthUser()
   if (!user) redirect('https://login.relentify.com/login')
 
-  const inventories = await prisma.inventory.findMany({
-    where: { userId: user.userId },
-    include: { photos: true },
-    orderBy: { createdAt: 'desc' },
-  })
+  const { rows: invRows } = await query(
+    'SELECT * FROM inv_items WHERE user_id=$1 ORDER BY created_at DESC',
+    [user.userId]
+  )
+  const { rows: photoRows } = await query(
+    'SELECT p.* FROM inv_photos p JOIN inv_items i ON p.inventory_id = i.id WHERE i.user_id=$1',
+    [user.userId]
+  )
+  const photosByInv = new Map<string, PhotoRow[]>()
+  for (const p of photoRows) {
+    const arr = photosByInv.get(p.inventory_id) || []
+    arr.push(p)
+    photosByInv.set(p.inventory_id, arr)
+  }
+  const inventories: InventoryWithPhotos[] = invRows.map((row: InventoryRow) => ({
+    ...toInventory(row),
+    photos: (photosByInv.get(row.id) || []).map(toPhoto),
+  }))
 
   return (
     <>
@@ -45,7 +59,7 @@ export default async function Dashboard() {
           className="mb-0" 
         />
 
-        <div className="flex flex-col md:flex-row items-center gap-8 lg:gap-12">
+        <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8 lg:gap-12">
           <SearchInput 
             variant="command" 
             placeholder="Search assets..." 

@@ -1,4 +1,5 @@
-import { prisma } from '@/lib/prisma'
+import { query } from '@/lib/db'
+import { toInventory, toPhoto, InventoryWithPhotos } from '@/lib/types'
 import { getAuthUser } from '@/lib/auth'
 import { notFound, redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -23,11 +24,19 @@ export default async function InventoryDetailPage({ params }: { params: Promise<
   const user = await getAuthUser()
   if (!user) redirect('https://login.relentify.com/login')
 
-  const inventory = await prisma.inventory.findUnique({
-    where: { id: id, userId: user.userId },
-    include: { photos: { orderBy: { uploadedAt: 'asc' } } },
-  })
-  if (!inventory) notFound()
+  const { rows: invRows } = await query(
+    'SELECT * FROM inv_items WHERE id=$1 AND user_id=$2',
+    [id, user.userId]
+  )
+  if (!invRows.length) notFound()
+  const { rows: photoRows } = await query(
+    'SELECT * FROM inv_photos WHERE inventory_id=$1 ORDER BY uploaded_at ASC',
+    [id]
+  )
+  const inventory: InventoryWithPhotos = {
+    ...toInventory(invRows[0]),
+    photos: photoRows.map(toPhoto),
+  }
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3003'
   const confirmUrl = `${baseUrl}/confirm/${inventory.confirmToken}`
@@ -64,7 +73,7 @@ export default async function InventoryDetailPage({ params }: { params: Promise<
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3 no-print pt-14">
+        <div className="flex flex-wrap gap-3 no-print pt-6 md:pt-14">
           <Link href={`/inventory/${inventory.id}/edit`}>
             <Button variant="ghost" size="sm" className="h-11 rounded-xl border border-[var(--theme-border)] bg-[var(--theme-card)] font-mono text-[var(--theme-text-10)] uppercase tracking-widest px-6">
               <Pencil size={14} className="mr-2" /> Edit

@@ -35,7 +35,7 @@ export default function CopyConfirmLink({
           size="sm"
           onClick={copy}
           className={`h-8 rounded-lg font-mono text-[var(--theme-text-10)] uppercase tracking-widest px-4 ${
-            copied ? 'bg-[var(--theme-success)] text-white shadow-lg shadow-[var(--theme-success)]/20' : 'bg-[var(--theme-border)] border border-[var(--theme-border)]'
+            copied ? 'bg-[var(--theme-success)] text-[var(--theme-text)] shadow-lg shadow-[var(--theme-success)]/20' : 'bg-[var(--theme-border)] border border-[var(--theme-border)]'
           }`}
         >
           {copied ? <Check size={14} className="mr-2" /> : <Link2 size={14} className="mr-2" />}

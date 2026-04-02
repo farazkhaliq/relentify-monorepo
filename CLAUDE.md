@@ -16,6 +16,7 @@ All UI components, theming, and navigation must come from `@relentify/ui`.
 | 24reminders | 24reminders | 3024 | TopBar layout |
 | 25crm | 25crm | 3025 | TopBar layout (no sidebar) |
 | 26help | 26help | 3026 | Static export (output: 'export'), TopBar layout, Pagefind search, help.relentify.com |
+| 27sign | 27sign | 3027 | Digital signature service, Preset D theme, sign.relentify.com |
 
 **Container naming**: All containers are named to match their app folder (20marketing, 21auth, etc.).
 The old names (relentify-com, relentify-login, relentify-accounts, etc.) are retired — containers deleted.
@@ -525,6 +526,7 @@ Use this when the vulnerable package is deep in a dep chain you don't control (e
 | 25crm | crm_* (contacts, properties, tenancies, transactions, communications, maintenance_requests) |
 | 24reminders | reminders_* (tasks, lists, workspaces, notifications, task_dependencies) |
 | 21auth | users, entities, app_access |
+| 27sign | signing_requests, signatures, api_keys, audit_log, otp_codes (separate `signing` DB) |
 | Standalone | tweet_drafts, contact_submissions, waitlist_signups, snoozed_emails, voice_assistant_state |
 
 ### Cross-app relationships

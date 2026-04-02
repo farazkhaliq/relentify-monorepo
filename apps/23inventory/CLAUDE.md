@@ -139,22 +139,24 @@ Migrate DB: `docker exec 23inventory npx prisma migrate deploy --schema prisma/s
 - **Delete inventory** — with confirm modal, cascades all photos
 - **Edit inventory** — `/inventory/[id]/edit` page; PATCH API + Edit button on detail page (added 2026-03-09)
 - **Multi-tenancy** — userId isolation on all queries
-- **Dark mode** — mostly working (some gaps)
-- **Auth** — JWT middleware, public routes for confirm/report
+- **Dark mode** — ✅ fixed (2026-04-02): all hardcoded `text-white`/`bg-white` replaced with theme variables
+- **Mobile layout** — ✅ fixed (2026-04-02): responsive padding/gaps on all pages + TopBar hamburger menu
+- **Auth** — JWT middleware, public routes for confirm/report/webhooks
+- **27sign integration** — send-email creates signing request via 27sign API; webhook receives signature data; PDF report embeds tenant signature
 
 ### ⚠️ Known gaps — deferred post-launch
 
 - **Base64 image storage** — suitable for low-medium volume, will need S3 migration at scale
-- **Mobile layout** — sidebar is fixed-width; no hamburger menu. Usable on tablet (landscape) but not great on phone. ~~Dashboard stats `grid-cols-4`~~ — ✅ fixed (2026-03-10): now `grid-cols-2 md:grid-cols-4`.
-- **Dark mode gaps** — some hardcoded `text-gray-` / `bg-gray-` classes on detail page and new form
-- **Signature capture** — PDF report shows a signature section but there is no digital signature UI; tenant confirmation is checkbox-only
+- ~~**Mobile layout**~~ — ✅ fixed (2026-04-02): hamburger menu on TopBar, responsive padding/gaps on all 6 pages
+- ~~**Dark mode gaps**~~ — ✅ fixed (2026-04-02): 7 hardcoded colour values replaced with CSS variables
+- ~~**Signature capture**~~ — ✅ integrated (2026-04-02): 27sign handles digital signatures via draw/upload/saved; PDF report embeds tenant signature
 - **No PDF email delivery** — report must be printed/saved manually
 - ~~**Confirm page: already-confirmed state**~~ — ✅ fixed (2026-03-10): GET response now checks `tenantConfirmed` and jumps straight to the success state. POST 409 also handled gracefully.
 - ~~**No Edit shortcut on dashboard list**~~ — ✅ fixed (2026-03-10): Edit link added to each dashboard table row.
 
 ### ❌ Not built — future roadmap
 
-- Digital signature capture on confirmation
+- ~~Digital signature capture on confirmation~~ — ✅ done via 27sign (2026-04-02)
 - Branded PDF reports (agent logo, colors)
 - Batch operations / export multiple inventories
 - Inventory templates (pre-built room lists per property type)

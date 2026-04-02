@@ -19,14 +19,14 @@ export default function ESign() {
               Signatures <span className={theme.typography.drama}>Simplified.</span>
             </h1>
             <p className="text-xl text-[var(--theme-text-muted)] max-w-xl mb-10">
-              The better-value alternative to DocuSign. Legally binding, secure, and integrated directly into your Relentify suite.
+              Draw, upload, or reuse your saved signature. Email-verified identity, hash-chained audit trails, and RFC 3161 timestamps — all self-hosted.
             </p>
             <div className="space-y-6 mb-12">
                {[
-                 'Close deals faster with mobile-friendly signing',
-                 'Reduce costs by up to 70% compared to DocuSign and paper-based processes',
-                 'Bank-grade security and audit trails',
-                 'Fully compliant with UK & EU e-signature laws'
+                 'Draw, upload, or reuse saved signatures on any device',
+                 'Email OTP verification for signer identity proof',
+                 'Tamper-evident hash-chained audit trail with third-party timestamps',
+                 'Compliant with UK ECA 2000, eIDAS (SES/AES) & US ESIGN Act'
                ].map((f, i) => (
                  <div key={i} className="flex items-center gap-3 font-bold text-sm">
                    <CheckCircle2 size={18} className="text-accent" />
@@ -50,7 +50,7 @@ export default function ESign() {
                 >
                    <div className="border-b border-[var(--theme-border)] pb-6 mb-6">
                       <h4 className="font-bold">Agreement Signed</h4>
-                      <p className="text-[var(--theme-text-10)] opacity-40 uppercase font-bold text-[var(--theme-success)]">Verified by Relentify Trust™</p>
+                      <p className="text-[var(--theme-text-10)] opacity-40 uppercase font-bold text-[var(--theme-success)]">Verified · OTP + Hash Chain + TSA Timestamp</p>
                    </div>
                    <div className="space-y-4 mb-10">
                       <div className="h-4 w-full bg-[var(--theme-border)] rounded-full" />
@@ -84,14 +84,14 @@ export default function ESign() {
                 price: 5, 
                 docusign: 8, 
                 envelopes: '5 Envelopes /mo',
-                features: ['Single User', 'Basic Fields', 'Mobile App Access', 'Real-time Audit Trail']
+                features: ['Single User', 'Draw or Upload Signatures', 'Email OTP Verification', 'Certificate of Completion']
               },
               { 
                 name: 'Standard', 
                 price: 12, 
                 docusign: 20, 
                 envelopes: 'Unlimited Envelopes',
-                features: ['Up to 3 Users', 'Custom Branding', 'Reminders & Notifications', 'Team Reporting'],
+                features: ['Up to 3 Users', 'Saved Signature Reuse', 'HMAC Webhook Callbacks', 'Hash-Chained Audit Trail'],
                 featured: true
               },
               { 
@@ -99,7 +99,7 @@ export default function ESign() {
                 price: 22, 
                 docusign: 35, 
                 envelopes: 'Unlimited Envelopes',
-                features: ['Unlimited Users', 'Advanced Fields', 'Bulk Send', 'Signer Attachments', 'CRM Integration']
+                features: ['Unlimited Users', 'RFC 3161 Third-Party Timestamps', 'API Integration', 'Self-Hosted Option', 'Priority Support']
               }
             ].map((tier, i) => (
               <div key={i} className={`p-10 rounded-cinematic border flex flex-col ${tier.featured ? 'bg-[var(--theme-dark)] text-white border-[var(--theme-dark)] shadow-cinematic scale-105 z-10' : 'bg-[var(--theme-card)] border-[var(--theme-border)]'}`}>
@@ -140,9 +140,9 @@ export default function ESign() {
            <h2 className="text-4xl md:text-6xl font-bold mb-20">Why switch to Relentify E-Sign?</h2>
            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
               {[
-                { title: 'Better Value', desc: 'Stop paying per-envelope. Our flat-rate pricing saves you up to 70% compared to DocuSign.', icon: <Zap /> },
-                { title: 'Legally Binding', desc: 'Fully compliant with eIDAS and the UK Electronic Communications Act.', icon: <ShieldCheck /> },
-                { title: 'Native Integration', desc: 'Send contracts directly from your CRM or Accounting dashboard with one click.', icon: <Zap /> }
+                { title: 'Better Value', desc: 'Stop paying per-envelope. Flat-rate pricing saves up to 70% vs DocuSign. Self-hosted means your data stays on your server.', icon: <Zap /> },
+                { title: 'Legally Binding', desc: 'UK ECA 2000, eIDAS SES/AES, and US ESIGN Act compliant. Email OTP verification, hash-chained audit trails, and RFC 3161 timestamps.', icon: <ShieldCheck /> },
+                { title: 'Native Integration', desc: 'One API call from Inventory, CRM, or Accounting creates a signing request. Webhook callbacks close the loop automatically.', icon: <Zap /> }
               ].map((f, i) => (
                 <div key={i} className="flex flex-col items-center gap-6">
                    <div className="w-16 h-16 rounded-cinematic bg-[var(--theme-card)]/10 flex items-center justify-center text-accent">
@@ -163,7 +163,7 @@ export default function ESign() {
           <div className="relative z-10">
             <h2 className={`text-4xl md:text-6xl font-bold mb-6 ${theme.typography.headings}`}>Reserve your free trial.</h2>
             <p className="text-xl text-[var(--theme-text-muted)] mb-12 max-w-xl mx-auto">
-              Stop paying the DocuSign tax. Reserve your spot for Relentify E-Sign and get 30 days of unlimited signatures free when we launch.
+              Stop paying the DocuSign tax. Get started with Relentify E-Sign — legally binding signatures with tamper-evident audit trails.
             </p>
             <div className="flex flex-col md:flex-row gap-4 justify-center max-w-md mx-auto">
               <button 

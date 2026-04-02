@@ -119,13 +119,13 @@ export default function PhotoManager({ inventoryId, initialPhotos }: Props) {
                     onClick={() => { setActiveRoom(isActive ? null : room); setShowUploadPanel(false) }}
                     className={`group flex items-center gap-3 px-5 py-3 rounded-2xl border transition-all duration-500 magnetic-btn ${
                       isActive
-                        ? 'bg-[var(--theme-accent)] border-[var(--theme-accent)] text-white shadow-lg shadow-[var(--theme-accent)]/20'
+                        ? 'bg-[var(--theme-accent)] border-[var(--theme-accent)] text-[var(--theme-text)] shadow-lg shadow-[var(--theme-accent)]/20'
                         : 'bg-[var(--theme-border)] border-[var(--theme-border)] text-[var(--theme-text-muted)] hover:border-[var(--theme-text-muted)] hover:text-[var(--theme-text)]'
                     }`}
                   >
                     <span className="font-bold text-[var(--theme-text-85)] tracking-tight">{room}</span>
                     <span className={`text-[var(--theme-text-10)] font-mono px-2 py-0.5 rounded-full font-bold ${
-                      isActive ? 'bg-white/20 text-white' : 'bg-[var(--theme-text)]/10 text-[var(--theme-text-dim)]'
+                      isActive ? 'bg-[var(--theme-text)]/20 text-[var(--theme-text)]' : 'bg-[var(--theme-text)]/10 text-[var(--theme-text-dim)]'
                     }`}>
                       {count}
                     </span>
@@ -200,7 +200,7 @@ export default function PhotoManager({ inventoryId, initialPhotos }: Props) {
       {/* Active Room Panel */}
       {activeRoom && (
         <Card className="overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-[var(--theme-border)]">
+          <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[var(--theme-border)]">
             <div>
               <div className="flex items-center gap-3 mb-1">
                 <h3 className="text-xl font-bold text-[var(--theme-text)] tracking-tight">{activeRoom}</h3>
@@ -224,7 +224,7 @@ export default function PhotoManager({ inventoryId, initialPhotos }: Props) {
 
           {showUploadPanel && (
             <CardContent className="bg-[var(--theme-accent)]/5 border-b border-[var(--theme-border)] p-8 space-y-8 animate-in slide-in-from-top-4 duration-500">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
                 <div className="space-y-3">
                   <Label>Asset Integrity</Label>
                   <div className="grid grid-cols-3 gap-3">

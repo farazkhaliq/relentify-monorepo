@@ -84,7 +84,7 @@ export default function EditInventoryPage({ params }: { params: Promise<{ id: st
   if (fetching) return <div className="p-12 text-center font-mono text-[var(--theme-text-10)] uppercase tracking-[0.3em] opacity-40">Synchronising...</div>
 
   return (
-    <div className="p-8 lg:p-12 max-w-4xl mx-auto space-y-12">
+    <div className="p-4 sm:p-6 lg:p-12 max-w-4xl mx-auto space-y-12">
       <div className="space-y-6">
         <Link href={`/inventory/${id}`} className="group inline-flex items-center gap-2 text-[var(--theme-text-dim)] hover:text-[var(--theme-text)] transition-colors font-mono text-[var(--theme-text-10)] uppercase tracking-widest">
           <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> 
@@ -103,7 +103,7 @@ export default function EditInventoryPage({ params }: { params: Promise<{ id: st
         </CardHeader>
         <CardContent className="p-10">
           <form onSubmit={handleSubmit} className="space-y-10">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-10">
               <div className="space-y-4">
                 <Label className="flex items-center gap-2"><Home size={12} className="text-[var(--theme-accent)]" /> Property Address</Label>
                 <Input

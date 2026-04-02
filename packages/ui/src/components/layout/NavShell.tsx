@@ -53,7 +53,7 @@ export function NavShell({
           compact ? "pt-24" : "pt-40"
         )}>
           <div className={cn(
-            "px-8 lg:px-12 max-w-7xl mx-auto w-full", 
+            "px-4 sm:px-8 lg:px-12 max-w-7xl mx-auto w-full", 
             containerClassName
           )}>
             {children}

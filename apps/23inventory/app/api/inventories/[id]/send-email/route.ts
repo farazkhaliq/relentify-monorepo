@@ -1,42 +1,84 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { query } from '@/lib/db'
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
+const SIGNING_SERVICE_URL = process.env.SIGNING_SERVICE_URL || 'http://27sign:3000'
+const SIGNING_API_KEY = process.env.SIGNING_API_KEY || ''
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const user = await getAuthUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const inventory = await prisma.inventory.findUnique({
-    where: { id: id, userId: user.userId },
-  })
-  if (!inventory) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  const { rows } = await query('SELECT * FROM inv_items WHERE id=$1 AND user_id=$2', [id, user.userId])
+  if (!rows.length) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  const inventory = rows[0]
 
   const { tenantEmail } = await req.json()
-  const email = (tenantEmail || inventory.tenantEmail || '').trim()
+  const email = (tenantEmail || inventory.tenant_email || '').trim()
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ error: 'Valid tenant email is required' }, { status: 400 })
   }
 
-  // Save email to inventory if new
-  if (email !== inventory.tenantEmail) {
-    await prisma.inventory.update({
-      where: { id: id },
-      data: { tenantEmail: email },
-    })
+  if (email !== inventory.tenant_email) {
+    await query('UPDATE inv_items SET tenant_email=$1 WHERE id=$2', [email, id])
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://inventory.relentify.com'
-  const confirmUrl = `${baseUrl}/confirm/${inventory.confirmToken}`
   const typeLabel = inventory.type === 'check-in' ? 'Check-In' : 'Check-Out'
+
+  // Create signing request via 27sign API
+  let signingUrl: string
+  let signingRequestId: string | null = null
+
+  if (SIGNING_API_KEY) {
+    try {
+      const sigRes = await fetch(`${SIGNING_SERVICE_URL}/api/v1/requests`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SIGNING_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          signerEmail: email,
+          signerName: null,
+          title: `Inventory Confirmation — ${inventory.property_address}`,
+          bodyText: `I, the undersigned, acknowledge the physical state of the property at ${inventory.property_address} as documented by ${inventory.created_by} on ${new Date(inventory.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}.`,
+          callbackUrl: `${SIGNING_SERVICE_URL.replace('27sign:3000', '23inventory:3000')}/api/webhooks/signing`,
+          callbackSecret: process.env.SIGNING_WEBHOOK_SECRET || '',
+          metadata: { inventoryId: id, type: inventory.type },
+          createdByUserId: user.userId,
+        }),
+      })
+
+      if (sigRes.ok) {
+        const sigData = await sigRes.json()
+        signingUrl = sigData.signingUrl
+        signingRequestId = sigData.id
+
+        // Store signing request ID on the inventory
+        await query('UPDATE inv_items SET signing_request_id=$1 WHERE id=$2', [signingRequestId, id])
+      } else {
+        // Fallback to direct confirm link
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://inventory.relentify.com'
+        signingUrl = `${baseUrl}/confirm/${inventory.confirm_token}`
+      }
+    } catch {
+      // Fallback to direct confirm link if 27sign is unavailable
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://inventory.relentify.com'
+      signingUrl = `${baseUrl}/confirm/${inventory.confirm_token}`
+    }
+  } else {
+    // No signing service configured — use legacy confirm link
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://inventory.relentify.com'
+    signingUrl = `${baseUrl}/confirm/${inventory.confirm_token}`
+  }
 
   const { error } = await resend.emails.send({
     from: 'Relentify Inventory <inventory@resend.dev>',
     to: email,
-    subject: `Please confirm your property ${typeLabel.toLowerCase()} — ${inventory.propertyAddress}`,
+    subject: `Please confirm your property ${typeLabel.toLowerCase()} — ${inventory.property_address}`,
     html: `
 <!DOCTYPE html>
 <html>
@@ -45,26 +87,26 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   <div style="max-width: 560px; margin: 0 auto; background: white; border-radius: 12px; border: 1px solid rgba(0, 0, 0, 0.04); overflow: hidden;">
     <div style="background: #000000; padding: 32px 40px;">
       <h1 style="color: white; margin: 0; font-size: 20px; font-weight: 700;">Inventory Confirmation</h1>
-      <p style="color: rgba(255, 255, 255, 0.6); margin: 8px 0 0; font-size: 14px;">${inventory.propertyAddress}</p>
+      <p style="color: rgba(255, 255, 255, 0.6); margin: 8px 0 0; font-size: 14px;">${inventory.property_address}</p>
     </div>
     <div style="padding: 40px;">
       <p style="color: #000000; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
-        Hello, please review the property inventory report for your upcoming tenancy.
+        Hello, please review and digitally sign the property inventory for your tenancy.
       </p>
       <div style="background: #F8F9FB; border-radius: 8px; padding: 24px; margin: 0 0 32px;">
-        <p style="color: #000000; font-size: 15px; line-height: 1.6; margin: 0 0 8px;"><strong>Property:</strong> ${inventory.propertyAddress}</p>
+        <p style="color: #000000; font-size: 15px; line-height: 1.6; margin: 0 0 8px;"><strong>Property:</strong> ${inventory.property_address}</p>
         <p style="color: #000000; font-size: 15px; line-height: 1.6; margin: 0 0 8px;"><strong>Type:</strong> ${typeLabel}</p>
-        <p style="color: #000000; font-size: 15px; line-height: 1.6; margin: 0 0 32px;"><strong>Agent:</strong> ${inventory.createdBy}</p>
-        <a href="${confirmUrl}" style="display: inline-block; background: #10B981; color: white; text-decoration: none; padding: 14px 32px; border-radius: 5rem; font-weight: 600; font-size: 15px;">View &amp; Confirm Inventory</a>
+        <p style="color: #000000; font-size: 15px; line-height: 1.6; margin: 0 0 32px;"><strong>Agent:</strong> ${inventory.created_by}</p>
+        <a href="${signingUrl}" style="display: inline-block; background: #10B981; color: white; text-decoration: none; padding: 14px 32px; border-radius: 5rem; font-weight: 600; font-size: 15px;">Review &amp; Sign Inventory</a>
       </div>
       <p style="color: rgba(0, 0, 0, 0.4); font-size: 13px; margin: 24px 0 0; line-height: 1.5;">
         You can also copy and paste this link into your browser:
         <br />
-        <a href="${confirmUrl}" style="color: #10B981; word-break: break-all;">${confirmUrl}</a>
+        <a href="${signingUrl}" style="color: #10B981; word-break: break-all;">${signingUrl}</a>
       </p>
     </div>
     <div style="background: #F8F9FB; border-top: 1px solid rgba(0, 0, 0, 0.04); padding: 20px 40px;">
-      <p style="color: rgba(0, 0, 0, 0.4); font-size: 12px; margin: 0;">Sent by Relentify Inventory · <a href="https://inventory.relentify.com" style="color: rgba(0, 0, 0, 0.4);">inventory.relentify.com</a></p>
+      <p style="color: rgba(0, 0, 0, 0.4); font-size: 12px; margin: 0;">Sent by Relentify Inventory — Powered by Relentify E-Sign</p>
     </div>
   </div>
 </body>
@@ -77,10 +119,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: 'Failed to send email' }, { status: 500 })
   }
 
-  await prisma.inventory.update({
-    where: { id: id },
-    data: { emailSentAt: new Date() },
-  })
-
+  await query('UPDATE inv_items SET email_sent_at=NOW() WHERE id=$1', [id])
   return NextResponse.json({ ok: true })
 }
