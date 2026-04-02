@@ -25,6 +25,9 @@ export default async function MainLayout({ children }: { children: React.ReactNo
               <TopBarLink href="/" active={pathname === '/' || pathname === ''}>
                 Dashboard
               </TopBarLink>
+              <TopBarLink href="/getting-started" active={pathname.startsWith('/getting-started')}>
+                Get Started
+              </TopBarLink>
               <TopBarLink href="/docs" active={pathname.startsWith('/docs')}>
                 API Docs
               </TopBarLink>

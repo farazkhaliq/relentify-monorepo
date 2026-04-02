@@ -22,8 +22,8 @@ const FEATURE_ACCESS: Record<Feature, Tier[]> = {
 }
 
 export const TIER_LIMITS: Record<Tier, { requestsPerMonth: number; apiKeys: number }> = {
-  free:         { requestsPerMonth: 5,        apiKeys: 0 },
-  personal:     { requestsPerMonth: 50,       apiKeys: 2 },
+  free:         { requestsPerMonth: 5,        apiKeys: 1 },
+  personal:     { requestsPerMonth: 50,       apiKeys: 3 },
   standard:     { requestsPerMonth: 500,      apiKeys: 5 },
   business_pro: { requestsPerMonth: Infinity, apiKeys: 20 },
 }
