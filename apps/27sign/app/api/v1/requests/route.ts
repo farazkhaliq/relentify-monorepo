@@ -4,10 +4,27 @@ import { verifyApiKey } from '@/lib/auth-api'
 import { query } from '@/lib/db'
 import { generateToken } from '@/lib/tokens'
 import { appendAuditLog } from '@/lib/audit'
+import { getOrCreateSubscription, incrementRequestCount } from '@/lib/subscription'
+import { getRequestLimit } from '@/lib/tiers'
 
 export async function POST(req: NextRequest) {
   const auth = await verifyApiKey(req.headers.get('authorization'))
   if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // Check usage limits if key belongs to a user
+  if (auth.userId) {
+    const sub = await getOrCreateSubscription(auth.userId)
+    const limit = getRequestLimit(sub.tier)
+    if (sub.requestsThisMonth >= limit) {
+      return NextResponse.json({
+        error: `Monthly limit reached (${limit} requests). Upgrade your plan for more.`
+      }, { status: 429 })
+    }
+    await incrementRequestCount(auth.userId)
+  }
+
+  // Increment key request count
+  await query('UPDATE api_keys SET request_count = request_count + 1, last_used_at = NOW() WHERE id = $1', [auth.keyId])
 
   const body = await req.json()
   const {

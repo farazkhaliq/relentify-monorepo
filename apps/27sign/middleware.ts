@@ -13,6 +13,7 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/api/sign/') ||
     pathname.startsWith('/api/v1/') ||
     pathname.startsWith('/api/health') ||
+    pathname.startsWith('/api/webhooks/') ||
     pathname.startsWith('/certificate/')
   ) {
     return NextResponse.next({ request: { headers: requestHeaders } })

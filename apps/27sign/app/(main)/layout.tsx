@@ -21,9 +21,17 @@ export default async function MainLayout({ children }: { children: React.ReactNo
             </Link>
           }
           navLinks={
-            <TopBarLink href="/" active={pathname === '/' || pathname === ''}>
-              Dashboard
-            </TopBarLink>
+            <>
+              <TopBarLink href="/" active={pathname === '/' || pathname === ''}>
+                Dashboard
+              </TopBarLink>
+              <TopBarLink href="/docs" active={pathname.startsWith('/docs')}>
+                API Docs
+              </TopBarLink>
+              <TopBarLink href="/settings" active={pathname.startsWith('/settings')}>
+                Settings
+              </TopBarLink>
+            </>
           }
         >
           <div className="flex items-center gap-4">
