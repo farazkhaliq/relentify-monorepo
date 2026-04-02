@@ -5,6 +5,8 @@ import { isOtpVerified } from '@/lib/otp'
 import { appendAuditLog } from '@/lib/audit'
 import { dispatchWebhook } from '@/lib/webhook'
 import { requestTimestamp } from '@/lib/tsa'
+import { areAllSignersComplete } from '@/lib/signers'
+import { compositeSignedPdf } from '@/lib/pdf-composer'
 
 const MAX_SIGNATURE_SIZE = 500 * 1024 // 500KB
 
@@ -109,6 +111,28 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
       signatureImageBase64: signatureData,
       metadata: sr.metadata,
     })
+  }
+
+  // Check if this signing request has a document (PDF signing flow)
+  // and if all signers are now complete — generate the signed PDF
+  const { rows: srDocRows } = await query(
+    'SELECT document_id FROM signing_requests WHERE id = $1',
+    [sr.id]
+  )
+  if (srDocRows.length > 0 && srDocRows[0].document_id) {
+    const allDone = await areAllSignersComplete(sr.id)
+    if (allDone) {
+      try {
+        await compositeSignedPdf(sr.id)
+      } catch (err) {
+        console.error('Failed to generate signed PDF:', err)
+        await appendAuditLog({
+          signingRequestId: sr.id,
+          action: 'pdf_generation_failed',
+          details: { error: err instanceof Error ? err.message : String(err) },
+        })
+      }
+    }
   }
 
   return NextResponse.json({ success: true })
