@@ -22,10 +22,13 @@ export default async function DashboardPage() {
   const limits = TIER_LIMITS[sub.tier]
 
   const { rows } = await query(
-    `SELECT id, token, title, signer_email, signer_name, status, created_at, signed_at
-     FROM signing_requests
-     WHERE created_by_user_id = $1
-     ORDER BY created_at DESC
+    `SELECT sr.id, sr.token, sr.title, sr.signer_email, sr.signer_name,
+            sr.status, sr.created_at, sr.signed_at, sr.signing_mode,
+            (SELECT COUNT(*) FROM signing_request_signers srs WHERE srs.signing_request_id = sr.id) AS signer_count,
+            (SELECT COUNT(*) FILTER (WHERE srs.status = 'signed') FROM signing_request_signers srs WHERE srs.signing_request_id = sr.id) AS signed_count
+     FROM signing_requests sr
+     WHERE sr.created_by_user_id = $1
+     ORDER BY sr.created_at DESC
      LIMIT 100`,
     [user.userId]
   )
@@ -122,6 +125,14 @@ export default async function DashboardPage() {
                       <p className="font-bold text-[var(--theme-text)] truncate text-sm">{row.title}</p>
                       <p className="text-[var(--theme-text-dim)] text-xs font-mono truncate">{row.signer_email}</p>
                     </div>
+                    {row.signing_mode && row.signing_mode !== 'single' && (
+                      <Badge variant="outline" className="shrink-0 text-[10px]">{row.signing_mode}</Badge>
+                    )}
+                    {parseInt(row.signer_count) > 1 && (
+                      <span className="text-[var(--theme-text-dim)] font-mono text-[10px] shrink-0">
+                        {row.signed_count}/{row.signer_count}
+                      </span>
+                    )}
                     <Badge variant={cfg.variant} className="shrink-0">{row.status}</Badge>
                     <span className="text-[var(--theme-text-dim)] font-mono text-[var(--theme-text-10)] shrink-0 hidden sm:block">
                       {new Date(row.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}

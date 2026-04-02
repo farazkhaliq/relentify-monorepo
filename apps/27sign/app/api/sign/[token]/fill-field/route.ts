@@ -53,6 +53,42 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
     return NextResponse.json({ error: 'Field already filled' }, { status: 409 })
   }
 
+  // Check signer hasn't already completed signing
+  const { rows: signerRows } = await query(
+    `SELECT srs.status, srs.sign_order, sr.signing_mode
+     FROM signing_request_signers srs
+     JOIN signing_requests sr ON sr.id = srs.signing_request_id
+     WHERE srs.signing_request_id = $1
+       AND srs.email = $2`,
+    [signingRequestId, signerEmail]
+  )
+
+  if (signerRows.length > 0) {
+    const signer = signerRows[0]
+
+    // Prevent filling fields after signer has already signed
+    if (signer.status === 'signed') {
+      return NextResponse.json({ error: 'Already signed — cannot modify fields' }, { status: 403 })
+    }
+
+    // Sequential mode: check all previous signers have completed
+    if (signer.signing_mode === 'sequential' && signer.sign_order > 0) {
+      const { rows: prevRows } = await query(
+        `SELECT COUNT(*) AS total,
+                COUNT(*) FILTER (WHERE status = 'signed') AS done
+         FROM signing_request_signers
+         WHERE signing_request_id = $1
+           AND sign_order < $2`,
+        [signingRequestId, signer.sign_order]
+      )
+      const total = parseInt(prevRows[0].total, 10)
+      const done = parseInt(prevRows[0].done, 10)
+      if (total > 0 && done < total) {
+        return NextResponse.json({ error: 'Previous signers must complete first.' }, { status: 403 })
+      }
+    }
+  }
+
   // Update field value
   await query(
     'UPDATE document_fields SET value = $1, filled_at = NOW() WHERE id = $2',
