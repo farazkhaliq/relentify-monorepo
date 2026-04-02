@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { CheckCircle2, XCircle, Loader2, ShieldCheck, FileSignature } from 'lucide-react'
 import { Button, Card, CardContent, Badge } from '@relentify/ui'
 import SignatureCapture from '@/components/SignatureCapture'
+import DocumentSigner from '@/components/DocumentSigner'
 
 type Status = 'loading' | 'verifying' | 'ready' | 'signing' | 'done' | 'error'
 
@@ -16,6 +17,23 @@ interface SigningData {
   otpVerified: boolean
 }
 
+interface DocumentData {
+  pdf: string
+  fields: Array<{
+    id: string
+    field_type: string
+    label: string | null
+    page_number: number
+    x_percent: number
+    y_percent: number
+    width_percent: number
+    height_percent: number
+    value: string | null
+    prefilled: boolean
+  }>
+  pageCount: number
+}
+
 export default function SigningClient({ token }: { token: string }) {
   const [status, setStatus] = useState<Status>('loading')
   const [data, setData] = useState<SigningData | null>(null)
@@ -25,6 +43,9 @@ export default function SigningClient({ token }: { token: string }) {
   const [signatureData, setSignatureData] = useState<string | null>(null)
   const [saveForFuture, setSaveForFuture] = useState(true)
   const [signatureSource, setSignatureSource] = useState<'draw' | 'upload' | 'saved'>('draw')
+  const [sessionToken, setSessionToken] = useState<string | null>(null)
+  const [documentData, setDocumentData] = useState<DocumentData | null>(null)
+  const [allDocFieldsFilled, setAllDocFieldsFilled] = useState(false)
 
   useEffect(() => {
     fetch(`/api/sign/${token}`)
@@ -57,6 +78,29 @@ export default function SigningClient({ token }: { token: string }) {
       })
       const result = await res.json()
       if (result.verified) {
+        // Store session token if provided
+        if (result.sessionToken) {
+          setSessionToken(result.sessionToken)
+
+          // Try to fetch document data (will return null for text-only requests)
+          try {
+            const docRes = await fetch(`/api/sign/${token}/document`, {
+              headers: { 'Authorization': `Bearer ${result.sessionToken}` },
+            })
+            if (docRes.ok) {
+              const docData = await docRes.json()
+              if (docData.pdf) {
+                setDocumentData({
+                  pdf: docData.pdf,
+                  fields: docData.fields || [],
+                  pageCount: docData.pageCount || Math.max(1, ...(docData.fields || []).map((f: any) => f.page_number || 1)),
+                })
+              }
+            }
+          } catch {
+            // Document fetch failed — fall back to text-only flow
+          }
+        }
         setStatus('ready')
       } else {
         setOtpError(result.error || 'Invalid code')
@@ -163,50 +207,97 @@ export default function SigningClient({ token }: { token: string }) {
                 <h2 className="text-2xl font-bold text-[var(--theme-text)] tracking-tight leading-tight">{data.title}</h2>
               </div>
               <CardContent className="p-6 sm:p-10 space-y-8">
-                <p className="text-[var(--theme-text-muted)] leading-relaxed italic">
-                  {data.bodyText}
-                </p>
+                {documentData ? (
+                  /* ---- Document signing flow ---- */
+                  <>
+                    {data.bodyText && (
+                      <p className="text-[var(--theme-text-muted)] leading-relaxed italic">
+                        {data.bodyText}
+                      </p>
+                    )}
 
-                <div className="bg-[var(--theme-accent)]/5 border border-[var(--theme-accent)]/20 rounded-2xl p-6 flex gap-4 items-start">
-                  <ShieldCheck className="text-[var(--theme-accent)] shrink-0" size={20} />
-                  <div className="space-y-1">
-                    <p className="font-mono font-bold text-[var(--theme-accent)] uppercase tracking-widest text-xs">Legal Attestation</p>
-                    <p className="text-[var(--theme-text-dim)] text-sm leading-relaxed">
-                      By signing below, your IP address, timestamp, and browser fingerprint will be permanently recorded as cryptographic evidence.
+                    <div className="bg-[var(--theme-accent)]/5 border border-[var(--theme-accent)]/20 rounded-2xl p-6 flex gap-4 items-start">
+                      <ShieldCheck className="text-[var(--theme-accent)] shrink-0" size={20} />
+                      <div className="space-y-1">
+                        <p className="font-mono font-bold text-[var(--theme-accent)] uppercase tracking-widest text-xs">Legal Attestation</p>
+                        <p className="text-[var(--theme-text-dim)] text-sm leading-relaxed">
+                          By completing the fields below, your IP address, timestamp, and browser fingerprint will be permanently recorded as cryptographic evidence.
+                        </p>
+                      </div>
+                    </div>
+
+                    <DocumentSigner
+                      pdfData={documentData.pdf}
+                      pageCount={documentData.pageCount}
+                      fields={documentData.fields}
+                      token={token}
+                      sessionToken={sessionToken!}
+                      onFieldFilled={() => {}}
+                      onAllFieldsFilled={() => setAllDocFieldsFilled(true)}
+                    />
+
+                    <Button
+                      onClick={submitSignature}
+                      disabled={!allDocFieldsFilled || status === 'signing'}
+                      variant="primary"
+                      className="w-full h-16 rounded-2xl shadow-cinematic shadow-[var(--theme-accent)]/20 font-bold uppercase tracking-widest"
+                    >
+                      {status === 'signing' ? (
+                        <><Loader2 size={20} className="animate-spin mr-3" /> Processing...</>
+                      ) : (
+                        <><CheckCircle2 size={20} className="mr-3" /> Finish Signing</>
+                      )}
+                    </Button>
+                  </>
+                ) : (
+                  /* ---- Text-only signing flow (original) ---- */
+                  <>
+                    <p className="text-[var(--theme-text-muted)] leading-relaxed italic">
+                      {data.bodyText}
                     </p>
-                  </div>
-                </div>
 
-                <SignatureCapture
-                  token={token}
-                  onSignatureChange={(data, source) => {
-                    setSignatureData(data)
-                    setSignatureSource(source)
-                  }}
-                />
+                    <div className="bg-[var(--theme-accent)]/5 border border-[var(--theme-accent)]/20 rounded-2xl p-6 flex gap-4 items-start">
+                      <ShieldCheck className="text-[var(--theme-accent)] shrink-0" size={20} />
+                      <div className="space-y-1">
+                        <p className="font-mono font-bold text-[var(--theme-accent)] uppercase tracking-widest text-xs">Legal Attestation</p>
+                        <p className="text-[var(--theme-text-dim)] text-sm leading-relaxed">
+                          By signing below, your IP address, timestamp, and browser fingerprint will be permanently recorded as cryptographic evidence.
+                        </p>
+                      </div>
+                    </div>
 
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={saveForFuture}
-                    onChange={e => setSaveForFuture(e.target.checked)}
-                    className="w-4 h-4 rounded border-[var(--theme-border)] text-[var(--theme-accent)]"
-                  />
-                  <span className="text-sm text-[var(--theme-text-muted)]">Save my signature for future use</span>
-                </label>
+                    <SignatureCapture
+                      token={token}
+                      onSignatureChange={(data, source) => {
+                        setSignatureData(data)
+                        setSignatureSource(source)
+                      }}
+                    />
 
-                <Button
-                  onClick={submitSignature}
-                  disabled={!signatureData || status === 'signing'}
-                  variant="primary"
-                  className="w-full h-16 rounded-2xl shadow-cinematic shadow-[var(--theme-accent)]/20 font-bold uppercase tracking-widest"
-                >
-                  {status === 'signing' ? (
-                    <><Loader2 size={20} className="animate-spin mr-3" /> Processing...</>
-                  ) : (
-                    <><CheckCircle2 size={20} className="mr-3" /> Sign & Confirm</>
-                  )}
-                </Button>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={saveForFuture}
+                        onChange={e => setSaveForFuture(e.target.checked)}
+                        className="w-4 h-4 rounded border-[var(--theme-border)] text-[var(--theme-accent)]"
+                      />
+                      <span className="text-sm text-[var(--theme-text-muted)]">Save my signature for future use</span>
+                    </label>
+
+                    <Button
+                      onClick={submitSignature}
+                      disabled={!signatureData || status === 'signing'}
+                      variant="primary"
+                      className="w-full h-16 rounded-2xl shadow-cinematic shadow-[var(--theme-accent)]/20 font-bold uppercase tracking-widest"
+                    >
+                      {status === 'signing' ? (
+                        <><Loader2 size={20} className="animate-spin mr-3" /> Processing...</>
+                      ) : (
+                        <><CheckCircle2 size={20} className="mr-3" /> Sign & Confirm</>
+                      )}
+                    </Button>
+                  </>
+                )}
               </CardContent>
             </>
           )}
