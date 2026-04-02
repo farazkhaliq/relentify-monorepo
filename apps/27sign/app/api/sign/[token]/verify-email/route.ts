@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/db'
 import { verifyOtp } from '@/lib/otp'
 import { appendAuditLog } from '@/lib/audit'
+import { getSignerByToken } from '@/lib/signers'
+import { createSignerSession } from '@/lib/signer-session'
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
@@ -29,6 +31,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
       ip: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || null,
       userAgent: req.headers.get('user-agent') || null,
     })
+
+    const signer = await getSignerByToken(token)
+    if (signer) {
+      const sessionToken = await createSignerSession(signer.email, signer.signing_request_id, signer.id)
+      return NextResponse.json({ verified: true, sessionToken })
+    }
+
+    return NextResponse.json({ verified: true })
   }
 
   return NextResponse.json({
