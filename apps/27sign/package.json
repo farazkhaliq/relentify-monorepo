@@ -22,7 +22,9 @@
     "react-dom": "^19.2.4",
     "resend": "^4.8.0",
     "stripe": "^17.7.0",
-    "signature_pad": "^5.0.4"
+    "signature_pad": "^5.0.4",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^4.10.38"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.1",
