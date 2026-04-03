@@ -19,7 +19,7 @@ import QuickBooksVsRelentify from './pages/alternatives/QuickBooksVsRelentify';
 import Privacy from './pages/Privacy';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import ThemeSwitcher from './components/ThemeSwitcher';
+// ThemeSwitcher removed — dark mode toggle is now in the Navbar
 import CookieBanner from './components/CookieBanner';
 import GoogleAnalytics from './components/GoogleAnalytics';
 import PostHogAnalytics from './components/PostHogAnalytics';
@@ -202,7 +202,6 @@ export default function App() {
               </Routes>
             </main>
             <Footer />
-            <ThemeSwitcher />
             <CookieBanner />
           </div>
         </Router>

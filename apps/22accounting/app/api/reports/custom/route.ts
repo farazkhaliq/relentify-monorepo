@@ -77,9 +77,9 @@ export async function GET(req: NextRequest) {
          coa.code AS account_code,
          coa.name AS account_name,
          coa.account_type
-       FROM journal_lines jl
-       JOIN journal_entries je ON je.id = jl.entry_id
-       JOIN chart_of_accounts coa ON coa.id = jl.account_id
+       FROM acc_journal_lines jl
+       JOIN acc_journal_entries je ON je.id = jl.entry_id
+       JOIN acc_chart_of_accounts coa ON coa.id = jl.account_id
        WHERE je.entity_id = $1
          AND je.entry_date >= $2
          AND je.entry_date <= $3

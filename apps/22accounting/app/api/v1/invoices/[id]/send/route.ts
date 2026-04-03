@@ -47,7 +47,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       await updateInvoicePaymentLink(invoice.id, session.url, session.sessionId);
       paymentLink = session.url;
     } else {
-      await query(`UPDATE invoices SET status='sent', sent_at=NOW() WHERE id=$1`, [invoice.id]);
+      await query(`UPDATE acc_invoices SET status='sent', sent_at=NOW() WHERE id=$1`, [invoice.id]);
     }
 
     const emailResult = await sendInvoiceEmail({

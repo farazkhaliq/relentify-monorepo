@@ -41,14 +41,14 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     // Detect bank-invoice or bank-bill amount mismatches (async, non-blocking)
     const entityId = (await getActiveEntity(auth.userId))?.id;
     if (entityId) {
-      const txRow = (await query('SELECT amount FROM bank_transactions WHERE id=$1', [id])).rows[0];
+      const txRow = (await query('SELECT amount FROM acc_bank_transactions WHERE id=$1', [id])).rows[0];
       if (txRow) {
         const txAmount = Math.abs(Number(txRow.amount));
         if (type === 'invoice_match' && invoiceId) {
-          const inv = (await query('SELECT total FROM invoices WHERE id=$1', [invoiceId])).rows[0];
+          const inv = (await query('SELECT total FROM acc_invoices WHERE id=$1', [invoiceId])).rows[0];
           if (inv) detectBankMismatch(auth.userId, entityId, id, txAmount, 'invoice', invoiceId, Number(inv.total)).catch(() => {});
         } else if (type === 'bill_match' && billId) {
-          const bill = (await query('SELECT amount FROM bills WHERE id=$1', [billId])).rows[0];
+          const bill = (await query('SELECT amount FROM acc_bills WHERE id=$1', [billId])).rows[0];
           if (bill) detectBankMismatch(auth.userId, entityId, id, txAmount, 'bill', billId, Number(bill.amount)).catch(() => {});
         }
       }

@@ -68,7 +68,7 @@ export async function createBill(userId: string, data: {
 }) {
   const result = await withTransaction(async (client) => {
     const r = await client.query(
-      `INSERT INTO bills (user_id, entity_id, supplier_name, amount, vat_rate, vat_amount, currency, invoice_date, due_date, category, coa_account_id, notes, reference, project_id, po_id, po_variance_reason)
+      `INSERT INTO acc_bills (user_id, entity_id, supplier_name, amount, vat_rate, vat_amount, currency, invoice_date, due_date, category, coa_account_id, notes, reference, project_id, po_id, po_variance_reason)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *`,
       [
         userId, data.entityId, data.supplierName, data.amount,
@@ -117,11 +117,11 @@ export async function getAllBills(userId: string, entityId?: string): Promise<Bi
   const params = entityId ? [userId, entityId] : [userId];
   // Auto-update unpaid bills that are past due_date to 'overdue'
   await query(
-    `UPDATE bills SET status = 'overdue' WHERE user_id = $1 ${entityClause} AND status = 'unpaid' AND due_date < CURRENT_DATE`,
+    `UPDATE acc_bills SET status = 'overdue' WHERE user_id = $1 ${entityClause} AND status = 'unpaid' AND due_date < CURRENT_DATE`,
     params
   );
   const r = await query(
-    `SELECT * FROM bills WHERE user_id = $1 ${entityClause} ORDER BY due_date ASC, created_at DESC`,
+    `SELECT * FROM acc_bills WHERE user_id = $1 ${entityClause} ORDER BY due_date ASC, created_at DESC`,
     params
   );
   return r.rows as Bill[];
@@ -129,10 +129,10 @@ export async function getAllBills(userId: string, entityId?: string): Promise<Bi
 
 export async function getBillById(userId: string, id: string, entityId?: string): Promise<Bill | null> {
   if (entityId) {
-    const r = await query(`SELECT * FROM bills WHERE id = $1 AND user_id = $2 AND entity_id = $3`, [id, userId, entityId]);
+    const r = await query(`SELECT * FROM acc_bills WHERE id = $1 AND user_id = $2 AND entity_id = $3`, [id, userId, entityId]);
     return r.rows[0] as Bill || null;
   }
-  const r = await query(`SELECT * FROM bills WHERE id = $1 AND user_id = $2`, [id, userId]);
+  const r = await query(`SELECT * FROM acc_bills WHERE id = $1 AND user_id = $2`, [id, userId]);
   return r.rows[0] as Bill || null;
 }
 
@@ -147,7 +147,7 @@ export async function updateBill(userId: string, id: string, data: {
   status?: string;
 }) {
   const r = await query(
-    `UPDATE bills SET
+    `UPDATE acc_bills SET
        supplier_name = COALESCE($3, supplier_name),
        amount = COALESCE($4, amount),
        currency = COALESCE($5, currency),
@@ -174,7 +174,7 @@ export async function updateBill(userId: string, id: string, data: {
 }
 
 export async function deleteBill(userId: string, id: string) {
-  await query(`DELETE FROM bills WHERE id = $1 AND user_id = $2`, [id, userId]);
+  await query(`DELETE FROM acc_bills WHERE id = $1 AND user_id = $2`, [id, userId]);
 }
 
 export async function markBillPaid(
@@ -194,7 +194,7 @@ export async function markBillPaid(
 
   // Read the bill first so we have supplier_name + amount for the GL description
   const existing = await query(
-    `SELECT * FROM bills WHERE id=$1 AND user_id=$2${entityId ? ' AND entity_id=$3' : ''}`,
+    `SELECT * FROM acc_bills WHERE id=$1 AND user_id=$2${entityId ? ' AND entity_id=$3' : ''}`,
     entityId ? [id, userId, entityId] : [id, userId]
   );
   const existingBill = existing.rows[0] as Bill | undefined;
@@ -202,20 +202,20 @@ export async function markBillPaid(
 
   if (!entityId) {
     // No entity context — just mark paid, no GL
-    await query(`UPDATE bills SET status='paid', paid_at=$1::timestamptz WHERE id=$2`, [paymentDate, id]);
-    return (await query('SELECT * FROM bills WHERE id=$1', [id])).rows[0] as Bill;
+    await query(`UPDATE acc_bills SET status='paid', paid_at=$1::timestamptz WHERE id=$2`, [paymentDate, id]);
+    return (await query('SELECT * FROM acc_bills WHERE id=$1', [id])).rows[0] as Bill;
   }
 
   const isPrepayment = options?.isPrepayment ?? false;
 
   const result = await withTransaction(async (client) => {
     await client.query(
-      `UPDATE bills SET status='paid', paid_at=$1::timestamptz WHERE id=$2`,
+      `UPDATE acc_bills SET status='paid', paid_at=$1::timestamptz WHERE id=$2`,
       [paymentDate, id]
     );
 
     const btR = await client.query(
-      `INSERT INTO bank_transactions
+      `INSERT INTO acc_bank_transactions
          (user_id, entity_id, transaction_date, description, amount, type, matched_bill_id, status,
           category, categorisation_type, is_prepayment, prepayment_months, prepayment_exp_acct)
        VALUES ($1, $2, $3, $4, $5, 'debit', $6, 'matched', $7, 'manual', $8, $9, $10)
@@ -262,7 +262,7 @@ export async function markBillPaid(
       }, client);
     }
 
-    return (await client.query('SELECT * FROM bills WHERE id=$1', [id])).rows[0] as Bill;
+    return (await client.query('SELECT * FROM acc_bills WHERE id=$1', [id])).rows[0] as Bill;
   });
 
   dispatchWebhookEvent(entityId, 'bill.paid', { bill: result }).catch(() => {});
@@ -278,7 +278,7 @@ export async function getBillStats(userId: string, entityId?: string) {
        COALESCE(SUM(CASE WHEN status = 'unpaid' THEN amount ELSE 0 END), 0) AS total_unpaid,
        COALESCE(SUM(CASE WHEN status = 'overdue' THEN amount ELSE 0 END), 0) AS total_overdue,
        COALESCE(SUM(CASE WHEN status = 'paid' AND date_trunc('month', paid_at) = date_trunc('month', NOW()) THEN amount ELSE 0 END), 0) AS total_paid_this_month
-     FROM bills WHERE user_id = $1 ${entityClause}`,
+     FROM acc_bills WHERE user_id = $1 ${entityClause}`,
     params
   );
   const row = r.rows[0];

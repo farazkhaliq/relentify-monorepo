@@ -1,7 +1,7 @@
 -- 011_suppliers.sql
--- Supplier contacts directory (mirrors customers, used for bill referencing)
+-- Supplier contacts directory (mirrors acc_customers, used for bill referencing)
 
-CREATE TABLE suppliers (
+CREATE TABLE acc_suppliers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   entity_id UUID NOT NULL REFERENCES entities(id) ON DELETE CASCADE,
@@ -13,5 +13,5 @@ CREATE TABLE suppliers (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_suppliers_user_id ON suppliers(user_id);
-CREATE INDEX idx_suppliers_entity_id ON suppliers(entity_id);
+CREATE INDEX idx_suppliers_user_id ON acc_suppliers(user_id);
+CREATE INDEX idx_suppliers_entity_id ON acc_suppliers(entity_id);

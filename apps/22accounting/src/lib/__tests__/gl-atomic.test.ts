@@ -34,17 +34,17 @@ async function run() {
   })
 
   const glR = await query(
-    `SELECT je.id FROM journal_entries je
+    `SELECT je.id FROM acc_journal_entries je
      WHERE je.source_type='invoice' AND je.source_id=$1`,
     [inv.id]
   )
   assert(glR.rows.length === 1, `GL entry created for invoice ${inv.id}`)
 
   // Cleanup
-  await query(`DELETE FROM journal_lines WHERE entry_id = $1`, [glR.rows[0].id])
-  await query(`DELETE FROM journal_entries WHERE id = $1`, [glR.rows[0].id])
-  await query(`DELETE FROM invoice_items WHERE invoice_id = $1`, [inv.id])
-  await query(`DELETE FROM invoices WHERE id = $1`, [inv.id])
+  await query(`DELETE FROM acc_journal_lines WHERE entry_id = $1`, [glR.rows[0].id])
+  await query(`DELETE FROM acc_journal_entries WHERE id = $1`, [glR.rows[0].id])
+  await query(`DELETE FROM acc_invoice_items WHERE invoice_id = $1`, [inv.id])
+  await query(`DELETE FROM acc_invoices WHERE id = $1`, [inv.id])
 
   console.log('\nAll GL atomic tests passed.')
   process.exit(0)

@@ -39,7 +39,7 @@ export async function createInvoice(data: {
 
   const result = await withTransaction(async (client) => {
     const r = await client.query(
-      `INSERT INTO invoices (user_id,entity_id,customer_id,project_id,invoice_number,client_name,client_email,client_address,issue_date,due_date,subtotal,tax_rate,tax_amount,total,currency,relentify_fee_amount,notes,terms,payment_terms)
+      `INSERT INTO acc_invoices (user_id,entity_id,customer_id,project_id,invoice_number,client_name,client_email,client_address,issue_date,due_date,subtotal,tax_rate,tax_amount,total,currency,relentify_fee_amount,notes,terms,payment_terms)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19) RETURNING *`,
       [data.userId, data.entityId, data.customerId ?? null, data.projectId ?? null, num,
        data.clientName, data.clientEmail ?? null, data.clientAddress ?? null,
@@ -52,7 +52,7 @@ export async function createInvoice(data: {
 
     for (const item of processedItems) {
       await client.query(
-        `INSERT INTO invoice_items
+        `INSERT INTO acc_invoice_items
            (invoice_id,description,quantity,unit_price,amount,tax_rate,tax_amount,line_order)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
         [inv.id, item.description, item.quantity, item.unitPrice,
@@ -90,29 +90,29 @@ export async function createInvoice(data: {
 
 export async function getInvoicesByUser(userId: string, entityId?: string) {
   if (entityId) {
-    const r = await query('SELECT * FROM invoices WHERE user_id=$1 AND entity_id=$2 ORDER BY created_at DESC', [userId, entityId]);
+    const r = await query('SELECT * FROM acc_invoices WHERE user_id=$1 AND entity_id=$2 ORDER BY created_at DESC', [userId, entityId]);
     return r.rows;
   }
-  const r = await query('SELECT * FROM invoices WHERE user_id=$1 ORDER BY created_at DESC', [userId]);
+  const r = await query('SELECT * FROM acc_invoices WHERE user_id=$1 ORDER BY created_at DESC', [userId]);
   return r.rows;
 }
 
 export async function getInvoiceById(invoiceId: string, userId: string, entityId?: string) {
   const r = entityId
-    ? await query('SELECT * FROM invoices WHERE id=$1 AND user_id=$2 AND entity_id=$3', [invoiceId, userId, entityId])
-    : await query('SELECT * FROM invoices WHERE id=$1 AND user_id=$2', [invoiceId, userId]);
+    ? await query('SELECT * FROM acc_invoices WHERE id=$1 AND user_id=$2 AND entity_id=$3', [invoiceId, userId, entityId])
+    : await query('SELECT * FROM acc_invoices WHERE id=$1 AND user_id=$2', [invoiceId, userId]);
   if (!r.rows[0]) return null;
-  const items = await query('SELECT * FROM invoice_items WHERE invoice_id=$1 ORDER BY line_order', [invoiceId]);
+  const items = await query('SELECT * FROM acc_invoice_items WHERE invoice_id=$1 ORDER BY line_order', [invoiceId]);
   return { ...r.rows[0], items: items.rows };
 }
 
 export async function updateInvoicePaymentLink(invoiceId: string, link: string, sessionId: string) {
-  await query('UPDATE invoices SET stripe_payment_link=$1, stripe_checkout_session_id=$2, status=$3, sent_at=NOW() WHERE id=$4', [link, sessionId, 'sent', invoiceId]);
+  await query('UPDATE acc_invoices SET stripe_payment_link=$1, stripe_checkout_session_id=$2, status=$3, sent_at=NOW() WHERE id=$4', [link, sessionId, 'sent', invoiceId]);
 }
 
 export async function getInvoiceByCheckoutSession(sessionId: string) {
   const r = await query(
-    'SELECT i.*, u.stripe_account_id FROM invoices i JOIN users u ON i.user_id=u.id WHERE i.stripe_checkout_session_id=$1', [sessionId]
+    'SELECT i.*, u.stripe_account_id FROM acc_invoices i JOIN users u ON i.user_id=u.id WHERE i.stripe_checkout_session_id=$1', [sessionId]
   );
   return r.rows[0] || null;
 }
@@ -120,11 +120,11 @@ export async function getInvoiceByCheckoutSession(sessionId: string) {
 export async function markInvoicePaid(invoiceId: string, paymentIntentId: string) {
   return withTransaction(async (client) => {
     await client.query(
-      `UPDATE invoices SET status=$1, paid_at=NOW(), stripe_payment_intent_id=$2, payment_method=$3 WHERE id=$4`,
+      `UPDATE acc_invoices SET status=$1, paid_at=NOW(), stripe_payment_intent_id=$2, payment_method=$3 WHERE id=$4`,
       ['paid', paymentIntentId, 'stripe', invoiceId]
     );
 
-    const inv = await client.query('SELECT * FROM invoices WHERE id=$1', [invoiceId]);
+    const inv = await client.query('SELECT * FROM acc_invoices WHERE id=$1', [invoiceId]);
     if (inv.rows[0]) {
       const invoice = inv.rows[0];
       const glLines = await buildInvoicePaymentLines(
@@ -159,7 +159,7 @@ export async function markInvoicePaidManually(
   const paymentDate = options?.paymentDate || new Date().toISOString().split('T')[0];
 
   // Read invoice outside transaction — we need it to validate before starting tx
-  const invRes = await query('SELECT * FROM invoices WHERE id=$1 AND entity_id=$2', [invoiceId, entityId]);
+  const invRes = await query('SELECT * FROM acc_invoices WHERE id=$1 AND entity_id=$2', [invoiceId, entityId]);
   const invoice = invRes.rows[0];
   if (!invoice) throw new Error('Invoice not found');
   if (invoice.status === 'paid') throw new Error('Invoice is already paid');
@@ -168,12 +168,12 @@ export async function markInvoicePaidManually(
 
   const result = await withTransaction(async (client) => {
     await client.query(
-      `UPDATE invoices SET status='paid', paid_at=$1::timestamptz, payment_method='bank_transfer' WHERE id=$2`,
+      `UPDATE acc_invoices SET status='paid', paid_at=$1::timestamptz, payment_method='bank_transfer' WHERE id=$2`,
       [paymentDate, invoiceId]
     );
 
     await client.query(
-      `INSERT INTO bank_transactions
+      `INSERT INTO acc_bank_transactions
          (user_id, entity_id, transaction_date, description, amount, type, matched_invoice_id, status, category, categorisation_type)
        VALUES ($1, $2, $3, $4, $5, 'credit', $6, 'matched', 'income', 'manual')`,
       [
@@ -195,7 +195,7 @@ export async function markInvoicePaidManually(
       lines:       glLines,
     }, client);
 
-    const updated = await client.query('SELECT * FROM invoices WHERE id=$1', [invoiceId]);
+    const updated = await client.query('SELECT * FROM acc_invoices WHERE id=$1', [invoiceId]);
     return updated.rows[0];
   });
 
@@ -205,16 +205,16 @@ export async function markInvoicePaidManually(
 }
 
 export async function voidInvoice(invoiceId: string, userId: string) {
-  const inv = await query('SELECT * FROM invoices WHERE id=$1', [invoiceId]);
+  const inv = await query('SELECT * FROM acc_invoices WHERE id=$1', [invoiceId]);
   if (!inv.rows[0]) throw new Error('Invoice not found');
   const invoice = inv.rows[0];
 
   await withTransaction(async (client) => {
-    await client.query(`UPDATE invoices SET status='void' WHERE id=$1`, [invoiceId]);
+    await client.query(`UPDATE acc_invoices SET status='void' WHERE id=$1`, [invoiceId]);
 
     // Find and reverse the original GL entry (no is_locked filter — reversal creates a new entry)
     const entry = await client.query(
-      `SELECT id FROM journal_entries
+      `SELECT id FROM acc_journal_entries
        WHERE source_type='invoice' AND source_id=$1
        ORDER BY created_at ASC LIMIT 1`,
       [invoiceId]
@@ -245,7 +245,7 @@ export async function getDashboardStats(userId: string, entityId?: string) {
       COALESCE(SUM(total) FILTER (WHERE status='paid'),0) as total_revenue,
       COALESCE(SUM(total) FILTER (WHERE status IN ('sent','overdue')),0) as outstanding_amount,
       COALESCE(SUM(total),0) as total_invoiced
-     FROM invoices WHERE user_id=$1 ${entityClause}`, params
+     FROM acc_invoices WHERE user_id=$1 ${entityClause}`, params
   );
 
   // safe defaults so the caller can rely on numbers and arrays
@@ -254,7 +254,7 @@ export async function getDashboardStats(userId: string, entityId?: string) {
   // fetch the latest few invoices for dashboard display
   const recentRes = await query(
     `SELECT id, invoice_number, client_name, due_date, total, status
-     FROM invoices WHERE user_id=$1 ${entityClause}
+     FROM acc_invoices WHERE user_id=$1 ${entityClause}
      ORDER BY created_at DESC LIMIT 5`,
     params
   );
@@ -289,13 +289,13 @@ export async function getDashboardStats(userId: string, entityId?: string) {
 export async function getInvoicesByCustomer(userId: string, customerId: string, entityId?: string) {
   if (entityId) {
     const r = await query(
-      `SELECT * FROM invoices WHERE user_id=$1 AND customer_id=$2 AND entity_id=$3 ORDER BY created_at DESC`,
+      `SELECT * FROM acc_invoices WHERE user_id=$1 AND customer_id=$2 AND entity_id=$3 ORDER BY created_at DESC`,
       [userId, customerId, entityId]
     );
     return r.rows;
   }
   const r = await query(
-    `SELECT * FROM invoices WHERE user_id=$1 AND customer_id=$2 ORDER BY created_at DESC`,
+    `SELECT * FROM acc_invoices WHERE user_id=$1 AND customer_id=$2 ORDER BY created_at DESC`,
     [userId, customerId]
   );
   return r.rows;

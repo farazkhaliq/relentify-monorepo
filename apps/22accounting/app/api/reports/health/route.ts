@@ -26,14 +26,14 @@ export async function GET() {
     // ── 1. Unmatched bank transactions (last 90 days) ──────────────────────────
     const [unmatchedRes, totalBankRes] = await Promise.all([
       query(
-        `SELECT COUNT(*) AS count FROM bank_transactions
+        `SELECT COUNT(*) AS count FROM acc_bank_transactions
          WHERE user_id=$1::uuid AND entity_id=$2::uuid
            AND status='unmatched'
            AND transaction_date >= $3`,
         [userId, entityId, cutoff]
       ),
       query(
-        `SELECT COUNT(*) AS count FROM bank_transactions
+        `SELECT COUNT(*) AS count FROM acc_bank_transactions
          WHERE user_id=$1::uuid AND entity_id=$2::uuid
            AND transaction_date >= $3`,
         [userId, entityId, cutoff]
@@ -55,27 +55,27 @@ export async function GET() {
     // ── 2. Missing receipts (bills + expenses + mileage, last 90 days) ─────────
     const missingReceiptsRes = await query(
       `SELECT COUNT(*) AS count FROM (
-         SELECT b.id FROM bills b
+         SELECT b.id FROM acc_bills b
          WHERE b.user_id=$1::uuid AND b.entity_id=$2::uuid
            AND b.created_at::date >= $3
            AND NOT EXISTS (
-             SELECT 1 FROM attachments a
+             SELECT 1 FROM acc_attachments a
              WHERE a.entity_id=$2::uuid AND a.record_type='bill' AND a.record_id=b.id
            )
          UNION ALL
-         SELECT e.id FROM expenses e
+         SELECT e.id FROM acc_expenses e
          WHERE e.user_id=$1::uuid
            AND e.created_at::date >= $3
            AND NOT EXISTS (
-             SELECT 1 FROM attachments a
+             SELECT 1 FROM acc_attachments a
              WHERE a.entity_id=$2::uuid AND a.record_type='expense' AND a.record_id=e.id
            )
          UNION ALL
-         SELECT mc.id FROM mileage_claims mc
+         SELECT mc.id FROM acc_mileage_claims mc
          WHERE mc.user_id=$1::uuid
            AND mc.created_at::date >= $3
            AND NOT EXISTS (
-             SELECT 1 FROM attachments a
+             SELECT 1 FROM acc_attachments a
              WHERE a.entity_id=$2::uuid AND a.record_type='mileage' AND a.record_id=mc.id
            )
        ) AS missing`,
@@ -92,7 +92,7 @@ export async function GET() {
     // ── 3. Overdue invoices ────────────────────────────────────────────────────
     const overdueRes = await query(
       `SELECT COUNT(*) AS count, COALESCE(SUM(total), 0) AS total_amount
-       FROM invoices
+       FROM acc_invoices
        WHERE user_id=$1::uuid AND entity_id=$2::uuid
          AND status IN ('sent', 'overdue')
          AND due_date < CURRENT_DATE`,
@@ -128,21 +128,21 @@ export async function GET() {
     const [orphanedR, unbalancedR] = await Promise.all([
       query(
         `SELECT
-           (SELECT COUNT(*) FROM invoices i
+           (SELECT COUNT(*) FROM acc_invoices i
             WHERE NOT EXISTS (
-              SELECT 1 FROM journal_entries je
+              SELECT 1 FROM acc_journal_entries je
               WHERE je.source_type='invoice' AND je.source_id=i.id::text
                 AND je.entity_id = $1
             ) AND i.entity_id = $1 AND i.status NOT IN ('draft','voided')) AS orphaned_invoices,
-           (SELECT COUNT(*) FROM bills b
+           (SELECT COUNT(*) FROM acc_bills b
             WHERE NOT EXISTS (
-              SELECT 1 FROM journal_entries je
+              SELECT 1 FROM acc_journal_entries je
               WHERE je.source_type='bill' AND je.source_id=b.id::text
                 AND je.entity_id = $1
             ) AND b.entity_id = $1) AS orphaned_bills,
-           (SELECT COUNT(*) FROM expenses e
+           (SELECT COUNT(*) FROM acc_expenses e
             WHERE NOT EXISTS (
-              SELECT 1 FROM journal_entries je
+              SELECT 1 FROM acc_journal_entries je
               WHERE je.source_type='expense' AND je.source_id=e.id::text
                 AND je.entity_id = $1
             ) AND e.user_id = $2 AND e.status = 'approved') AS orphaned_expenses`,
@@ -150,11 +150,11 @@ export async function GET() {
       ),
       query(
         `SELECT COUNT(*)::int AS unbalanced_entries
-         FROM journal_entries je
+         FROM acc_journal_entries je
          WHERE je.entity_id = $1
            AND ABS(
-             (SELECT COALESCE(SUM(jl.debit),0)  FROM journal_lines jl WHERE jl.entry_id=je.id) -
-             (SELECT COALESCE(SUM(jl.credit),0) FROM journal_lines jl WHERE jl.entry_id=je.id)
+             (SELECT COALESCE(SUM(jl.debit),0)  FROM acc_journal_lines jl WHERE jl.entry_id=je.id) -
+             (SELECT COALESCE(SUM(jl.credit),0) FROM acc_journal_lines jl WHERE jl.entry_id=je.id)
            ) > 0.005`,
         [entityId]
       ),

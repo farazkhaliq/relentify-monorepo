@@ -7,13 +7,13 @@ export async function getPnLSummary(userId: string, opts: { from?: string; to?: 
   const baseParams = opts.entityId ? [userId, from, to, opts.entityId] : [userId, from, to];
 
   const incomeResult = await query(
-    `SELECT COALESCE(SUM(total), 0) AS total FROM invoices
+    `SELECT COALESCE(SUM(total), 0) AS total FROM acc_invoices
      WHERE user_id = $1 AND status = 'paid' AND due_date >= $2 AND due_date <= $3 ${entityClause} AND currency = 'GBP'`,
     baseParams
   );
 
   const expenseResult = await query(
-    `SELECT COALESCE(SUM(amount), 0) AS total FROM bills
+    `SELECT COALESCE(SUM(amount), 0) AS total FROM acc_bills
      WHERE user_id = $1 AND due_date >= $2 AND due_date <= $3 ${entityClause} AND currency = 'GBP'`,
     baseParams
   );
@@ -41,12 +41,12 @@ export async function getRevenueByMonth(userId: string, months = 6, entityId?: s
 
     const [revRow, expRow] = await Promise.all([
       query(
-        `SELECT COALESCE(SUM(total), 0) AS total FROM invoices
+        `SELECT COALESCE(SUM(total), 0) AS total FROM acc_invoices
          WHERE user_id = $1 AND status = 'paid' AND due_date >= $2 AND due_date <= $3 ${entityClause} AND currency = 'GBP'`,
         params
       ),
       query(
-        `SELECT COALESCE(SUM(amount), 0) AS total FROM bills
+        `SELECT COALESCE(SUM(amount), 0) AS total FROM acc_bills
          WHERE user_id = $1 AND due_date >= $2 AND due_date <= $3 ${entityClause} AND currency = 'GBP'`,
         params
       ),
@@ -70,7 +70,7 @@ export async function getExpensesByCategory(userId: string, opts: { from?: strin
 
   const r = await query(
     `SELECT category, COALESCE(SUM(amount), 0) AS total
-     FROM bills WHERE user_id = $1 AND due_date >= $2 AND due_date <= $3 ${entityClause} AND currency = 'GBP'
+     FROM acc_bills WHERE user_id = $1 AND due_date >= $2 AND due_date <= $3 ${entityClause} AND currency = 'GBP'
      GROUP BY category ORDER BY total DESC`,
     params
   );
@@ -86,13 +86,13 @@ export async function getPnLDetail(userId: string, opts: { from?: string; to?: s
 
   const [invoiceRows, billRows] = await Promise.all([
     query(
-      `SELECT invoice_number, client_name, due_date, total, currency FROM invoices
+      `SELECT invoice_number, client_name, due_date, total, currency FROM acc_invoices
        WHERE user_id = $1 AND status = 'paid' AND due_date >= $2 AND due_date <= $3 ${entityClause}
        ORDER BY due_date DESC`,
       params
     ),
     query(
-      `SELECT supplier_name, category, due_date, amount, currency FROM bills
+      `SELECT supplier_name, category, due_date, amount, currency FROM acc_bills
        WHERE user_id = $1 AND due_date >= $2 AND due_date <= $3 ${entityClause}
        ORDER BY due_date DESC`,
       params

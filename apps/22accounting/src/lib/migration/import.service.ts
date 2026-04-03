@@ -30,7 +30,7 @@ export async function importMigration(opts: ImportMigrationOptions): Promise<Imp
 
   const updateRun = async () => {
     await query(
-      `UPDATE migration_runs SET batches = $1 WHERE id = $2`,
+      `UPDATE acc_migration_runs SET batches = $1 WHERE id = $2`,
       [JSON.stringify(batches), runId]
     );
   };
@@ -181,7 +181,7 @@ export async function importMigration(opts: ImportMigrationOptions): Promise<Imp
 
   const importReport = reportLines.join('\n');
   await query(
-    `UPDATE migration_runs SET import_report = $1 WHERE id = $2`,
+    `UPDATE acc_migration_runs SET import_report = $1 WHERE id = $2`,
     [importReport, runId]
   );
 

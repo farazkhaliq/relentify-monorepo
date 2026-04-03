@@ -27,10 +27,10 @@ export async function getProjectsByEntity(userId: string, entityId: string): Pro
        c.name as customer_name,
        COALESCE(SUM(i.total) FILTER (WHERE i.status = 'paid'), 0) as income,
        COALESCE(SUM(b.amount), 0) as costs
-     FROM projects p
-     LEFT JOIN customers c ON c.id = p.customer_id
-     LEFT JOIN invoices i ON i.project_id = p.id
-     LEFT JOIN bills b ON b.project_id = p.id
+     FROM acc_projects p
+     LEFT JOIN acc_customers c ON c.id = p.customer_id
+     LEFT JOIN acc_invoices i ON i.project_id = p.id
+     LEFT JOIN acc_bills b ON b.project_id = p.id
      WHERE p.entity_id = $1 AND p.user_id = $2
      GROUP BY p.id, c.name
      ORDER BY p.created_at DESC`,
@@ -50,10 +50,10 @@ export async function getProjectById(projectId: string, userId: string, entityId
        c.name as customer_name,
        COALESCE(SUM(i.total) FILTER (WHERE i.status = 'paid'), 0) as income,
        COALESCE(SUM(b.amount), 0) as costs
-     FROM projects p
-     LEFT JOIN customers c ON c.id = p.customer_id
-     LEFT JOIN invoices i ON i.project_id = p.id
-     LEFT JOIN bills b ON b.project_id = p.id
+     FROM acc_projects p
+     LEFT JOIN acc_customers c ON c.id = p.customer_id
+     LEFT JOIN acc_invoices i ON i.project_id = p.id
+     LEFT JOIN acc_bills b ON b.project_id = p.id
      WHERE p.id = $1 AND p.entity_id = $2 AND p.user_id = $3
      GROUP BY p.id, c.name`,
     [projectId, entityId, userId]
@@ -71,7 +71,7 @@ export async function getProjectById(projectId: string, userId: string, entityId
 export async function getProjectInvoices(projectId: string, userId: string) {
   const r = await query(
     `SELECT invoice_number, client_name, due_date, total, status, currency
-     FROM invoices WHERE project_id = $1 AND user_id = $2 ORDER BY due_date DESC`,
+     FROM acc_invoices WHERE project_id = $1 AND user_id = $2 ORDER BY due_date DESC`,
     [projectId, userId]
   );
   return r.rows;
@@ -80,7 +80,7 @@ export async function getProjectInvoices(projectId: string, userId: string) {
 export async function getProjectBills(projectId: string, userId: string) {
   const r = await query(
     `SELECT supplier_name, category, due_date, amount, currency, status
-     FROM bills WHERE project_id = $1 AND user_id = $2 ORDER BY due_date DESC`,
+     FROM acc_bills WHERE project_id = $1 AND user_id = $2 ORDER BY due_date DESC`,
     [projectId, userId]
   );
   return r.rows;
@@ -96,7 +96,7 @@ export async function createProject(userId: string, entityId: string, data: {
   endDate?: string;
 }): Promise<Project> {
   const r = await query(
-    `INSERT INTO projects (entity_id, user_id, name, description, customer_id, budget, currency, start_date, end_date)
+    `INSERT INTO acc_projects (entity_id, user_id, name, description, customer_id, budget, currency, start_date, end_date)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
     [
       entityId,
@@ -142,7 +142,7 @@ export async function updateProject(projectId: string, userId: string, entityId:
   values.push(projectId, entityId, userId);
 
   const r = await query(
-    `UPDATE projects SET ${fields.join(', ')}
+    `UPDATE acc_projects SET ${fields.join(', ')}
      WHERE id = $${p} AND entity_id = $${p + 1} AND user_id = $${p + 2} RETURNING *`,
     values
   );
@@ -155,10 +155,10 @@ export async function archiveProject(projectId: string, userId: string, entityId
 
 export async function deleteProject(projectId: string, userId: string, entityId: string): Promise<boolean> {
   // Null out project_id references on invoices and bills first
-  await query(`UPDATE invoices SET project_id = NULL WHERE project_id = $1 AND user_id = $2`, [projectId, userId]);
-  await query(`UPDATE bills SET project_id = NULL WHERE project_id = $1 AND user_id = $2`, [projectId, userId]);
+  await query(`UPDATE acc_invoices SET project_id = NULL WHERE project_id = $1 AND user_id = $2`, [projectId, userId]);
+  await query(`UPDATE acc_bills SET project_id = NULL WHERE project_id = $1 AND user_id = $2`, [projectId, userId]);
   const r = await query(
-    `DELETE FROM projects WHERE id = $1 AND entity_id = $2 AND user_id = $3`,
+    `DELETE FROM acc_projects WHERE id = $1 AND entity_id = $2 AND user_id = $3`,
     [projectId, entityId, userId]
   );
   return (r.rowCount ?? 0) > 0;

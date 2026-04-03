@@ -118,35 +118,35 @@ export async function getDashboardData(
     query(
       `SELECT COALESCE(SUM(balance), 0) AS balance,
               COUNT(*) > 0 AS has_connection
-       FROM bank_connections
+       FROM acc_bank_connections
        WHERE user_id = $1 AND entity_id = $2`,
       [userId, entityId]
     ),
     // Total receivables
     query(
       `SELECT COALESCE(SUM(total), 0) AS total
-       FROM invoices
+       FROM acc_invoices
        WHERE user_id = $1 AND entity_id = $2 AND status IN ('sent','overdue')`,
       [userId, entityId]
     ),
     // Total payables
     query(
       `SELECT COALESCE(SUM(amount), 0) AS total
-       FROM bills
+       FROM acc_bills
        WHERE user_id = $1 AND entity_id = $2 AND status = 'unpaid'`,
       [userId, entityId]
     ),
     // Overdue invoice count
     query(
       `SELECT COUNT(*) AS count
-       FROM invoices
+       FROM acc_invoices
        WHERE user_id = $1 AND entity_id = $2 AND status = 'overdue'`,
       [userId, entityId]
     ),
     // Bills due within 7 days
     query(
       `SELECT COUNT(*) AS count
-       FROM bills
+       FROM acc_bills
        WHERE user_id = $1 AND entity_id = $2
          AND status = 'unpaid'
          AND due_date >= $3 AND due_date <= $4`,
@@ -155,14 +155,14 @@ export async function getDashboardData(
     // Unmatched bank transactions
     query(
       `SELECT COUNT(*) AS count
-       FROM bank_transactions
+       FROM acc_bank_transactions
        WHERE user_id = $1 AND entity_id = $2 AND status = 'unmatched'`,
       [userId, entityId]
     ),
     // Forecast income total
     query(
       `SELECT COALESCE(SUM(total), 0) AS total
-       FROM invoices
+       FROM acc_invoices
        WHERE user_id = $1 AND entity_id = $2
          AND status IN ('sent','overdue')
          AND due_date >= $3 AND due_date <= $4`,
@@ -171,7 +171,7 @@ export async function getDashboardData(
     // Forecast spend total
     query(
       `SELECT COALESCE(SUM(amount), 0) AS total
-       FROM bills
+       FROM acc_bills
        WHERE user_id = $1 AND entity_id = $2
          AND status = 'unpaid'
          AND due_date >= $3 AND due_date <= $4`,
@@ -180,7 +180,7 @@ export async function getDashboardData(
     // Forecast invoice list (drill-down)
     query(
       `SELECT id, invoice_number, client_name, total, due_date
-       FROM invoices
+       FROM acc_invoices
        WHERE user_id = $1 AND entity_id = $2
          AND status IN ('sent','overdue')
          AND due_date >= $3 AND due_date <= $4
@@ -190,7 +190,7 @@ export async function getDashboardData(
     // Forecast bill list (drill-down)
     query(
       `SELECT id, supplier_name, amount, due_date
-       FROM bills
+       FROM acc_bills
        WHERE user_id = $1 AND entity_id = $2
          AND status = 'unpaid'
          AND due_date >= $3 AND due_date <= $4
@@ -246,7 +246,7 @@ export async function getDashboardData(
            $2::date,
            '1 day'::interval
          ) AS d(date)
-         LEFT JOIN bank_transactions bt
+         LEFT JOIN acc_bank_transactions bt
            ON bt.user_id = $4
            AND bt.entity_id = $5
            AND bt.transaction_date > d.date
@@ -263,7 +263,7 @@ export async function getDashboardData(
            DATE_TRUNC('month', transaction_date) = DATE_TRUNC('month', CURRENT_DATE) AS is_partial,
            COALESCE(SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END), 0) AS money_in,
            COALESCE(SUM(CASE WHEN type = 'debit'  THEN amount ELSE 0 END), 0) AS money_out
-         FROM bank_transactions
+         FROM acc_bank_transactions
          WHERE user_id = $1 AND entity_id = $2
            AND transaction_date >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '11 months')
          GROUP BY DATE_TRUNC('month', transaction_date)

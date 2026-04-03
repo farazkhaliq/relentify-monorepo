@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (needsApproval && entity) {
-      await query(`UPDATE mileage_claims SET status = 'pending_approval' WHERE id = $1`, [claim.id]);
+      await query(`UPDATE acc_mileage_claims SET status = 'pending_approval' WHERE id = $1`, [claim.id]);
       claim.status = 'pending_approval' as any;
 
       const approverRow = await query(

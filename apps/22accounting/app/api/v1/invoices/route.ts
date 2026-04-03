@@ -14,10 +14,10 @@ export async function GET(req: NextRequest) {
   const { offset, limit } = parseListParams(req);
   const invoices = await getInvoicesByUser(ctx.userId, ctx.entityId);
   const page = Math.floor(offset / limit) + 1;
-  const sliced = invoices.slice(offset, offset + limit);
+  const sliced = acc_invoices.slice(offset, offset + limit);
 
   return apiSuccess(sliced, {
-    pagination: { page, limit, total: invoices.length, hasMore: offset + limit < invoices.length },
+    pagination: { page, limit, total: acc_invoices.length, hasMore: offset + limit < acc_invoices.length },
     testMode: ctx.isTestMode,
   });
 }

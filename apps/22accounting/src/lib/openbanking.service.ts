@@ -53,7 +53,7 @@ export async function refreshTrueLayerToken(refreshToken: string) {
 }
 
 async function getValidToken(connectionId: string): Promise<{ token: string; connection: Record<string, string> }> {
-  const r = await query(`SELECT * FROM bank_connections WHERE id=$1`, [connectionId]);
+  const r = await query(`SELECT * FROM acc_bank_connections WHERE id=$1`, [connectionId]);
   const conn = r.rows[0];
   if (!conn) throw new Error('Connection not found');
 
@@ -62,7 +62,7 @@ async function getValidToken(connectionId: string): Promise<{ token: string; con
     const tokens = await refreshTrueLayerToken(conn.refresh_token);
     const newExpiry = new Date(Date.now() + tokens.expires_in * 1000);
     await query(
-      `UPDATE bank_connections SET access_token=$1, refresh_token=$2, token_expires_at=$3 WHERE id=$4`,
+      `UPDATE acc_bank_connections SET access_token=$1, refresh_token=$2, token_expires_at=$3 WHERE id=$4`,
       [tokens.access_token, tokens.refresh_token, newExpiry, connectionId]
     );
     return { token: tokens.access_token, connection: conn };
@@ -83,17 +83,17 @@ export async function fetchAndStoreAccounts(userId: string, tokens: { access_tok
   for (const acct of accounts) {
     // Check if already stored
     const existing = await query(
-      `SELECT id FROM bank_connections WHERE user_id=$1 AND truelayer_account_id=$2`,
+      `SELECT id FROM acc_bank_connections WHERE user_id=$1 AND truelayer_account_id=$2`,
       [userId, acct.account_id]
     );
     if (existing.rows.length > 0) {
       await query(
-        `UPDATE bank_connections SET access_token=$1, refresh_token=$2, token_expires_at=$3 WHERE id=$4`,
+        `UPDATE acc_bank_connections SET access_token=$1, refresh_token=$2, token_expires_at=$3 WHERE id=$4`,
         [tokens.access_token, tokens.refresh_token, expiresAt, existing.rows[0].id]
       );
     } else {
       await query(
-        `INSERT INTO bank_connections (user_id, access_token, refresh_token, token_expires_at, truelayer_account_id, display_name, account_type, currency)
+        `INSERT INTO acc_bank_connections (user_id, access_token, refresh_token, token_expires_at, truelayer_account_id, display_name, account_type, currency)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
         [userId, tokens.access_token, tokens.refresh_token, expiresAt, acct.account_id, acct.display_name, acct.account_type, acct.currency]
       );
@@ -105,7 +105,7 @@ export async function fetchAndStoreAccounts(userId: string, tokens: { access_tok
 export async function getConnections(userId: string) {
   const r = await query(
     `SELECT id, truelayer_account_id, display_name, account_type, currency, balance, balance_updated_at, created_at
-     FROM bank_connections WHERE user_id=$1 ORDER BY created_at`,
+     FROM acc_bank_connections WHERE user_id=$1 ORDER BY created_at`,
     [userId]
   );
   return r.rows;
@@ -123,7 +123,7 @@ export async function syncTransactions(userId: string, connectionId: string) {
     const balData = await balRes.json();
     const balance = balData.results?.[0]?.available ?? balData.results?.[0]?.current ?? null;
     await query(
-      `UPDATE bank_connections SET balance=$1, balance_updated_at=NOW() WHERE id=$2`,
+      `UPDATE acc_bank_connections SET balance=$1, balance_updated_at=NOW() WHERE id=$2`,
       [balance, connectionId]
     );
   }
@@ -149,7 +149,7 @@ export async function syncTransactions(userId: string, connectionId: string) {
   let imported = 0;
   for (const tx of transactions) {
     const existing = await query(
-      `SELECT id FROM bank_transactions WHERE user_id=$1 AND import_batch_id=$2`,
+      `SELECT id FROM acc_bank_transactions WHERE user_id=$1 AND import_batch_id=$2`,
       [userId, tx.transaction_id]
     );
     if (existing.rows.length > 0) continue;
@@ -159,7 +159,7 @@ export async function syncTransactions(userId: string, connectionId: string) {
     const date = tx.timestamp.split('T')[0];
 
     await query(
-      `INSERT INTO bank_transactions (user_id, transaction_date, description, amount, type, import_batch_id)
+      `INSERT INTO acc_bank_transactions (user_id, transaction_date, description, amount, type, import_batch_id)
        VALUES ($1, $2, $3, $4, $5, $6)`,
       [userId, date, tx.description, amount, type, tx.transaction_id]
     );
@@ -170,5 +170,5 @@ export async function syncTransactions(userId: string, connectionId: string) {
 }
 
 export async function disconnectAccount(userId: string, connectionId: string) {
-  await query(`DELETE FROM bank_connections WHERE id=$1 AND user_id=$2`, [connectionId, userId]);
+  await query(`DELETE FROM acc_bank_connections WHERE id=$1 AND user_id=$2`, [connectionId, userId]);
 }

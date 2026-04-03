@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
       `SELECT i.id, i.invoice_number, i.client_name, i.client_email,
               i.total, i.currency, i.due_date, i.stripe_payment_link,
               u.full_name, u.business_name, u.payment_reminders_enabled
-       FROM invoices i
+       FROM acc_invoices i
        JOIN users u ON u.id = i.user_id
        WHERE i.status IN ('sent','overdue')
          AND i.client_email IS NOT NULL
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
         if (triggerDate !== today) continue;
 
         const already = await query(
-          `SELECT id FROM reminder_logs WHERE invoice_id=$1 AND trigger_type=$2`,
+          `SELECT id FROM acc_reminder_logs WHERE invoice_id=$1 AND trigger_type=$2`,
           [inv.id, trigger]
         );
         if (already.rows.length > 0) { skipped++; continue; }
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
 
         if (result.success) {
           await query(
-            `INSERT INTO reminder_logs (invoice_id, trigger_type) VALUES ($1, $2)`,
+            `INSERT INTO acc_reminder_logs (invoice_id, trigger_type) VALUES ($1, $2)`,
             [inv.id, trigger]
           );
           sent++;

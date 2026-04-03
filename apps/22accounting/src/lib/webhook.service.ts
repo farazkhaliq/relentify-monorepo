@@ -39,7 +39,7 @@ export async function createWebhookEndpoint(params: {
 }): Promise<{ secret: string; endpoint: Record<string, unknown> }> {
   const secret = crypto.randomBytes(32).toString('hex');
   const r = await query(
-    `INSERT INTO webhook_endpoints (entity_id, url, secret, events)
+    `INSERT INTO acc_webhook_endpoints (entity_id, url, secret, events)
      VALUES ($1, $2, $3, $4) RETURNING *`,
     [params.entityId, params.url, secret, params.events]
   );
@@ -48,7 +48,7 @@ export async function createWebhookEndpoint(params: {
 
 export async function listWebhookEndpoints(entityId: string) {
   const r = await query(
-    'SELECT id, entity_id, url, events, is_active, created_at FROM webhook_endpoints WHERE entity_id = $1 ORDER BY created_at DESC',
+    'SELECT id, entity_id, url, events, is_active, created_at FROM acc_webhook_endpoints WHERE entity_id = $1 ORDER BY created_at DESC',
     [entityId]
   );
   return r.rows;
@@ -56,7 +56,7 @@ export async function listWebhookEndpoints(entityId: string) {
 
 export async function deleteWebhookEndpoint(id: string, entityId: string): Promise<boolean> {
   const r = await query(
-    'DELETE FROM webhook_endpoints WHERE id = $1 AND entity_id = $2 RETURNING id',
+    'DELETE FROM acc_webhook_endpoints WHERE id = $1 AND entity_id = $2 RETURNING id',
     [id, entityId]
   );
   return r.rows.length > 0;
@@ -69,7 +69,7 @@ export async function dispatchWebhookEvent(
   data: Record<string, unknown>
 ): Promise<void> {
   const endpoints = await query(
-    `SELECT * FROM webhook_endpoints
+    `SELECT * FROM acc_webhook_endpoints
      WHERE entity_id = $1 AND is_active = TRUE AND $2 = ANY(events)`,
     [entityId, eventType]
   );
@@ -85,7 +85,7 @@ export async function dispatchWebhookEvent(
 
   for (const endpoint of endpoints.rows) {
     const r = await query(
-      `INSERT INTO webhook_deliveries (endpoint_id, event_type, payload, status, next_retry_at)
+      `INSERT INTO acc_webhook_deliveries (endpoint_id, event_type, payload, status, next_retry_at)
        VALUES ($1, $2, $3, 'pending', NOW()) RETURNING id`,
       [endpoint.id, eventType, JSON.stringify(payload)]
     );
@@ -108,8 +108,8 @@ export async function processDelivery(
   if (!endpoint || !payload) {
     const r = await query(
       `SELECT d.*, e.url, e.secret, e.entity_id as ep_entity_id
-       FROM webhook_deliveries d
-       JOIN webhook_endpoints e ON e.id = d.endpoint_id
+       FROM acc_webhook_deliveries d
+       JOIN acc_webhook_endpoints e ON e.id = d.endpoint_id
        WHERE d.id = $1`,
       [deliveryId]
     );
@@ -126,7 +126,7 @@ export async function processDelivery(
     .digest('hex');
 
   // Fetch current retry_count
-  const dr = await query('SELECT retry_count FROM webhook_deliveries WHERE id = $1', [deliveryId]);
+  const dr = await query('SELECT retry_count FROM acc_webhook_deliveries WHERE id = $1', [deliveryId]);
   const retryCount: number = dr.rows[0]?.retry_count ?? 0;
 
   let statusCode = 0;
@@ -157,7 +157,7 @@ export async function processDelivery(
 
   if (success) {
     await query(
-      `UPDATE webhook_deliveries
+      `UPDATE acc_webhook_deliveries
        SET status = 'delivered', status_code = $1, delivered_at = NOW()
        WHERE id = $2`,
       [statusCode, deliveryId]
@@ -171,7 +171,7 @@ export async function processDelivery(
   if (newRetryCount >= MAX_ATTEMPTS) {
     // Dead-letter
     await query(
-      `UPDATE webhook_deliveries
+      `UPDATE acc_webhook_deliveries
        SET status = 'dead_lettered', status_code = $1, retry_count = $2,
            failed_at = NOW(), dead_lettered_at = NOW()
        WHERE id = $3`,
@@ -179,8 +179,8 @@ export async function processDelivery(
     );
     // Deactivate the endpoint
     await query(
-      `UPDATE webhook_endpoints SET is_active = FALSE
-       WHERE id = (SELECT endpoint_id FROM webhook_deliveries WHERE id = $1)`,
+      `UPDATE acc_webhook_endpoints SET is_active = FALSE
+       WHERE id = (SELECT endpoint_id FROM acc_webhook_deliveries WHERE id = $1)`,
       [deliveryId]
     );
     // Email notification would be sent here via email.ts (omitted for brevity — wire up in integration)
@@ -188,7 +188,7 @@ export async function processDelivery(
     const retryAfterMs = nextRetryMs(newRetryCount - 1);
     const nextRetryAt = new Date(Date.now() + retryAfterMs).toISOString();
     await query(
-      `UPDATE webhook_deliveries
+      `UPDATE acc_webhook_deliveries
        SET status = 'failed', status_code = $1, retry_count = $2,
            failed_at = NOW(), next_retry_at = $3
        WHERE id = $4`,
@@ -201,8 +201,8 @@ export async function processDelivery(
 export async function processPendingDeliveries(): Promise<{ processed: number; errors: number }> {
   const r = await query(
     `SELECT d.id, e.url, e.secret, d.payload, d.retry_count
-     FROM webhook_deliveries d
-     JOIN webhook_endpoints e ON e.id = d.endpoint_id
+     FROM acc_webhook_deliveries d
+     JOIN acc_webhook_endpoints e ON e.id = d.endpoint_id
      WHERE d.status IN ('pending', 'failed')
        AND d.next_retry_at <= NOW()
      ORDER BY d.next_retry_at ASC
@@ -227,8 +227,8 @@ export async function processPendingDeliveries(): Promise<{ processed: number; e
 export async function retryDeadLettered(deliveryId: string, entityId: string): Promise<boolean> {
   // Verify ownership
   const r = await query(
-    `SELECT d.id FROM webhook_deliveries d
-     JOIN webhook_endpoints e ON e.id = d.endpoint_id
+    `SELECT d.id FROM acc_webhook_deliveries d
+     JOIN acc_webhook_endpoints e ON e.id = d.endpoint_id
      WHERE d.id = $1 AND e.entity_id = $2 AND d.status = 'dead_lettered'`,
     [deliveryId, entityId]
   );
@@ -236,15 +236,15 @@ export async function retryDeadLettered(deliveryId: string, entityId: string): P
 
   // Reset delivery to pending
   await query(
-    `UPDATE webhook_deliveries
+    `UPDATE acc_webhook_deliveries
      SET status = 'pending', retry_count = 0, dead_lettered_at = NULL, next_retry_at = NOW()
      WHERE id = $1`,
     [deliveryId]
   );
   // Re-activate the endpoint
   await query(
-    `UPDATE webhook_endpoints SET is_active = TRUE
-     WHERE id = (SELECT endpoint_id FROM webhook_deliveries WHERE id = $1)`,
+    `UPDATE acc_webhook_endpoints SET is_active = TRUE
+     WHERE id = (SELECT endpoint_id FROM acc_webhook_deliveries WHERE id = $1)`,
     [deliveryId]
   );
   return true;

@@ -218,8 +218,8 @@ export default function Home() {
   };
 
   const openChat = () => {
-    if ((window as any).Tawk_API) {
-      (window as any).Tawk_API.toggle();
+    if ((window as any).$chatwoot) {
+      (window as any).$chatwoot.toggle();
     }
   };
 

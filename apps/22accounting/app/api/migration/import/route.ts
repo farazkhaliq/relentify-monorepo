@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
 
     if (body.resumeRunId) {
       const prev = await query(
-        `SELECT * FROM migration_runs WHERE id = $1 AND entity_id = $2`,
+        `SELECT * FROM acc_migration_runs WHERE id = $1 AND entity_id = $2`,
         [body.resumeRunId, entity.id]
       );
       if (!prev.rows[0]) return NextResponse.json({ error: 'Previous run not found' }, { status: 404 });
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
       skipBatches = prevBatches.filter(b => b.status === 'completed').map(b => b.type);
     } else {
       const r = await query(
-        `INSERT INTO migration_runs (entity_id, user_id, source, cutoff_date, files_uploaded, auto_mappings, validation_warnings, batches)
+        `INSERT INTO acc_migration_runs (entity_id, user_id, source, cutoff_date, files_uploaded, auto_mappings, validation_warnings, batches)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
         [
           entity.id, auth.userId, body.source, body.cutoffDate,

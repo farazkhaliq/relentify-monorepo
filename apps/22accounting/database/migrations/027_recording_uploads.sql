@@ -1,7 +1,7 @@
 -- 027_recording_uploads.sql
 -- Run: docker exec -i infra-postgres psql -U relentify_user -d relentify < database/migrations/027_recording_uploads.sql
 
-CREATE TABLE IF NOT EXISTS recording_uploads (
+CREATE TABLE IF NOT EXISTS acc_recording_uploads (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id      UUID NOT NULL,
   entity_id    UUID REFERENCES entities(id),
@@ -14,5 +14,5 @@ CREATE TABLE IF NOT EXISTS recording_uploads (
   expires_at   TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '30 days')
 );
 
-CREATE INDEX IF NOT EXISTS idx_recording_uploads_user_id ON recording_uploads(user_id);
-CREATE INDEX IF NOT EXISTS idx_recording_uploads_entity_id ON recording_uploads(entity_id);
+CREATE INDEX IF NOT EXISTS idx_recording_uploads_user_id ON acc_recording_uploads(user_id);
+CREATE INDEX IF NOT EXISTS idx_recording_uploads_entity_id ON acc_recording_uploads(entity_id);

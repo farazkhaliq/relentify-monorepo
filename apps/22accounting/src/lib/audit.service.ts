@@ -11,7 +11,7 @@ export async function logAudit(
 ) {
   try {
     await query(
-      `INSERT INTO audit_log
+      `INSERT INTO acc_audit_log
          (user_id, action, entity_type, entity_id, metadata, actor_id, workspace_entity_id)
        VALUES ($1,$2,$3,$4,$5,$6,$7)`,
       [
@@ -36,7 +36,7 @@ export async function getAuditLog(
   let sql = `
     SELECT id, action, entity_type, entity_id, metadata,
            actor_id, workspace_entity_id, created_at
-    FROM audit_log WHERE user_id=$1`
+    FROM acc_audit_log WHERE user_id=$1`
 
   if (entityId) {
     params.push(entityId)

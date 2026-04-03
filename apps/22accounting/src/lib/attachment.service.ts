@@ -23,7 +23,7 @@ export async function getAttachments(
   recordId: string
 ): Promise<Attachment[]> {
   const result = await query(
-    `SELECT * FROM attachments
+    `SELECT * FROM acc_attachments
      WHERE entity_id=$1 AND record_type=$2 AND record_id=$3
      ORDER BY created_at ASC`,
     [entityId, recordType, recordId]
@@ -66,7 +66,7 @@ export async function createAttachment(params: {
   // Insert metadata row FIRST so the FK constraint on attachment_data is satisfied
   const placeholderKey = id; // will be updated after upload if key differs
   const result = await query(
-    `INSERT INTO attachments
+    `INSERT INTO acc_attachments
        (id, entity_id, record_type, record_id, file_key, file_name, file_size, mime_type, uploaded_by)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
     [id, params.entityId, params.recordType, params.recordId,
@@ -89,14 +89,14 @@ export async function deleteAttachment(
   userId: string
 ): Promise<boolean> {
   const result = await query(
-    `SELECT file_key FROM attachments WHERE id=$1 AND entity_id=$2 AND uploaded_by=$3`,
+    `SELECT file_key FROM acc_attachments WHERE id=$1 AND entity_id=$2 AND uploaded_by=$3`,
     [id, entityId, userId]
   );
   if (result.rows.length === 0) return false;
 
   const storage = getStorageProvider();
   await storage.delete(result.rows[0].file_key);
-  await query(`DELETE FROM attachments WHERE id=$1`, [id]);
+  await query(`DELETE FROM acc_attachments WHERE id=$1`, [id]);
   return true;
 }
 
@@ -105,7 +105,7 @@ export async function getAttachmentFile(
   entityId: string
 ): Promise<{ buffer: Buffer; mimeType: string; fileName: string } | null> {
   const result = await query(
-    `SELECT file_key, mime_type, file_name FROM attachments WHERE id=$1 AND entity_id=$2`,
+    `SELECT file_key, mime_type, file_name FROM acc_attachments WHERE id=$1 AND entity_id=$2`,
     [id, entityId]
   );
   if (result.rows.length === 0) return null;

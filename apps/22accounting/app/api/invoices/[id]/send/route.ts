@@ -54,7 +54,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     } else {
       // Just mark as sent without a payment link
       const { query } = await import('@/src/lib/db');
-      await query(`UPDATE invoices SET status='sent', sent_at=NOW() WHERE id=$1`, [invoice.id]);
+      await query(`UPDATE acc_invoices SET status='sent', sent_at=NOW() WHERE id=$1`, [invoice.id]);
     }
 
     // Send email

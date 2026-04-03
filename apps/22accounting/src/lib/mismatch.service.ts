@@ -16,7 +16,7 @@ interface MismatchInput {
 function createMismatch(input: MismatchInput) {
   const diff = Math.abs(input.sourceAmount - input.referenceAmount);
   return query(
-    `INSERT INTO mismatches (user_id, entity_id, type, source_type, source_id, reference_type, reference_id, source_amount, reference_amount, difference, message)
+    `INSERT INTO acc_mismatches (user_id, entity_id, type, source_type, source_id, reference_type, reference_id, source_amount, reference_amount, difference, message)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
      RETURNING *`,
     [input.userId, input.entityId, input.type, input.sourceType, input.sourceId,
@@ -29,7 +29,7 @@ function createMismatch(input: MismatchInput) {
 export async function detectBillPOMismatch(
   userId: string, entityId: string, billId: string, billAmount: number, poId: string
 ) {
-  const poResult = await query('SELECT total FROM purchase_orders WHERE id = $1', [poId]);
+  const poResult = await query('SELECT total FROM acc_purchase_orders WHERE id = $1', [poId]);
   if (!poResult.rows[0]) return null;
   const poAmount = Number(poResult.rows[0].total);
   const diff = Math.abs(billAmount - poAmount);
@@ -65,8 +65,8 @@ export async function detectBankMismatch(
 /** List mismatches for an entity, optionally filtered by status. */
 export async function getMismatches(userId: string, entityId: string, status?: string) {
   const sql = status
-    ? 'SELECT * FROM mismatches WHERE user_id = $1 AND entity_id = $2 AND status = $3 ORDER BY created_at DESC'
-    : 'SELECT * FROM mismatches WHERE user_id = $1 AND entity_id = $2 ORDER BY created_at DESC';
+    ? 'SELECT * FROM acc_mismatches WHERE user_id = $1 AND entity_id = $2 AND status = $3 ORDER BY created_at DESC'
+    : 'SELECT * FROM acc_mismatches WHERE user_id = $1 AND entity_id = $2 ORDER BY created_at DESC';
   const params = status ? [userId, entityId, status] : [userId, entityId];
   return (await query(sql, params)).rows;
 }
@@ -74,7 +74,7 @@ export async function getMismatches(userId: string, entityId: string, status?: s
 /** Resolve or ignore a mismatch. */
 export async function resolveMismatch(id: string, userId: string, action: 'resolved' | 'ignored') {
   return (await query(
-    `UPDATE mismatches SET status = $1, resolved_at = now(), resolved_by = $2 WHERE id = $3 RETURNING *`,
+    `UPDATE acc_mismatches SET status = $1, resolved_at = now(), resolved_by = $2 WHERE id = $3 RETURNING *`,
     [action, userId, id]
   )).rows[0];
 }
@@ -82,7 +82,7 @@ export async function resolveMismatch(id: string, userId: string, action: 'resol
 /** Count open mismatches for an entity. */
 export async function getMismatchCount(userId: string, entityId: string) {
   const result = await query(
-    'SELECT COUNT(*)::int AS count FROM mismatches WHERE user_id = $1 AND entity_id = $2 AND status = $3',
+    'SELECT COUNT(*)::int AS count FROM acc_mismatches WHERE user_id = $1 AND entity_id = $2 AND status = $3',
     [userId, entityId, 'open']
   );
   return result.rows[0]?.count ?? 0;

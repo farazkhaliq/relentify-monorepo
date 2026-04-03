@@ -5,14 +5,14 @@ export async function getAllCustomers(userId: string, entityId?: string) {
   if (entityId) {
     const r = await query(
       `SELECT id, name, email, phone, address, notes, created_at
-       FROM customers WHERE user_id = $1 AND entity_id = $2 ORDER BY name ASC`,
+       FROM acc_customers WHERE user_id = $1 AND entity_id = $2 ORDER BY name ASC`,
       [userId, entityId]
     );
     return r.rows;
   }
   const r = await query(
     `SELECT id, name, email, phone, address, notes, created_at
-     FROM customers WHERE user_id = $1 ORDER BY name ASC`,
+     FROM acc_customers WHERE user_id = $1 ORDER BY name ASC`,
     [userId]
   );
   return r.rows;
@@ -21,13 +21,13 @@ export async function getAllCustomers(userId: string, entityId?: string) {
 export async function getCustomerById(customerId: string, userId: string, entityId?: string) {
   if (entityId) {
     const r = await query(
-      `SELECT * FROM customers WHERE id = $1 AND user_id = $2 AND entity_id = $3`,
+      `SELECT * FROM acc_customers WHERE id = $1 AND user_id = $2 AND entity_id = $3`,
       [customerId, userId, entityId]
     );
     return r.rows[0] || null;
   }
   const r = await query(
-    `SELECT * FROM customers WHERE id = $1 AND user_id = $2`,
+    `SELECT * FROM acc_customers WHERE id = $1 AND user_id = $2`,
     [customerId, userId]
   );
   return r.rows[0] || null;
@@ -43,7 +43,7 @@ export async function createCustomer(data: {
   notes?: string;
 }) {
   const r = await query(
-    `INSERT INTO customers (user_id, entity_id, name, email, phone, address, notes)
+    `INSERT INTO acc_customers (user_id, entity_id, name, email, phone, address, notes)
      VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING *`,
     [data.userId, data.entityId, data.name, data.email || null, data.phone || null, data.address || null, data.notes || null]
@@ -91,7 +91,7 @@ export async function updateCustomer(
   if (entityId) {
     values.push(customerId, userId, entityId);
     const r = await query(
-      `UPDATE customers SET ${fields.join(', ')} WHERE id = $${paramCount} AND user_id = $${paramCount + 1} AND entity_id = $${paramCount + 2} RETURNING *`,
+      `UPDATE acc_customers SET ${fields.join(', ')} WHERE id = $${paramCount} AND user_id = $${paramCount + 1} AND entity_id = $${paramCount + 2} RETURNING *`,
       values
     );
     return r.rows[0] || null;
@@ -99,7 +99,7 @@ export async function updateCustomer(
 
   values.push(customerId, userId);
   const r = await query(
-    `UPDATE customers SET ${fields.join(', ')} WHERE id = $${paramCount} AND user_id = $${paramCount + 1} RETURNING *`,
+    `UPDATE acc_customers SET ${fields.join(', ')} WHERE id = $${paramCount} AND user_id = $${paramCount + 1} RETURNING *`,
     values
   );
   return r.rows[0] || null;
@@ -108,13 +108,13 @@ export async function updateCustomer(
 export async function deleteCustomer(customerId: string, userId: string, entityId?: string) {
   if (entityId) {
     const r = await query(
-      `DELETE FROM customers WHERE id = $1 AND user_id = $2 AND entity_id = $3 RETURNING id`,
+      `DELETE FROM acc_customers WHERE id = $1 AND user_id = $2 AND entity_id = $3 RETURNING id`,
       [customerId, userId, entityId]
     );
     return (r.rowCount ?? 0) > 0;
   }
   const r = await query(
-    `DELETE FROM customers WHERE id = $1 AND user_id = $2 RETURNING id`,
+    `DELETE FROM acc_customers WHERE id = $1 AND user_id = $2 RETURNING id`,
     [customerId, userId]
   );
   return (r.rowCount ?? 0) > 0;

@@ -1,5 +1,5 @@
 -- 028: Mismatch flagging for PO-bill and bank-invoice amount discrepancies
-CREATE TABLE IF NOT EXISTS mismatches (
+CREATE TABLE IF NOT EXISTS acc_mismatches (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   entity_id UUID NOT NULL,
@@ -19,5 +19,5 @@ CREATE TABLE IF NOT EXISTS mismatches (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS idx_mismatches_user_status ON mismatches(user_id, status);
-CREATE INDEX IF NOT EXISTS idx_mismatches_entity ON mismatches(entity_id);
+CREATE INDEX IF NOT EXISTS idx_mismatches_user_status ON acc_mismatches(user_id, status);
+CREATE INDEX IF NOT EXISTS idx_mismatches_entity ON acc_mismatches(entity_id);

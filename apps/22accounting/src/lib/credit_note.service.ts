@@ -37,7 +37,7 @@ export async function createCreditNote(data: {
 
   return withTransaction(async (client) => {
     const r = await client.query(
-      `INSERT INTO credit_notes
+      `INSERT INTO acc_credit_notes
          (user_id, entity_id, customer_id, invoice_id, credit_note_number,
           client_name, client_email, issue_date, subtotal, tax_rate, tax_amount,
           total, currency, reason, notes)
@@ -54,7 +54,7 @@ export async function createCreditNote(data: {
 
     for (const item of processedItems) {
       await client.query(
-        `INSERT INTO credit_note_items
+        `INSERT INTO acc_credit_note_items
            (credit_note_id, description, quantity, unit_price, amount, tax_rate, tax_amount, line_order)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
         [cn.id, item.description, item.quantity, item.unitPrice,
@@ -96,8 +96,8 @@ export async function createCreditNote(data: {
 export async function getCreditNotesByEntity(entityId: string) {
   const r = await query(
     `SELECT cn.*, i.invoice_number as linked_invoice_number
-     FROM credit_notes cn
-     LEFT JOIN invoices i ON i.id = cn.invoice_id
+     FROM acc_credit_notes cn
+     LEFT JOIN acc_invoices i ON i.id = cn.invoice_id
      WHERE cn.entity_id = $1
      ORDER BY cn.created_at DESC`,
     [entityId]
@@ -108,15 +108,15 @@ export async function getCreditNotesByEntity(entityId: string) {
 export async function getCreditNoteById(id: string, entityId: string) {
   const r = await query(
     `SELECT cn.*, i.invoice_number as linked_invoice_number
-     FROM credit_notes cn
-     LEFT JOIN invoices i ON i.id = cn.invoice_id
+     FROM acc_credit_notes cn
+     LEFT JOIN acc_invoices i ON i.id = cn.invoice_id
      WHERE cn.id = $1 AND cn.entity_id = $2`,
     [id, entityId]
   );
   if (!r.rows[0]) return null;
   const cn = r.rows[0];
   const items = await query(
-    'SELECT * FROM credit_note_items WHERE credit_note_id = $1 ORDER BY line_order',
+    'SELECT * FROM acc_credit_note_items WHERE credit_note_id = $1 ORDER BY line_order',
     [id]
   );
   return { ...cn, items: items.rows };
@@ -124,7 +124,7 @@ export async function getCreditNoteById(id: string, entityId: string) {
 
 export async function updateCreditNoteStatus(id: string, entityId: string, status: string) {
   const r = await query(
-    `UPDATE credit_notes SET status = $1, updated_at = now()
+    `UPDATE acc_credit_notes SET status = $1, updated_at = now()
      WHERE id = $2 AND entity_id = $3 RETURNING *`,
     [status, id, entityId]
   );
@@ -139,14 +139,14 @@ export async function voidCreditNote(id: string, entityId: string, userId: strin
 
   return withTransaction(async (client) => {
     const r = await client.query(
-      `UPDATE credit_notes SET status = 'voided', updated_at = now()
+      `UPDATE acc_credit_notes SET status = 'voided', updated_at = now()
        WHERE id = $1 AND entity_id = $2 RETURNING *`,
       [id, entityId]
     );
 
     // Find and reverse the original GL entry
     const jeRes = await client.query(
-      `SELECT id FROM journal_entries
+      `SELECT id FROM acc_journal_entries
        WHERE source_type = 'credit_note' AND source_id = $1 AND entity_id = $2
        ORDER BY created_at ASC LIMIT 1`,
       [id, entityId]

@@ -63,7 +63,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const total = subtotal + taxAmount;
 
     await query(
-      `UPDATE invoices SET
+      `UPDATE acc_invoices SET
         client_name=$1, client_email=$2, client_address=$3,
         due_date=$4, tax_rate=$5, tax_amount=$6, subtotal=$7, total=$8,
         payment_terms=$9, notes=$10, currency=$11, updated_at=NOW()
@@ -77,10 +77,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     );
 
     // Replace line items — delete old, insert new
-    await query('DELETE FROM invoice_items WHERE invoice_id=$1', [id]);
+    await query('DELETE FROM acc_invoice_items WHERE invoice_id=$1', [id]);
     for (const item of d.items) {
       await query(
-        `INSERT INTO invoice_items (invoice_id, description, quantity, unit_price, amount)
+        `INSERT INTO acc_invoice_items (invoice_id, description, quantity, unit_price, amount)
          VALUES ($1,$2,$3,$4,$5)`,
         [id, item.description, item.quantity, item.unitPrice, item.quantity * item.unitPrice]
       );
@@ -116,6 +116,6 @@ export async function DELETE(_r: NextRequest, { params }: { params: Promise<{ id
     }
   }
   const { query } = await import('@/src/lib/db');
-  await query('DELETE FROM invoices WHERE id=$1 AND user_id=$2', [id, auth.userId]);
+  await query('DELETE FROM acc_invoices WHERE id=$1 AND user_id=$2', [id, auth.userId]);
   return NextResponse.json({ success: true });
 }

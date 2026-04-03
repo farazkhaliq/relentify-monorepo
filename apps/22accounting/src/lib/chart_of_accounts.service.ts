@@ -75,12 +75,12 @@ const DEFAULT_COA = [
 
 export async function seedDefaultCOA(entityId: string): Promise<void> {
   // Check if already seeded
-  const existing = await query('SELECT id FROM chart_of_accounts WHERE entity_id=$1 LIMIT 1', [entityId]);
+  const existing = await query('SELECT id FROM acc_chart_of_accounts WHERE entity_id=$1 LIMIT 1', [entityId]);
   if (existing.rows.length > 0) return;
 
   for (const acct of DEFAULT_COA) {
     await query(
-      `INSERT INTO chart_of_accounts (entity_id, code, name, account_type, description, is_system)
+      `INSERT INTO acc_chart_of_accounts (entity_id, code, name, account_type, description, is_system)
        VALUES ($1, $2, $3, $4, $5, $6)
        ON CONFLICT (entity_id, code) DO NOTHING`,
       [entityId, acct.code, acct.name, acct.type, acct.desc, acct.system]
@@ -93,12 +93,12 @@ export async function getChartOfAccounts(entityId: string) {
     `SELECT id, code, name, account_type, description, is_active, is_system,
             COALESCE(
               (SELECT SUM(jl.debit) - SUM(jl.credit)
-               FROM journal_lines jl
-               JOIN journal_entries je ON jl.entry_id = je.id
+               FROM acc_journal_lines jl
+               JOIN acc_journal_entries je ON jl.entry_id = je.id
                WHERE jl.account_id = coa.id AND je.entity_id = $1),
               0
             ) AS balance
-     FROM chart_of_accounts coa
+     FROM acc_chart_of_accounts coa
      WHERE entity_id = $1
      ORDER BY code ASC`,
     [entityId]
@@ -108,7 +108,7 @@ export async function getChartOfAccounts(entityId: string) {
 
 export async function getAccountById(id: string, entityId: string) {
   const r = await query(
-    'SELECT * FROM chart_of_accounts WHERE id=$1 AND entity_id=$2',
+    'SELECT * FROM acc_chart_of_accounts WHERE id=$1 AND entity_id=$2',
     [id, entityId]
   );
   return r.rows[0] || null;
@@ -116,7 +116,7 @@ export async function getAccountById(id: string, entityId: string) {
 
 export async function getAccountByCode(entityId: string, code: number) {
   const r = await query(
-    'SELECT * FROM chart_of_accounts WHERE entity_id=$1 AND code=$2 AND is_active=TRUE',
+    'SELECT * FROM acc_chart_of_accounts WHERE entity_id=$1 AND code=$2 AND is_active=TRUE',
     [entityId, code]
   );
   return r.rows[0] || null;
@@ -126,7 +126,7 @@ export async function getAccountByCode(entityId: string, code: number) {
 export async function getAllActiveAccounts(entityId: string) {
   const r = await query(
     `SELECT id, code, name, account_type, description
-     FROM chart_of_accounts
+     FROM acc_chart_of_accounts
      WHERE entity_id=$1 AND is_active=TRUE
      ORDER BY code ASC`,
     [entityId]
@@ -138,7 +138,7 @@ export async function getAllActiveAccounts(entityId: string) {
 export async function getExpenseAccounts(entityId: string) {
   const r = await query(
     `SELECT id, code, name, account_type
-     FROM chart_of_accounts
+     FROM acc_chart_of_accounts
      WHERE entity_id=$1 AND is_active=TRUE
        AND account_type IN ('COGS','EXPENSE','SUSPENSE')
      ORDER BY code ASC`,
@@ -157,7 +157,7 @@ export async function createAccount(entityId: string, data: {
   if (err) throw new Error(err);
 
   const r = await query(
-    `INSERT INTO chart_of_accounts (entity_id, code, name, account_type, description)
+    `INSERT INTO acc_chart_of_accounts (entity_id, code, name, account_type, description)
      VALUES ($1, $2, $3, $4, $5) RETURNING *`,
     [entityId, data.code, data.name, data.accountType, data.description || null]
   );
@@ -172,7 +172,7 @@ export async function updateAccount(id: string, entityId: string, data: {
   if (!acct) throw new Error('Account not found');
   // System accounts: can only update description, not name
   const r = await query(
-    `UPDATE chart_of_accounts
+    `UPDATE acc_chart_of_accounts
      SET name        = COALESCE($3, name),
          description = COALESCE($4, description)
      WHERE id=$1 AND entity_id=$2 RETURNING *`,
@@ -188,8 +188,8 @@ export async function deactivateAccount(id: string, entityId: string) {
 
   // Check if account has any journal lines
   const usage = await query(
-    `SELECT COUNT(*) FROM journal_lines jl
-     JOIN journal_entries je ON jl.entry_id = je.id
+    `SELECT COUNT(*) FROM acc_journal_lines jl
+     JOIN acc_journal_entries je ON jl.entry_id = je.id
      WHERE jl.account_id = $1 AND je.entity_id = $2`,
     [id, entityId]
   );
@@ -197,5 +197,5 @@ export async function deactivateAccount(id: string, entityId: string) {
     throw new Error('Cannot deactivate an account that has posted transactions');
   }
 
-  await query('UPDATE chart_of_accounts SET is_active=FALSE WHERE id=$1', [id]);
+  await query('UPDATE acc_chart_of_accounts SET is_active=FALSE WHERE id=$1', [id]);
 }

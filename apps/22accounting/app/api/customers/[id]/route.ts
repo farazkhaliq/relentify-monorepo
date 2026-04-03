@@ -63,7 +63,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     const invoices = await getInvoicesByCustomer(auth.userId, id, entity?.id);
     if (invoices.length > 0) {
       return NextResponse.json(
-        { error: `Cannot delete — ${invoices.length} invoice${invoices.length !== 1 ? 's' : ''} on record` },
+        { error: `Cannot delete — ${acc_invoices.length} invoice${acc_invoices.length !== 1 ? 's' : ''} on record` },
         { status: 409 }
       );
     }

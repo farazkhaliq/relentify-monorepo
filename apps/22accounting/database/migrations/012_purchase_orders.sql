@@ -1,7 +1,7 @@
 -- 012_purchase_orders.sql
 -- Purchase order approvals system
 
-CREATE TABLE po_settings (
+CREATE TABLE acc_po_settings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   entity_id UUID NOT NULL UNIQUE REFERENCES entities(id) ON DELETE CASCADE,
   enabled BOOLEAN NOT NULL DEFAULT false,
@@ -12,7 +12,7 @@ CREATE TABLE po_settings (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE purchase_orders (
+CREATE TABLE acc_purchase_orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   entity_id UUID NOT NULL REFERENCES entities(id) ON DELETE CASCADE,
   user_id UUID NOT NULL REFERENCES users(id),
@@ -38,9 +38,9 @@ CREATE TABLE purchase_orders (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE po_items (
+CREATE TABLE acc_po_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  po_id UUID NOT NULL REFERENCES purchase_orders(id) ON DELETE CASCADE,
+  po_id UUID NOT NULL REFERENCES acc_purchase_orders(id) ON DELETE CASCADE,
   description TEXT NOT NULL,
   quantity NUMERIC(10,2) NOT NULL DEFAULT 1,
   unit_price NUMERIC(15,2) NOT NULL DEFAULT 0,
@@ -49,15 +49,15 @@ CREATE TABLE po_items (
   line_order INT NOT NULL DEFAULT 0
 );
 
--- Link bills back to the PO that authorised the spend
-ALTER TABLE bills
-  ADD COLUMN po_id UUID REFERENCES purchase_orders(id) ON DELETE SET NULL,
+-- Link acc_bills back to the PO that authorised the spend
+ALTER TABLE acc_bills
+  ADD COLUMN po_id UUID REFERENCES acc_purchase_orders(id) ON DELETE SET NULL,
   ADD COLUMN po_variance_reason TEXT;
 
 CREATE SEQUENCE po_number_seq START 1;
 
-CREATE INDEX idx_po_entity_id ON purchase_orders(entity_id);
-CREATE INDEX idx_po_user_id ON purchase_orders(user_id);
-CREATE INDEX idx_po_status ON purchase_orders(status);
-CREATE INDEX idx_po_approval_token ON purchase_orders(approval_token);
-CREATE INDEX idx_po_items_po_id ON po_items(po_id);
+CREATE INDEX idx_po_entity_id ON acc_purchase_orders(entity_id);
+CREATE INDEX idx_po_user_id ON acc_purchase_orders(user_id);
+CREATE INDEX idx_po_status ON acc_purchase_orders(status);
+CREATE INDEX idx_po_approval_token ON acc_purchase_orders(approval_token);
+CREATE INDEX idx_po_items_po_id ON acc_po_items(po_id);

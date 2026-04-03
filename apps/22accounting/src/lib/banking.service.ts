@@ -45,9 +45,9 @@ export async function getTransactions(userId: string, opts: { status?: string; c
     `SELECT bt.*,
        i.invoice_number,
        b.supplier_name AS bill_supplier
-     FROM bank_transactions bt
-     LEFT JOIN invoices i ON i.id = bt.matched_invoice_id
-     LEFT JOIN bills b ON b.id = bt.matched_bill_id
+     FROM acc_bank_transactions bt
+     LEFT JOIN acc_invoices i ON i.id = bt.matched_invoice_id
+     LEFT JOIN acc_bills b ON b.id = bt.matched_bill_id
      WHERE ${clauses.join(' AND ')}
      ORDER BY bt.transaction_date DESC, bt.created_at DESC`,
     params
@@ -59,7 +59,7 @@ export async function autoMatch(userId: string, txId: string, amount: number, tx
   if (type === 'credit') {
     // Try to match against unpaid/sent invoices
     const r = await query(
-      `SELECT id FROM invoices
+      `SELECT id FROM acc_invoices
        WHERE user_id = $1
          AND status IN ('sent','overdue')
          AND ABS(total::numeric - $2) <= 0.01
@@ -69,7 +69,7 @@ export async function autoMatch(userId: string, txId: string, amount: number, tx
     );
     if (r.rows.length > 0) {
       await query(
-        `UPDATE bank_transactions SET status='matched', matched_invoice_id=$1 WHERE id=$2`,
+        `UPDATE acc_bank_transactions SET status='matched', matched_invoice_id=$1 WHERE id=$2`,
         [r.rows[0].id, txId]
       );
       return { matched: true, invoiceId: r.rows[0].id };
@@ -77,7 +77,7 @@ export async function autoMatch(userId: string, txId: string, amount: number, tx
   } else {
     // Try to match against unpaid bills
     const r = await query(
-      `SELECT id FROM bills
+      `SELECT id FROM acc_bills
        WHERE user_id = $1
          AND status IN ('unpaid','overdue')
          AND ABS(amount::numeric - $2) <= 0.01
@@ -87,7 +87,7 @@ export async function autoMatch(userId: string, txId: string, amount: number, tx
     );
     if (r.rows.length > 0) {
       await query(
-        `UPDATE bank_transactions SET status='matched', matched_bill_id=$1 WHERE id=$2`,
+        `UPDATE acc_bank_transactions SET status='matched', matched_bill_id=$1 WHERE id=$2`,
         [r.rows[0].id, txId]
       );
       return { matched: true, billId: r.rows[0].id };
@@ -106,7 +106,7 @@ export async function importTransactions(userId: string, rows: CsvRow[], entityI
     const type: 'credit' | 'debit' = isCredit ? 'credit' : 'debit';
 
     const r = await query(
-      `INSERT INTO bank_transactions (user_id, entity_id, transaction_date, description, amount, type, import_batch_id)
+      `INSERT INTO acc_bank_transactions (user_id, entity_id, transaction_date, description, amount, type, import_batch_id)
        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
       [userId, entityId || null, row.date, row.description, amount, type, batchId]
     );
@@ -119,30 +119,30 @@ export async function importTransactions(userId: string, rows: CsvRow[], entityI
 }
 
 export async function manualMatch(userId: string, txId: string, action: MatchAction) {
-  const tx = await query(`SELECT id, type FROM bank_transactions WHERE id=$1 AND user_id=$2`, [txId, userId]);
+  const tx = await query(`SELECT id, type FROM acc_bank_transactions WHERE id=$1 AND user_id=$2`, [txId, userId]);
   if (!tx.rows.length) return null;
 
   if (action.type === 'invoice_match') {
     await query(
-      `UPDATE bank_transactions SET status='matched', matched_invoice_id=$1, matched_bill_id=NULL,
+      `UPDATE acc_bank_transactions SET status='matched', matched_invoice_id=$1, matched_bill_id=NULL,
        categorisation_type='invoice_match', category=NULL, poa_name=NULL WHERE id=$2`,
       [action.invoiceId, txId]
     );
   } else if (action.type === 'bill_match') {
     await query(
-      `UPDATE bank_transactions SET status='matched', matched_bill_id=$1, matched_invoice_id=NULL,
+      `UPDATE acc_bank_transactions SET status='matched', matched_bill_id=$1, matched_invoice_id=NULL,
        categorisation_type='bill_match', category=NULL, poa_name=NULL WHERE id=$2`,
       [action.billId, txId]
     );
   } else if (action.type === 'payment_on_account') {
     await query(
-      `UPDATE bank_transactions SET status='matched', matched_invoice_id=NULL, matched_bill_id=NULL,
+      `UPDATE acc_bank_transactions SET status='matched', matched_invoice_id=NULL, matched_bill_id=NULL,
        categorisation_type='payment_on_account', poa_name=$1, category=NULL WHERE id=$2`,
       [action.poaName, txId]
     );
   } else if (action.type === 'bank_entry') {
     await query(
-      `UPDATE bank_transactions SET status='matched', matched_invoice_id=NULL, matched_bill_id=NULL,
+      `UPDATE acc_bank_transactions SET status='matched', matched_invoice_id=NULL, matched_bill_id=NULL,
        categorisation_type='bank_entry', category=$1, poa_name=NULL WHERE id=$2`,
       [action.category, txId]
     );
@@ -152,7 +152,7 @@ export async function manualMatch(userId: string, txId: string, action: MatchAct
 
 export async function ignoreTransaction(userId: string, txId: string) {
   await query(
-    `UPDATE bank_transactions SET status='ignored', matched_invoice_id=NULL, matched_bill_id=NULL WHERE id=$1 AND user_id=$2`,
+    `UPDATE acc_bank_transactions SET status='ignored', matched_invoice_id=NULL, matched_bill_id=NULL WHERE id=$1 AND user_id=$2`,
     [txId, userId]
   );
 }

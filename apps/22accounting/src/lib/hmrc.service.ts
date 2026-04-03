@@ -157,7 +157,7 @@ export async function calculateVatReturn(userId: string, from: string, to: strin
   // Box 1: VAT due on sales (output tax — standard VAT: all invoiced in period)
   const salesVat = await query(
     `SELECT COALESCE(SUM(tax_amount), 0) as vat, COALESCE(SUM(subtotal), 0) as net
-     FROM invoices
+     FROM acc_invoices
      WHERE entity_id=$1 AND status IN ('sent','paid','overdue') AND issue_date BETWEEN $2 AND $3`,
     [entityId || userId, from, to]
   );
@@ -165,7 +165,7 @@ export async function calculateVatReturn(userId: string, from: string, to: strin
   // Box 4: VAT reclaimed on purchases (input tax from bills — use invoice_date if present)
   const purchasesVat = await query(
     `SELECT COALESCE(SUM(vat_amount), 0) as vat, COALESCE(SUM(amount - vat_amount), 0) as net
-     FROM bills
+     FROM acc_bills
      WHERE entity_id=$1 AND COALESCE(invoice_date, due_date) BETWEEN $2 AND $3`,
     [entityId || userId, from, to]
   );

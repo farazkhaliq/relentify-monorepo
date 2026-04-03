@@ -50,7 +50,7 @@ export interface POItem {
 
 export async function getPOSettings(entityId: string): Promise<POSettings | null> {
   const r = await query(
-    `SELECT * FROM po_settings WHERE entity_id = $1`,
+    `SELECT * FROM acc_po_settings WHERE entity_id = $1`,
     [entityId]
   );
   return r.rows[0] || null;
@@ -63,7 +63,7 @@ export async function upsertPOSettings(entityId: string, data: {
   varianceTolerancePct: number;
 }): Promise<POSettings> {
   const r = await query(
-    `INSERT INTO po_settings (entity_id, enabled, approver_user_id, approval_threshold, variance_tolerance_pct)
+    `INSERT INTO acc_po_settings (entity_id, enabled, approver_user_id, approval_threshold, variance_tolerance_pct)
      VALUES ($1, $2, $3, $4, $5)
      ON CONFLICT (entity_id) DO UPDATE SET
        enabled = EXCLUDED.enabled,
@@ -109,7 +109,7 @@ export async function createPO(data: {
   const total = subtotal + vatAmount;
 
   const r = await query(
-    `INSERT INTO purchase_orders
+    `INSERT INTO acc_purchase_orders
        (entity_id, user_id, po_number, supplier_name, description, currency,
         subtotal, vat_amount, total, status, requested_by_id, expected_date, notes)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
@@ -125,7 +125,7 @@ export async function createPO(data: {
 
   for (const item of processedItems) {
     await query(
-      `INSERT INTO po_items (po_id, description, quantity, unit_price, amount, vat_rate, line_order)
+      `INSERT INTO acc_po_items (po_id, description, quantity, unit_price, amount, vat_rate, line_order)
        VALUES ($1,$2,$3,$4,$5,$6,$7)`,
       [po.id, item.description, item.quantity, item.unitPrice, item.amount.toFixed(2), item.vatRate, item.lineOrder]
     );
@@ -141,7 +141,7 @@ export async function getPOsByEntity(entityId: string, status?: string): Promise
     `SELECT po.*,
        req.full_name AS requested_by_name,
        apr.full_name AS approved_by_name
-     FROM purchase_orders po
+     FROM acc_purchase_orders po
      LEFT JOIN users req ON po.requested_by_id = req.id
      LEFT JOIN users apr ON po.approved_by_id = apr.id
      WHERE po.entity_id = $1 ${statusClause}
@@ -157,7 +157,7 @@ export async function getPOById(poId: string, entityId: string): Promise<(Purcha
        req.full_name AS requested_by_name,
        req.email AS requested_by_email,
        apr.full_name AS approved_by_name
-     FROM purchase_orders po
+     FROM acc_purchase_orders po
      LEFT JOIN users req ON po.requested_by_id = req.id
      LEFT JOIN users apr ON po.approved_by_id = apr.id
      WHERE po.id = $1 AND po.entity_id = $2`,
@@ -165,7 +165,7 @@ export async function getPOById(poId: string, entityId: string): Promise<(Purcha
   );
   if (!r.rows[0]) return null;
   const items = await query(
-    `SELECT * FROM po_items WHERE po_id = $1 ORDER BY line_order`,
+    `SELECT * FROM acc_po_items WHERE po_id = $1 ORDER BY line_order`,
     [poId]
   );
   return { ...r.rows[0], items: items.rows } as PurchaseOrder & { items: POItem[] };
@@ -177,7 +177,7 @@ export async function getPOByToken(token: string): Promise<(PurchaseOrder & { it
        req.full_name AS requested_by_name,
        req.email AS requested_by_email,
        ent.name AS entity_name
-     FROM purchase_orders po
+     FROM acc_purchase_orders po
      LEFT JOIN users req ON po.requested_by_id = req.id
      LEFT JOIN entities ent ON po.entity_id = ent.id
      WHERE po.approval_token = $1
@@ -186,13 +186,13 @@ export async function getPOByToken(token: string): Promise<(PurchaseOrder & { it
     [token]
   );
   if (!r.rows[0]) return null;
-  const items = await query(`SELECT * FROM po_items WHERE po_id = $1 ORDER BY line_order`, [r.rows[0].id]);
+  const items = await query(`SELECT * FROM acc_po_items WHERE po_id = $1 ORDER BY line_order`, [r.rows[0].id]);
   return { ...r.rows[0], items: items.rows } as PurchaseOrder & { items: POItem[] };
 }
 
 export async function approvePO(poId: string, approverId: string, entityId: string): Promise<PurchaseOrder | null> {
   const r = await query(
-    `UPDATE purchase_orders SET
+    `UPDATE acc_purchase_orders SET
        status = 'approved',
        approved_by_id = $3,
        approved_at = NOW(),
@@ -206,7 +206,7 @@ export async function approvePO(poId: string, approverId: string, entityId: stri
 
 export async function approvePOByToken(token: string, approverId: string): Promise<PurchaseOrder | null> {
   const r = await query(
-    `UPDATE purchase_orders SET
+    `UPDATE acc_purchase_orders SET
        status = 'approved',
        approved_by_id = $2,
        approved_at = NOW(),
@@ -222,7 +222,7 @@ export async function approvePOByToken(token: string, approverId: string): Promi
 
 export async function rejectPO(poId: string, approverId: string, entityId: string, reason: string): Promise<PurchaseOrder | null> {
   const r = await query(
-    `UPDATE purchase_orders SET
+    `UPDATE acc_purchase_orders SET
        status = 'rejected',
        approved_by_id = $3,
        rejected_at = NOW(),
@@ -237,7 +237,7 @@ export async function rejectPO(poId: string, approverId: string, entityId: strin
 
 export async function rejectPOByToken(token: string, approverId: string, reason: string): Promise<PurchaseOrder | null> {
   const r = await query(
-    `UPDATE purchase_orders SET
+    `UPDATE acc_purchase_orders SET
        status = 'rejected',
        approved_by_id = $2,
        rejected_at = NOW(),
@@ -254,7 +254,7 @@ export async function rejectPOByToken(token: string, approverId: string, reason:
 
 export async function cancelPO(poId: string, entityId: string): Promise<PurchaseOrder | null> {
   const r = await query(
-    `UPDATE purchase_orders SET status = 'cancelled', updated_at = NOW()
+    `UPDATE acc_purchase_orders SET status = 'cancelled', updated_at = NOW()
      WHERE id = $1 AND entity_id = $2 AND status IN ('pending_approval','approved')
      RETURNING *`,
     [poId, entityId]
@@ -265,7 +265,7 @@ export async function cancelPO(poId: string, entityId: string): Promise<Purchase
 export async function fulfillPO(poId: string, entityId: string, withVariance: boolean): Promise<PurchaseOrder | null> {
   const status = withVariance ? 'fulfilled_with_variance' : 'fulfilled';
   const r = await query(
-    `UPDATE purchase_orders SET status = $3, updated_at = NOW()
+    `UPDATE acc_purchase_orders SET status = $3, updated_at = NOW()
      WHERE id = $1 AND entity_id = $2 AND status = 'approved'
      RETURNING *`,
     [poId, entityId, status]
@@ -275,11 +275,11 @@ export async function fulfillPO(poId: string, entityId: string, withVariance: bo
 
 export async function getApprovedPOsForLinking(entityId: string): Promise<PurchaseOrder[]> {
   const r = await query(
-    `SELECT po.* FROM purchase_orders po
+    `SELECT po.* FROM acc_purchase_orders po
      WHERE po.entity_id = $1
        AND po.status = 'approved'
        AND NOT EXISTS (
-         SELECT 1 FROM bills b WHERE b.po_id = po.id
+         SELECT 1 FROM acc_bills b WHERE b.po_id = po.id
        )
      ORDER BY po.created_at DESC`,
     [entityId]

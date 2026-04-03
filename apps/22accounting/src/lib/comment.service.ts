@@ -25,7 +25,7 @@ export async function getComments(
   const r = await query(
     `SELECT tc.*,
             COALESCE(u.full_name, u.email) as sender_name
-     FROM transaction_comments tc
+     FROM acc_transaction_comments tc
      JOIN users u ON u.id = tc.user_id
      WHERE tc.record_type = $1 AND tc.record_id = $2
      ORDER BY tc.created_at ASC`,
@@ -64,7 +64,7 @@ export async function createComment(params: {
   waitingOn?: 'client' | 'accountant' | null
 }): Promise<Comment> {
   const r = await query(
-    `INSERT INTO transaction_comments
+    `INSERT INTO acc_transaction_comments
        (user_id, actor_id, target_user_id, record_type, record_id, parent_id, body, waiting_on)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
      RETURNING *`,
@@ -84,7 +84,7 @@ export async function createComment(params: {
 
 export async function resolveComment(commentId: string): Promise<void> {
   await query(
-    `UPDATE transaction_comments
+    `UPDATE acc_transaction_comments
      SET status = 'resolved', waiting_on = NULL
      WHERE id = $1`,
     [commentId]
@@ -98,7 +98,7 @@ export async function markRecordRead(
   userId: string
 ): Promise<void> {
   await query(
-    `UPDATE transaction_comments
+    `UPDATE acc_transaction_comments
      SET read_at = NOW()
      WHERE record_type = $1 AND record_id = $2
        AND target_user_id = $3 AND read_at IS NULL`,
@@ -114,7 +114,7 @@ export async function shouldSendNotification(
   recordId: string
 ): Promise<boolean> {
   const r = await query(
-    `SELECT 1 FROM transaction_comments
+    `SELECT 1 FROM acc_transaction_comments
      WHERE target_user_id = $1 AND record_type = $2 AND record_id = $3
        AND read_at IS NULL
      LIMIT 1`,
@@ -134,7 +134,7 @@ export async function getConversations(userId: string) {
        (array_agg(status ORDER BY created_at DESC))[1] as status,
        (array_agg(waiting_on ORDER BY created_at DESC))[1] as waiting_on,
        COUNT(*) FILTER (WHERE target_user_id = $1 AND read_at IS NULL) as unread_count
-     FROM transaction_comments
+     FROM acc_transaction_comments
      WHERE user_id = $1 OR target_user_id = $1
      GROUP BY record_type, record_id
      ORDER BY MAX(created_at) DESC

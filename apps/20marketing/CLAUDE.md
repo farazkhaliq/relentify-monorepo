@@ -120,7 +120,7 @@ CSS variables injected at runtime: `--theme-primary`, `--theme-accent`, `--theme
 | `src/app/components/ThemeSwitcher.tsx` | Dark mode toggle |
 | `src/app/components/CookieBanner.tsx` | Cookie consent |
 | `src/styles/globals.css` | Tailwind, fonts, theme variables, utilities |
-| `index.html` | Vite entry (GA + Tawk.to scripts) |
+| `index.html` | Vite entry (GA + Chatwoot scripts) |
 | `vite.config.ts` | React + Tailwind plugins |
 | `nginx.conf` | SPA routing + gzip |
 | `Dockerfile` | Multi-stage build (turbo prune → pnpm → nginx) |
@@ -131,14 +131,14 @@ CSS variables injected at runtime: `--theme-primary`, `--theme-accent`, `--theme
 ## External Services
 
 - **Google Analytics**: GA-RGV6F6BLSP (in `index.html`)
-- **Tawk.to**: Live chat (ID: 69af6b8f801efb1c38c68391)
+- **Chatwoot**: Live chat at chat.relentify.com (website token: ca9Jcc8BiJQD68gdgCyYPqKA). AI chatbot responds via n8n workflow, escalates to human agents.
 
 ---
 
 ## Components
 
 ### Marketing-Specific (stay local, not in @relentify/ui)
-- `Navbar.tsx` — Apps dropdown, region switcher, Tawk toggle
+- `Navbar.tsx` — Apps dropdown, region switcher, Chatwoot toggle
 - `Footer.tsx` — Links + copyright
 - `Logo.tsx` — SVG brand icon
 - `ThemeSwitcher.tsx` — Dark mode button
@@ -189,6 +189,6 @@ All in `src/app/pages/`:
 | Dark mode | Done |
 | Region system (6 regions) | Done |
 | Cookie banner | Done |
-| Tawk.to live chat | Done |
+| Chatwoot live chat (AI + human) | Done |
 | Google Analytics | Done |
 | @relentify/ui migration | Not started |

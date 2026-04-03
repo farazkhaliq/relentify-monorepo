@@ -23,7 +23,7 @@ export async function getApproverForStaff(
   // Per-staff mapping takes priority
   const mapping = await query(
     `SELECT pam.approver_user_id, u.email, u.full_name
-     FROM po_approver_mappings pam
+     FROM acc_po_approver_mappings pam
      JOIN users u ON pam.approver_user_id = u.id
      WHERE pam.entity_id = $1 AND pam.staff_user_id = $2`,
     [entityId, staffUserId]
@@ -39,7 +39,7 @@ export async function getApproverForStaff(
   // Fall back to entity-wide PO settings approver
   const settings = await query(
     `SELECT pos.approver_user_id, u.email, u.full_name
-     FROM po_settings pos
+     FROM acc_po_settings pos
      JOIN users u ON pos.approver_user_id = u.id
      WHERE pos.entity_id = $1 AND pos.enabled = TRUE AND pos.approver_user_id IS NOT NULL`,
     [entityId]
@@ -61,7 +61,7 @@ export async function setPOApproverMapping(
   approverUserId: string
 ): Promise<POApproverMapping> {
   const r = await query(
-    `INSERT INTO po_approver_mappings (entity_id, staff_user_id, approver_user_id)
+    `INSERT INTO acc_po_approver_mappings (entity_id, staff_user_id, approver_user_id)
      VALUES ($1, $2, $3)
      ON CONFLICT (entity_id, staff_user_id) DO UPDATE SET approver_user_id = EXCLUDED.approver_user_id
      RETURNING *`,
@@ -72,7 +72,7 @@ export async function setPOApproverMapping(
 
 export async function deletePOApproverMapping(entityId: string, staffUserId: string): Promise<void> {
   await query(
-    `DELETE FROM po_approver_mappings WHERE entity_id = $1 AND staff_user_id = $2`,
+    `DELETE FROM acc_po_approver_mappings WHERE entity_id = $1 AND staff_user_id = $2`,
     [entityId, staffUserId]
   );
 }
@@ -82,7 +82,7 @@ export async function getPOApproverMappings(entityId: string): Promise<POApprove
     `SELECT pam.*,
        staff.full_name AS staff_name, staff.email AS staff_email,
        approver.full_name AS approver_name, approver.email AS approver_email
-     FROM po_approver_mappings pam
+     FROM acc_po_approver_mappings pam
      JOIN users staff ON pam.staff_user_id = staff.id
      JOIN users approver ON pam.approver_user_id = approver.id
      WHERE pam.entity_id = $1

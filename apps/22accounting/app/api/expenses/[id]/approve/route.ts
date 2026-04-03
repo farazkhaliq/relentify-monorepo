@@ -34,7 +34,7 @@ export async function POST(
     await logAudit(auth.userId, 'approve', 'expense', id);
 
     // Notify claimant
-    const expRow = await query(`SELECT e.*, u.email, u.full_name FROM expenses e JOIN users u ON e.user_id = u.id WHERE e.id = $1`, [id]);
+    const expRow = await query(`SELECT e.*, u.email, u.full_name FROM acc_expenses e JOIN users u ON e.user_id = u.id WHERE e.id = $1`, [id]);
     const exp = expRow.rows[0];
     const approverRow = await query(`SELECT full_name FROM users WHERE id = $1`, [auth.userId]);
     if (exp?.email) {

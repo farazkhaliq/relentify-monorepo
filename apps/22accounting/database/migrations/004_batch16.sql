@@ -1,23 +1,23 @@
 -- Batch 16: Bank Reconciliation, Reminders, Accountant Access
 
-CREATE TABLE IF NOT EXISTS bank_transactions (
+CREATE TABLE IF NOT EXISTS acc_bank_transactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   transaction_date DATE NOT NULL,
   description TEXT NOT NULL,
   amount NUMERIC(12,2) NOT NULL,
   type TEXT NOT NULL CHECK (type IN ('credit','debit')),
-  matched_invoice_id UUID REFERENCES invoices(id),
-  matched_bill_id UUID REFERENCES bills(id),
+  matched_invoice_id UUID REFERENCES acc_invoices(id),
+  matched_bill_id UUID REFERENCES acc_bills(id),
   status TEXT NOT NULL DEFAULT 'unmatched' CHECK (status IN ('unmatched','matched','ignored')),
   import_batch_id UUID,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_bank_txn_user_status ON bank_transactions(user_id, status);
+CREATE INDEX IF NOT EXISTS idx_bank_txn_user_status ON acc_bank_transactions(user_id, status);
 
-CREATE TABLE IF NOT EXISTS reminder_logs (
+CREATE TABLE IF NOT EXISTS acc_reminder_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  invoice_id UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+  invoice_id UUID NOT NULL REFERENCES acc_invoices(id) ON DELETE CASCADE,
   trigger_type TEXT NOT NULL,
   sent_at TIMESTAMPTZ DEFAULT NOW()
 );

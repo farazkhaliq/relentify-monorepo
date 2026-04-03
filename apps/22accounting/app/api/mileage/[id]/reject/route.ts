@@ -37,7 +37,7 @@ export async function POST(
 
     await logAudit(auth.userId, 'reject', 'mileage_claim', id, { reason });
 
-    const claimRow = await query(`SELECT mc.*, u.email, u.full_name FROM mileage_claims mc JOIN users u ON mc.user_id = u.id WHERE mc.id = $1`, [id]);
+    const claimRow = await query(`SELECT mc.*, u.email, u.full_name FROM acc_mileage_claims mc JOIN users u ON mc.user_id = u.id WHERE mc.id = $1`, [id]);
     const claim = claimRow.rows[0];
     const approverRow = await query(`SELECT full_name FROM users WHERE id = $1`, [auth.userId]);
     if (claim?.email) {

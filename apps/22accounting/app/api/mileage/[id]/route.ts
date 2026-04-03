@@ -15,7 +15,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     if (denied) return denied;
     const entity = await getActiveEntity(auth.userId);
     if (entity) {
-      const r = await query(`SELECT date FROM mileage_claims WHERE id=$1 AND user_id=$2`, [id, auth.userId]);
+      const r = await query(`SELECT date FROM acc_mileage_claims WHERE id=$1 AND user_id=$2`, [id, auth.userId]);
       if (r.rows[0]) {
         const claimDate = r.rows[0].date instanceof Date
           ? r.rows[0].date.toISOString().split('T')[0]

@@ -11,7 +11,7 @@ export async function getConsolidatedPnL(userId: string, opts: { from?: string; 
   // Get intercompany link pairs to eliminate
   const icLinksRes = await query(
     `SELECT il.source_invoice_id, il.mirror_bill_id, il.amount
-     FROM intercompany_links il
+     FROM acc_intercompany_links il
      JOIN entities e ON e.id = il.initiating_entity_id
      WHERE e.user_id = $1`,
     [userId]
@@ -28,12 +28,12 @@ export async function getConsolidatedPnL(userId: string, opts: { from?: string; 
   for (const entity of entities) {
     const [revRes, costRes] = await Promise.all([
       query(
-        `SELECT COALESCE(SUM(total), 0) as total FROM invoices
+        `SELECT COALESCE(SUM(total), 0) as total FROM acc_invoices
          WHERE entity_id = $1 AND status = 'paid' AND due_date >= $2 AND due_date <= $3`,
         [entity.id, from, to]
       ),
       query(
-        `SELECT COALESCE(SUM(amount), 0) as total FROM bills
+        `SELECT COALESCE(SUM(amount), 0) as total FROM acc_bills
          WHERE entity_id = $1 AND due_date >= $2 AND due_date <= $3`,
         [entity.id, from, to]
       ),
@@ -41,12 +41,12 @@ export async function getConsolidatedPnL(userId: string, opts: { from?: string; 
 
     // Get intercompany revenue/costs for this entity to eliminate
     const icRevRes = await query(
-      `SELECT COALESCE(SUM(total), 0) as total FROM invoices
+      `SELECT COALESCE(SUM(total), 0) as total FROM acc_invoices
        WHERE entity_id = $1 AND id = ANY($2::uuid[]) AND due_date >= $3 AND due_date <= $4`,
       [entity.id, icInvoiceIds.size > 0 ? Array.from(icInvoiceIds) : ['00000000-0000-0000-0000-000000000000'], from, to]
     );
     const icBillRes = await query(
-      `SELECT COALESCE(SUM(amount), 0) as total FROM bills
+      `SELECT COALESCE(SUM(amount), 0) as total FROM acc_bills
        WHERE entity_id = $1 AND id = ANY($2::uuid[]) AND due_date >= $3 AND due_date <= $4`,
       [entity.id, icBillIds.size > 0 ? Array.from(icBillIds) : ['00000000-0000-0000-0000-000000000000'], from, to]
     );
@@ -93,12 +93,12 @@ export async function getConsolidatedBalanceSheet(userId: string) {
   for (const entity of entities.rows) {
     const [recRes, payRes] = await Promise.all([
       query(
-        `SELECT COALESCE(SUM(total), 0) as total FROM invoices
+        `SELECT COALESCE(SUM(total), 0) as total FROM acc_invoices
          WHERE entity_id = $1 AND status IN ('sent', 'overdue')`,
         [entity.id]
       ),
       query(
-        `SELECT COALESCE(SUM(amount), 0) as total FROM bills
+        `SELECT COALESCE(SUM(amount), 0) as total FROM acc_bills
          WHERE entity_id = $1 AND status IN ('unpaid', 'overdue')`,
         [entity.id]
       ),

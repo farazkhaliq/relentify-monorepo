@@ -167,9 +167,9 @@ export async function deleteEntity(entityId: string, userId: string): Promise<{ 
 
   // Check for data
   const [invCount, custCount, billCount] = await Promise.all([
-    query(`SELECT COUNT(*) as c FROM invoices WHERE entity_id = $1`, [entityId]),
-    query(`SELECT COUNT(*) as c FROM customers WHERE entity_id = $1`, [entityId]),
-    query(`SELECT COUNT(*) as c FROM bills WHERE entity_id = $1`, [entityId]),
+    query(`SELECT COUNT(*) as c FROM acc_invoices WHERE entity_id = $1`, [entityId]),
+    query(`SELECT COUNT(*) as c FROM acc_customers WHERE entity_id = $1`, [entityId]),
+    query(`SELECT COUNT(*) as c FROM acc_bills WHERE entity_id = $1`, [entityId]),
   ]);
 
   if (

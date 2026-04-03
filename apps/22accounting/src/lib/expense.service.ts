@@ -52,7 +52,7 @@ export interface MileageClaim {
 
 export async function getExpenses(userId: string): Promise<Expense[]> {
   const r = await query(
-    `SELECT * FROM expenses WHERE user_id = $1 ORDER BY date DESC, created_at DESC`,
+    `SELECT * FROM acc_expenses WHERE user_id = $1 ORDER BY date DESC, created_at DESC`,
     [userId]
   );
   return r.rows as Expense[];
@@ -79,7 +79,7 @@ export async function createExpense(userId: string, data: {
     data.vatAmount ?? 0,
     data.notes || null,
   ];
-  const insertSql = `INSERT INTO expenses (user_id, date, description, category, coa_account_id, gross_amount, vat_amount, notes)
+  const insertSql = `INSERT INTO acc_expenses (user_id, date, description, category, coa_account_id, gross_amount, vat_amount, notes)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`;
 
   // When GL posting is required, wrap INSERT + GL in one transaction
@@ -118,19 +118,19 @@ export async function createExpense(userId: string, data: {
 
 export async function markExpenseReimbursed(userId: string, id: string) {
   const r = await query(
-    `UPDATE expenses SET status = 'reimbursed' WHERE id = $1 AND user_id = $2 RETURNING *`,
+    `UPDATE acc_expenses SET status = 'reimbursed' WHERE id = $1 AND user_id = $2 RETURNING *`,
     [id, userId]
   );
   return r.rows[0] as Expense || null;
 }
 
 export async function deleteExpense(userId: string, id: string) {
-  await query(`DELETE FROM expenses WHERE id = $1 AND user_id = $2`, [id, userId]);
+  await query(`DELETE FROM acc_expenses WHERE id = $1 AND user_id = $2`, [id, userId]);
 }
 
 export async function getMileageClaims(userId: string): Promise<MileageClaim[]> {
   const r = await query(
-    `SELECT * FROM mileage_claims WHERE user_id = $1 ORDER BY date DESC, created_at DESC`,
+    `SELECT * FROM acc_mileage_claims WHERE user_id = $1 ORDER BY date DESC, created_at DESC`,
     [userId]
   );
   return r.rows as MileageClaim[];
@@ -151,7 +151,7 @@ export async function createMileageClaim(userId: string, data: {
   const amount = Math.round(data.miles * rate * 100) / 100;
 
   const insertParams = [userId, data.date, data.description, data.fromLocation || null, data.toLocation || null, data.miles, rate, amount, data.coaAccountId || null];
-  const insertSql = `INSERT INTO mileage_claims (user_id, date, description, from_location, to_location, miles, rate, amount, coa_account_id)
+  const insertSql = `INSERT INTO acc_mileage_claims (user_id, date, description, from_location, to_location, miles, rate, amount, coa_account_id)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`;
 
   // When GL posting is required, wrap INSERT + GL in one transaction
@@ -181,5 +181,5 @@ export async function createMileageClaim(userId: string, data: {
 }
 
 export async function deleteMileageClaim(userId: string, id: string) {
-  await query(`DELETE FROM mileage_claims WHERE id = $1 AND user_id = $2`, [id, userId]);
+  await query(`DELETE FROM acc_mileage_claims WHERE id = $1 AND user_id = $2`, [id, userId]);
 }

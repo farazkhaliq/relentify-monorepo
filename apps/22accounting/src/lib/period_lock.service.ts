@@ -57,7 +57,7 @@ export async function isDateLocked(
 ): Promise<LockCheck> {
   // Check user override first
   const overrideRes = await query(
-    `SELECT 1 FROM period_overrides
+    `SELECT 1 FROM acc_period_overrides
      WHERE entity_id=$1 AND user_id=$2 AND override_until > NOW()`,
     [entityId, userId]
   );
@@ -80,7 +80,7 @@ export async function isDateLocked(
 
   // Find the most recent lock event for a human-readable reason
   const eventRes = await query(
-    `SELECT lock_type, created_at FROM period_lock_events
+    `SELECT lock_type, created_at FROM acc_period_lock_events
      WHERE entity_id=$1 AND lock_type != 'unlock'
      ORDER BY created_at DESC LIMIT 1`,
     [entityId]
@@ -99,7 +99,7 @@ export async function isDateLocked(
 export async function getEarliestUnlockedDate(entityId: string, userId?: string): Promise<string> {
   if (userId) {
     const overrideRes = await query(
-      `SELECT 1 FROM period_overrides
+      `SELECT 1 FROM acc_period_overrides
        WHERE entity_id=$1 AND user_id=$2 AND override_until > NOW()`,
       [entityId, userId]
     );
@@ -136,7 +136,7 @@ export async function lockPeriod(
     [toDate, entityId]
   );
   await query(
-    `INSERT INTO period_lock_events (entity_id, locked_by, lock_type, from_date, to_date, reason)
+    `INSERT INTO acc_period_lock_events (entity_id, locked_by, lock_type, from_date, to_date, reason)
      VALUES ($1,$2,$3,$4,$5,$6)`,
     [entityId, userId, lockType, fromDate, toDate, reason || null]
   );
@@ -153,7 +153,7 @@ export async function unlockPeriod(entityId: string, userId: string): Promise<vo
     [entityId]
   );
   await query(
-    `INSERT INTO period_lock_events (entity_id, locked_by, lock_type, from_date, to_date, reason)
+    `INSERT INTO acc_period_lock_events (entity_id, locked_by, lock_type, from_date, to_date, reason)
      VALUES ($1,$2,'unlock',$3,$3,'Manual unlock')`,
     [entityId, userId, new Date(current).toISOString().split('T')[0]]
   );
@@ -163,7 +163,7 @@ export async function getLockHistory(entityId: string): Promise<PeriodLockEvent[
   const res = await query(
     `SELECT ple.id, ple.lock_type, ple.from_date, ple.to_date, ple.reason, ple.created_at,
             COALESCE(u.full_name, u.email) as locked_by_name
-     FROM period_lock_events ple
+     FROM acc_period_lock_events ple
      JOIN users u ON ple.locked_by = u.id
      WHERE ple.entity_id=$1
      ORDER BY ple.created_at DESC`,
@@ -180,7 +180,7 @@ export async function grantOverride(
   overrideUntil: Date
 ): Promise<void> {
   await query(
-    `INSERT INTO period_overrides (entity_id, user_id, granted_by, override_until)
+    `INSERT INTO acc_period_overrides (entity_id, user_id, granted_by, override_until)
      VALUES ($1,$2,$3,$4)
      ON CONFLICT (entity_id, user_id)
      DO UPDATE SET granted_by=$3, override_until=$4, created_at=NOW()`,
@@ -190,7 +190,7 @@ export async function grantOverride(
 
 export async function revokeOverride(entityId: string, userId: string): Promise<void> {
   await query(
-    `DELETE FROM period_overrides WHERE entity_id=$1 AND user_id=$2`,
+    `DELETE FROM acc_period_overrides WHERE entity_id=$1 AND user_id=$2`,
     [entityId, userId]
   );
 }
@@ -200,7 +200,7 @@ export async function getActiveOverrides(entityId: string): Promise<PeriodOverri
     `SELECT po.id, po.user_id, po.override_until, po.created_at,
             COALESCE(u.full_name, u.email) as user_name,
             COALESCE(g.full_name, g.email) as granted_by_name
-     FROM period_overrides po
+     FROM acc_period_overrides po
      JOIN users u ON po.user_id = u.id
      JOIN users g ON po.granted_by = g.id
      WHERE po.entity_id=$1 AND po.override_until > NOW()
@@ -212,7 +212,7 @@ export async function getActiveOverrides(entityId: string): Promise<PeriodOverri
 
 export async function hasOverride(entityId: string, userId: string): Promise<boolean> {
   const res = await query(
-    `SELECT 1 FROM period_overrides
+    `SELECT 1 FROM acc_period_overrides
      WHERE entity_id=$1 AND user_id=$2 AND override_until > NOW()`,
     [entityId, userId]
   );

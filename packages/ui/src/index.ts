@@ -17,6 +17,7 @@ export * from './components/layout/TopBar';
 export * from './components/layout/Footer';
 export * from './components/layout/RegionProvider';
 export * from './components/layout/ScrollToTop';
+export * from './components/layout/BottomTabBar';
 
 // UI Components (Atoms)
 export * from './components/ui/Logo';

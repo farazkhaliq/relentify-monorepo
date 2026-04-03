@@ -35,7 +35,7 @@ export async function recordReferralEarning(params: {
 
   // Insert with ON CONFLICT DO NOTHING for idempotency (webhook may retry)
   const result = await query(
-    `INSERT INTO accountant_referral_earnings
+    `INSERT INTO acc_accountant_referral_earnings
        (accountant_user_id, client_user_id, stripe_invoice_id, gross_amount, commission_amount, currency)
      VALUES ($1, $2, $3, $4, $5, $6)
      ON CONFLICT (stripe_invoice_id) DO NOTHING
@@ -52,7 +52,7 @@ export async function getEarningsForAccountant(accountantUserId: string) {
        are.*,
        u.full_name as client_name, u.business_name as client_business,
        u.email as client_email
-     FROM accountant_referral_earnings are
+     FROM acc_accountant_referral_earnings are
      JOIN users u ON u.id = are.client_user_id
      WHERE are.accountant_user_id = $1
      ORDER BY are.created_at DESC`,

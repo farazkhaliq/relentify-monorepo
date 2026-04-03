@@ -32,9 +32,9 @@ export async function previewYearEndClose(
        coa.name,
        coa.account_type,
        COALESCE(SUM(jl.debit) - SUM(jl.credit), 0) AS net
-     FROM chart_of_accounts coa
-     LEFT JOIN journal_lines jl ON jl.account_id = coa.id
-     LEFT JOIN journal_entries je ON je.id = jl.entry_id
+     FROM acc_chart_of_accounts coa
+     LEFT JOIN acc_journal_lines jl ON jl.account_id = coa.id
+     LEFT JOIN acc_journal_entries je ON je.id = jl.entry_id
        AND je.entity_id = $1
        AND je.entry_date <= $2
      WHERE coa.entity_id = $1

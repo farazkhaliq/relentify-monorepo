@@ -17,7 +17,7 @@ export async function GET() {
          b.id, b.supplier_name, b.due_date,
          b.amount, b.currency,
          CURRENT_DATE - b.due_date::date AS days_overdue
-       FROM bills b
+       FROM acc_bills b
        WHERE b.user_id = $1 AND b.entity_id = $2
          AND b.status IN ('unpaid', 'overdue')
        ORDER BY b.due_date ASC`,

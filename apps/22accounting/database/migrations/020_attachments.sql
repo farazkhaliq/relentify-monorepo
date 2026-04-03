@@ -1,7 +1,7 @@
--- Migration 020: File attachments
+-- Migration 020: File acc_attachments
 
 -- Main metadata table — never stores binary data
-CREATE TABLE IF NOT EXISTS attachments (
+CREATE TABLE IF NOT EXISTS acc_attachments (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   entity_id    UUID NOT NULL REFERENCES entities(id) ON DELETE CASCADE,
   record_type  TEXT NOT NULL,   -- 'bill' | 'expense' | 'mileage' | 'bank_transaction'
@@ -15,11 +15,11 @@ CREATE TABLE IF NOT EXISTS attachments (
 );
 
 CREATE INDEX IF NOT EXISTS idx_attachments_record
-  ON attachments(entity_id, record_type, record_id);
+  ON acc_attachments(entity_id, record_type, record_id);
 
--- Postgres storage backend: binary data lives here, not in attachments
+-- Postgres storage backend: binary data lives here, not in acc_attachments
 -- Only populated when STORAGE_BACKEND=postgres (default)
-CREATE TABLE IF NOT EXISTS attachment_data (
-  attachment_id UUID PRIMARY KEY REFERENCES attachments(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS acc_attachment_data (
+  attachment_id UUID PRIMARY KEY REFERENCES acc_attachments(id) ON DELETE CASCADE,
   data          BYTEA NOT NULL
 );

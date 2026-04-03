@@ -16,7 +16,7 @@ export interface Supplier {
 export async function getAllSuppliers(userId: string, entityId: string): Promise<Supplier[]> {
   const r = await query(
     `SELECT id, name, email, phone, address, notes, created_at
-     FROM suppliers WHERE user_id = $1 AND entity_id = $2 ORDER BY name ASC`,
+     FROM acc_suppliers WHERE user_id = $1 AND entity_id = $2 ORDER BY name ASC`,
     [userId, entityId]
   );
   return r.rows as Supplier[];
@@ -32,7 +32,7 @@ export async function createSupplier(data: {
   notes?: string;
 }): Promise<Supplier> {
   const r = await query(
-    `INSERT INTO suppliers (user_id, entity_id, name, email, phone, address, notes)
+    `INSERT INTO acc_suppliers (user_id, entity_id, name, email, phone, address, notes)
      VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
     [data.userId, data.entityId, data.name, data.email || null, data.phone || null, data.address || null, data.notes || null]
   );
@@ -46,7 +46,7 @@ export async function createSupplier(data: {
 export async function getSupplierById(supplierId: string, userId: string, entityId?: string): Promise<Supplier | null> {
   const r = await query(
     `SELECT id, name, email, phone, address, notes, created_at
-     FROM suppliers WHERE id = $1 AND user_id = $2 ${entityId ? 'AND entity_id = $3' : ''}`,
+     FROM acc_suppliers WHERE id = $1 AND user_id = $2 ${entityId ? 'AND entity_id = $3' : ''}`,
     entityId ? [supplierId, userId, entityId] : [supplierId, userId]
   );
   return r.rows[0] as Supplier || null;
@@ -60,7 +60,7 @@ export async function updateSupplier(supplierId: string, userId: string, data: {
   notes?: string;
 }, entityId?: string): Promise<Supplier | null> {
   const r = await query(
-    `UPDATE suppliers SET
+    `UPDATE acc_suppliers SET
        name = $1, email = $2, phone = $3, address = $4, notes = $5
      WHERE id = $6 AND user_id = $7 ${entityId ? 'AND entity_id = $8' : ''} RETURNING *`,
     entityId
@@ -72,7 +72,7 @@ export async function updateSupplier(supplierId: string, userId: string, data: {
 
 export async function deleteSupplier(supplierId: string, userId: string, entityId: string): Promise<boolean> {
   const r = await query(
-    `DELETE FROM suppliers WHERE id = $1 AND user_id = $2 AND entity_id = $3 RETURNING id`,
+    `DELETE FROM acc_suppliers WHERE id = $1 AND user_id = $2 AND entity_id = $3 RETURNING id`,
     [supplierId, userId, entityId]
   );
   return (r.rowCount ?? 0) > 0;

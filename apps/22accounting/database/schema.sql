@@ -30,10 +30,10 @@ CREATE TABLE IF NOT EXISTS users (
     last_login_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE TABLE IF NOT EXISTS invoices (
+CREATE TABLE IF NOT EXISTS acc_invoices (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    customer_id UUID REFERENCES customers(id),
+    customer_id UUID REFERENCES acc_customers(id),
     invoice_number VARCHAR(50) UNIQUE NOT NULL,
     client_name VARCHAR(255) NOT NULL,
     client_email VARCHAR(255),
@@ -61,9 +61,9 @@ CREATE TABLE IF NOT EXISTS invoices (
     sent_at TIMESTAMP WITH TIME ZONE
 );
 
-CREATE TABLE IF NOT EXISTS invoice_items (
+CREATE TABLE IF NOT EXISTS acc_invoice_items (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    invoice_id UUID NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+    invoice_id UUID NOT NULL REFERENCES acc_invoices(id) ON DELETE CASCADE,
     description VARCHAR(500) NOT NULL,
     quantity DECIMAL(10,2) NOT NULL DEFAULT 1,
     unit_price DECIMAL(12,2) NOT NULL,
@@ -74,10 +74,10 @@ CREATE TABLE IF NOT EXISTS invoice_items (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_invoices_user_id ON invoices(user_id);
-CREATE INDEX IF NOT EXISTS idx_invoices_customer_id ON invoices(customer_id);
-CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status);
-CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice_id ON invoice_items(invoice_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_user_id ON acc_invoices(user_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_customer_id ON acc_invoices(customer_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_status ON acc_invoices(status);
+CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice_id ON acc_invoice_items(invoice_id);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_stripe_account ON users(stripe_account_id);
 
@@ -86,12 +86,12 @@ RETURNS TRIGGER AS $$ BEGIN NEW.updated_at = NOW(); RETURN NEW; END; $$ language
 
 DROP TRIGGER IF EXISTS update_users_updated_at ON users;
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-DROP TRIGGER IF EXISTS update_invoices_updated_at ON invoices;
-CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS update_invoices_updated_at ON acc_invoices;
+CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON acc_invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE SEQUENCE IF NOT EXISTS invoice_number_seq START 1;
 
-CREATE TABLE IF NOT EXISTS customers (
+CREATE TABLE IF NOT EXISTS acc_customers (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
@@ -103,8 +103,8 @@ CREATE TABLE IF NOT EXISTS customers (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_customers_user_id ON customers(user_id);
-CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);
+CREATE INDEX IF NOT EXISTS idx_customers_user_id ON acc_customers(user_id);
+CREATE INDEX IF NOT EXISTS idx_customers_email ON acc_customers(email);
 
-CREATE TRIGGER update_customers_updated_at BEFORE UPDATE ON customers
+CREATE TRIGGER update_customers_updated_at BEFORE UPDATE ON acc_customers
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

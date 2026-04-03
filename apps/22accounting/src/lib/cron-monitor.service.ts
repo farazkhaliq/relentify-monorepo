@@ -3,7 +3,7 @@ import { query } from './db'
 
 export async function startCronRun(jobName: string): Promise<string> {
   const r = await query(
-    `INSERT INTO cron_runs (job_name, status) VALUES ($1, 'running') RETURNING id`,
+    `INSERT INTO acc_cron_runs (job_name, status) VALUES ($1, 'running') RETURNING id`,
     [jobName]
   )
   return r.rows[0].id as string
@@ -16,7 +16,7 @@ export async function finishCronRun(
   error?: string
 ): Promise<void> {
   await query(
-    `UPDATE cron_runs
+    `UPDATE acc_cron_runs
      SET status=$1, finished_at=NOW(), records_processed=$2, error=$3
      WHERE id=$4`,
     [status, recordsProcessed ?? null, error ?? null, runId]

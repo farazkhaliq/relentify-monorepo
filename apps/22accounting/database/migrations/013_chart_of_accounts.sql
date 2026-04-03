@@ -3,7 +3,7 @@
 -- 1000-1999 Assets | 2000-2999 Liabilities | 3000-3999 Equity
 -- 4000-4999 Income | 5000-6999 COGS | 7000-9998 Expenses | 9999 Suspense
 
-CREATE TABLE IF NOT EXISTS chart_of_accounts (
+CREATE TABLE IF NOT EXISTS acc_chart_of_accounts (
   id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   entity_id    UUID NOT NULL REFERENCES entities(id) ON DELETE CASCADE,
   code         INTEGER NOT NULL CHECK (code BETWEEN 1000 AND 9999),
@@ -17,5 +17,5 @@ CREATE TABLE IF NOT EXISTS chart_of_accounts (
   UNIQUE (entity_id, code)
 );
 
-CREATE INDEX IF NOT EXISTS idx_coa_entity_type ON chart_of_accounts(entity_id, account_type);
-CREATE INDEX IF NOT EXISTS idx_coa_entity_code ON chart_of_accounts(entity_id, code);
+CREATE INDEX IF NOT EXISTS idx_coa_entity_type ON acc_chart_of_accounts(entity_id, account_type);
+CREATE INDEX IF NOT EXISTS idx_coa_entity_code ON acc_chart_of_accounts(entity_id, code);

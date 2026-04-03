@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/auth'
 import { query } from '@/lib/db'
+import { toPhoto } from '@/lib/types'
+import { generateInventoryPdf } from '@/lib/pdf-report'
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -28,12 +30,34 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const typeLabel = inventory.type === 'check-in' ? 'Check-In' : 'Check-Out'
 
-  // Create signing request via 27sign API
+  // Generate inventory PDF + create signing request via 27sign API
   let signingUrl: string
   let signingRequestId: string | null = null
 
   if (SIGNING_API_KEY) {
     try {
+      // 1. Fetch photos for the PDF report
+      const { rows: photoRows } = await query(
+        'SELECT * FROM inv_photos WHERE inventory_id=$1 ORDER BY room ASC, uploaded_at ASC',
+        [id]
+      )
+
+      // 2. Generate the inventory PDF
+      const pdfBuffer = await generateInventoryPdf({
+        propertyAddress: inventory.property_address,
+        type: inventory.type,
+        createdBy: inventory.created_by,
+        createdAt: inventory.created_at,
+        notes: inventory.notes,
+        photos: photoRows.map(toPhoto).map(p => ({
+          room: p.room,
+          description: p.description,
+          condition: p.condition,
+          imageData: p.imageData,
+        })),
+      })
+
+      // 3. Create signing request via 27sign API
       const sigRes = await fetch(`${SIGNING_SERVICE_URL}/api/v1/requests`, {
         method: 'POST',
         headers: {
@@ -43,29 +67,75 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         body: JSON.stringify({
           signerEmail: email,
           signerName: null,
-          title: `Inventory Confirmation — ${inventory.property_address}`,
+          title: `Inventory ${typeLabel} — ${inventory.property_address}`,
           bodyText: `I, the undersigned, acknowledge the physical state of the property at ${inventory.property_address} as documented by ${inventory.created_by} on ${new Date(inventory.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}.`,
           callbackUrl: `${SIGNING_SERVICE_URL.replace('27sign:3000', '23inventory:3000')}/api/webhooks/signing`,
           callbackSecret: process.env.SIGNING_WEBHOOK_SECRET || '',
           metadata: { inventoryId: id, type: inventory.type },
           createdByUserId: user.userId,
+          senderEmail: user.email,
         }),
       })
 
-      if (sigRes.ok) {
-        const sigData = await sigRes.json()
-        signingUrl = sigData.signingUrl
-        signingRequestId = sigData.id
+      if (!sigRes.ok) throw new Error('Failed to create signing request')
+      const sigData = await sigRes.json()
+      signingRequestId = sigData.id
+      signingUrl = sigData.signingUrl
 
-        // Store signing request ID on the inventory
-        await query('UPDATE inv_items SET signing_request_id=$1 WHERE id=$2', [signingRequestId, id])
-      } else {
-        // Fallback to direct confirm link
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://inventory.relentify.com'
-        signingUrl = `${baseUrl}/confirm/${inventory.confirm_token}`
+      // 4. Upload the inventory PDF to 27sign
+      const formData = new FormData()
+      formData.append('file', new Blob([pdfBuffer], { type: 'application/pdf' }), `inventory-${id}.pdf`)
+      formData.append('signingRequestId', signingRequestId!)
+
+      const uploadRes = await fetch(`${SIGNING_SERVICE_URL}/api/documents/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${SIGNING_API_KEY}` },
+        body: formData,
+      })
+
+      if (uploadRes.ok) {
+        const uploadData = await uploadRes.json()
+
+        // 5. Place signature + date fields on the last page
+        const lastPage = uploadData.pageCount
+        await fetch(`${SIGNING_SERVICE_URL}/api/documents/${uploadData.documentId}/fields`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${SIGNING_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fields: [
+              {
+                signerEmail: email,
+                fieldType: 'signature',
+                label: 'Tenant Signature',
+                pageNumber: lastPage,
+                xPercent: 55,
+                yPercent: 82,
+                widthPercent: 35,
+                heightPercent: 7,
+              },
+              {
+                signerEmail: email,
+                fieldType: 'date',
+                label: 'Date',
+                pageNumber: lastPage,
+                xPercent: 55,
+                yPercent: 91,
+                widthPercent: 20,
+                heightPercent: 4,
+              },
+            ],
+          }),
+        })
       }
-    } catch {
-      // Fallback to direct confirm link if 27sign is unavailable
+
+      // Store signing request ID on the inventory
+      await query('UPDATE inv_items SET signing_request_id=$1 WHERE id=$2', [signingRequestId, id])
+    } catch (err) {
+      console.error('27sign integration error:', err)
+      // Fallback to direct confirm link
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://inventory.relentify.com'
       signingUrl = `${baseUrl}/confirm/${inventory.confirm_token}`
     }

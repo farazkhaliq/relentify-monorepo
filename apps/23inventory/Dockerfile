@@ -23,7 +23,6 @@ COPY --from=pruner /app/out/full/ .
 COPY --from=deps /app/apps/23inventory/node_modules ./apps/23inventory/node_modules
 COPY --from=deps /app/packages/ui/node_modules ./packages/ui/node_modules
 RUN cd packages/database && npx prisma@5.22.0 generate
-RUN cd apps/23inventory && npx prisma@5.22.0 generate --schema ./prisma/schema.prisma
 WORKDIR /app/apps/23inventory
 RUN pnpm build
 

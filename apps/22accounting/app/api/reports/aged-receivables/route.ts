@@ -17,7 +17,7 @@ export async function GET() {
          i.id, i.invoice_number, i.client_name, i.due_date,
          i.total, i.currency,
          CURRENT_DATE - i.due_date::date AS days_overdue
-       FROM invoices i
+       FROM acc_invoices i
        WHERE i.user_id = $1 AND i.entity_id = $2
          AND i.status IN ('sent', 'overdue')
        ORDER BY i.due_date ASC`,

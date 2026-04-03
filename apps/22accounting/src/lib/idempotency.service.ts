@@ -5,7 +5,7 @@ export async function checkIdempotencyKey(
   entityId: string
 ): Promise<unknown | null> {
   const r = await query(
-    `SELECT response FROM idempotency_keys
+    `SELECT response FROM acc_idempotency_keys
      WHERE key = $1 AND entity_id = $2
        AND created_at > NOW() - INTERVAL '24 hours'`,
     [key, entityId]
@@ -19,7 +19,7 @@ export async function storeIdempotencyKey(
   response: unknown
 ): Promise<void> {
   await query(
-    `INSERT INTO idempotency_keys (key, entity_id, response)
+    `INSERT INTO acc_idempotency_keys (key, entity_id, response)
      VALUES ($1, $2, $3)
      ON CONFLICT (key) DO NOTHING`,
     [key, entityId, JSON.stringify(response)]
@@ -28,7 +28,7 @@ export async function storeIdempotencyKey(
 
 export async function cleanExpiredKeys(): Promise<number> {
   const r = await query(
-    `DELETE FROM idempotency_keys WHERE created_at < NOW() - INTERVAL '24 hours'`
+    `DELETE FROM acc_idempotency_keys WHERE created_at < NOW() - INTERVAL '24 hours'`
   )
   return r.rowCount ?? 0
 }

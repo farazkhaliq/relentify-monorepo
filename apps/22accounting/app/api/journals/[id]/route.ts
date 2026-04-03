@@ -18,7 +18,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
     const r = await query(
       `SELECT je.*, u.full_name as created_by_name
-       FROM journal_entries je
+       FROM acc_journal_entries je
        LEFT JOIN users u ON u.id = je.user_id
        WHERE je.id = $1 AND je.entity_id = $2`,
       [id, entity.id]
@@ -27,8 +27,8 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
     const lines = await query(
       `SELECT jl.*, coa.code, coa.name as account_name
-       FROM journal_lines jl
-       LEFT JOIN chart_of_accounts coa ON coa.id = jl.account_id
+       FROM acc_journal_lines jl
+       LEFT JOIN acc_chart_of_accounts coa ON coa.id = jl.account_id
        WHERE jl.entry_id = $1 ORDER BY jl.id`,
       [id]
     );
@@ -58,7 +58,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
 
     // Verify belongs to entity and is manual
     const r = await query(
-      `SELECT id, reference, description, source_type, entry_date FROM journal_entries WHERE id=$1 AND entity_id=$2`,
+      `SELECT id, reference, description, source_type, entry_date FROM acc_journal_entries WHERE id=$1 AND entity_id=$2`,
       [id, entity.id]
     );
     if (!r.rows[0]) return NextResponse.json({ error: 'Not found' }, { status: 404 });
@@ -113,14 +113,14 @@ export async function PATCH(_req: NextRequest, { params }: { params: Promise<{ i
 
     // Fetch the draft entry + lines
     const r = await query(
-      `SELECT * FROM journal_entries WHERE id=$1 AND entity_id=$2 AND status='draft'`,
+      `SELECT * FROM acc_journal_entries WHERE id=$1 AND entity_id=$2 AND status='draft'`,
       [id, entity.id]
     );
     if (!r.rows[0]) return NextResponse.json({ error: 'Draft journal not found' }, { status: 404 });
     const entry = r.rows[0];
 
     const linesRes = await query(
-      `SELECT account_id, description, debit, credit FROM journal_lines WHERE entry_id=$1`,
+      `SELECT account_id, description, debit, credit FROM acc_journal_lines WHERE entry_id=$1`,
       [id]
     );
 
@@ -135,8 +135,8 @@ export async function PATCH(_req: NextRequest, { params }: { params: Promise<{ i
     }
 
     // Delete the draft then post as a new entry to go through postJournalEntry validation
-    await query(`DELETE FROM journal_lines WHERE entry_id=$1`, [id]);
-    await query(`DELETE FROM journal_entries WHERE id=$1`, [id]);
+    await query(`DELETE FROM acc_journal_lines WHERE entry_id=$1`, [id]);
+    await query(`DELETE FROM acc_journal_entries WHERE id=$1`, [id]);
 
     const entryId = await postJournalEntry({
       entityId:    entity.id,
@@ -156,7 +156,7 @@ export async function PATCH(_req: NextRequest, { params }: { params: Promise<{ i
     // Restore accrual metadata if set
     if (entry.is_accrual || entry.reversal_date) {
       await query(
-        `UPDATE journal_entries SET is_accrual=$1, reversal_date=$2 WHERE id=$3`,
+        `UPDATE acc_journal_entries SET is_accrual=$1, reversal_date=$2 WHERE id=$3`,
         [entry.is_accrual ?? false, entry.reversal_date ?? null, entryId]
       );
     }

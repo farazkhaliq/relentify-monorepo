@@ -1,4 +1,4 @@
-CREATE TABLE workspace_members (
+CREATE TABLE acc_workspace_members (
   id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   member_user_id   UUID REFERENCES users(id) ON DELETE SET NULL,
@@ -10,6 +10,6 @@ CREATE TABLE workspace_members (
   accepted_at      TIMESTAMPTZ,
   UNIQUE(owner_user_id, invited_email)
 );
-CREATE INDEX idx_workspace_members_owner  ON workspace_members(owner_user_id);
-CREATE INDEX idx_workspace_members_member ON workspace_members(member_user_id);
-CREATE INDEX idx_workspace_members_token  ON workspace_members(invite_token);
+CREATE INDEX idx_workspace_members_owner  ON acc_workspace_members(owner_user_id);
+CREATE INDEX idx_workspace_members_member ON acc_workspace_members(member_user_id);
+CREATE INDEX idx_workspace_members_token  ON acc_workspace_members(invite_token);

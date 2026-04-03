@@ -17,6 +17,7 @@ All UI components, theming, and navigation must come from `@relentify/ui`.
 | 25crm | 25crm | 3025 | TopBar layout (no sidebar) |
 | 26help | 26help | 3026 | Static export (output: 'export'), TopBar layout, Pagefind search, help.relentify.com |
 | 27sign | 27sign | 3027 | Digital signature service, Preset D theme, sign.relentify.com |
+| 28timesheets | 28timesheets | 3028 | GPS-verified mobile timesheets, Preset B theme, timesheets.relentify.com |
 
 **Container naming**: All containers are named to match their app folder (20marketing, 21auth, etc.).
 The old names (relentify-com, relentify-login, relentify-accounts, etc.) are retired — containers deleted.
@@ -519,18 +520,26 @@ Use this when the vulnerable package is deep in a dep chain you don't control (e
 - **`entities`** — a business/organisation. One user can own multiple entities (multi-tenancy). `users.active_entity_id` points to the currently selected entity.
 - Most tables have `user_id` + `entity_id` columns to scope data per-user per-entity.
 
-### Which app owns which tables
-| App | Tables (prefix/pattern) |
-|-----|------------------------|
-| 22accounting | invoices, bills, customers, suppliers, quotes, credit_notes, expenses, purchase_orders, journal_entries, journal_lines, chart_of_accounts, bank_*, projects, attachments, period_locks |
-| 25crm | crm_* (contacts, properties, tenancies, transactions, communications, maintenance_requests) |
-| 24reminders | reminders_* (tasks, lists, workspaces, notifications, task_dependencies) |
-| 21auth | users, entities, app_access |
-| 27sign | signing_requests, signatures, api_keys, audit_log, otp_codes (separate `signing` DB) |
-| Standalone | tweet_drafts, contact_submissions, waitlist_signups, snoozed_emails, voice_assistant_state |
+### Which app owns which tables (relentify database)
+| Prefix | Owner | Count | Examples |
+|--------|-------|-------|---------|
+| (none) | Platform (21auth) | 5 | `users`, `entities`, `app_access`, `password_reset_tokens`, `waitlist_signups` |
+| `acc_` | 22accounting | 42 | `acc_invoices`, `acc_bills`, `acc_customers`, `acc_journal_entries`, `acc_chart_of_accounts`, etc. |
+| `crm_` | 25crm | 16 | `crm_contacts`, `crm_properties`, `crm_tenancies`, `crm_transactions`, etc. |
+| `reminders_` | 24reminders | 7 | `reminders_tasks`, `reminders_lists`, `reminders_workspaces`, etc. |
+| `inv_` | 23inventory | 2 | `inv_items`, `inv_photos` |
+| `ts_` | 28timesheets | 20 | `ts_entries`, `ts_breaks`, `ts_shifts`, `ts_sites`, `ts_workers`, `ts_settings`, `ts_feed_events`, `ts_gps_pings`, etc. |
+
+### Separate databases
+| Database | Owner | Tables |
+|----------|-------|--------|
+| `esign` | 27sign | `api_keys`, `audit_log`, `otp_codes`, `signatures`, `signing_requests` |
+| `simplecalc` | simplecalc | `sc_users`, `sc_login_tokens`, `sc_calculations`, `sc_email_leads` |
+| `kingfisher` | kingfisher-web | `contact_submissions`, `prescription_requests`, `nominations` |
+| `n8n_data` | n8n workflows | `org_manager_state`, `voice_assistant_state`, `snoozed_emails`, `email_exclusions`, `tweet_drafts` |
 
 ### Cross-app relationships
-The three main app groups (Accounting, CRM, Reminders) are **self-contained** — no foreign keys cross between them. They only share `users` and `entities`.
+The three main app groups (Accounting, CRM, Reminders) are **self-contained** — no foreign keys cross between them. They only share `users` and `entities`. `acc_accountant_clients` is also queried by 21auth (registration referral flow).
 
 ---
 

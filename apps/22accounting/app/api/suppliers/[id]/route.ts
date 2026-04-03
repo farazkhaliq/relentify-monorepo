@@ -61,11 +61,11 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     if (!supplier) return NextResponse.json({ error: 'Supplier not found' }, { status: 404 });
 
     const bills = await query(
-      `SELECT id FROM bills WHERE user_id = $1 AND supplier_name = $2 LIMIT 1`,
+      `SELECT id FROM acc_bills WHERE user_id = $1 AND supplier_name = $2 LIMIT 1`,
       [auth.userId, supplier.name]
     );
     if (bills.rowCount && bills.rowCount > 0) {
-      return NextResponse.json({ error: 'Cannot delete — bills exist for this supplier' }, { status: 409 });
+      return NextResponse.json({ error: 'Cannot delete — acc_bills exist for this supplier' }, { status: 409 });
     }
 
     const success = await deleteSupplier(id, auth.userId, entity?.id ?? '');

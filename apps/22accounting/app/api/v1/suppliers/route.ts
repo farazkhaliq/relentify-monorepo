@@ -10,8 +10,8 @@ export async function GET(req: NextRequest) {
   if (scopeErr) return scopeErr;
   const { offset, limit, page } = parseListParams(req);
   const suppliers = await getAllSuppliers(ctx.userId, ctx.entityId);
-  return apiSuccess(suppliers.slice(offset, offset + limit), {
-    pagination: { page, limit, total: suppliers.length, hasMore: offset + limit < suppliers.length },
+  return apiSuccess(acc_suppliers.slice(offset, offset + limit), {
+    pagination: { page, limit, total: acc_suppliers.length, hasMore: offset + limit < acc_suppliers.length },
     testMode: ctx.isTestMode,
   });
 }

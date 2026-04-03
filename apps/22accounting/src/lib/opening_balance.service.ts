@@ -19,7 +19,7 @@ export interface ImportOpeningBalancesResult {
 /** Check if an opening balance entry already exists for this entity */
 export async function getExistingOpeningBalanceEntry(entityId: string) {
   const r = await query(
-    `SELECT id, entry_date FROM journal_entries
+    `SELECT id, entry_date FROM acc_journal_entries
      WHERE entity_id = $1 AND source_type = 'opening_balance'
      ORDER BY created_at DESC LIMIT 1`,
     [entityId]
@@ -29,11 +29,11 @@ export async function getExistingOpeningBalanceEntry(entityId: string) {
 
 /** Void an existing opening balance entry by reversing it */
 export async function voidOpeningBalanceEntry(entryId: string, userId: string) {
-  const entryRes = await query('SELECT * FROM journal_entries WHERE id=$1', [entryId]);
+  const entryRes = await query('SELECT * FROM acc_journal_entries WHERE id=$1', [entryId]);
   const entry = entryRes.rows[0];
   if (!entry) throw new Error('Opening balance entry not found');
 
-  const linesRes = await query('SELECT * FROM journal_lines WHERE entry_id=$1', [entryId]);
+  const linesRes = await query('SELECT * FROM acc_journal_lines WHERE entry_id=$1', [entryId]);
 
   const reversedLines = linesRes.rows.map((l: any) => ({
     accountId: l.account_id,

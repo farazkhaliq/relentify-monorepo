@@ -27,7 +27,7 @@ export async function createQuote(data: {
   const total = subtotal + taxAmount;
 
   const r = await query(
-    `INSERT INTO quotes (user_id, customer_id, quote_number, client_name, client_email, client_address,
+    `INSERT INTO acc_quotes (user_id, customer_id, quote_number, client_name, client_email, client_address,
        issue_date, valid_until, subtotal, tax_rate, tax_amount, total, currency, notes)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING *`,
     [
@@ -41,7 +41,7 @@ export async function createQuote(data: {
   const qt = r.rows[0];
   for (const item of processedItems) {
     await query(
-      `INSERT INTO quote_items (quote_id, description, quantity, unit_price, amount, tax_rate, tax_amount, line_order)
+      `INSERT INTO acc_quote_items (quote_id, description, quantity, unit_price, amount, tax_rate, tax_amount, line_order)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
       [qt.id, item.description, item.quantity, item.unitPrice, item.amount, item.taxRate, item.taxAmount, item.lineOrder]
     );
@@ -52,31 +52,31 @@ export async function createQuote(data: {
 export async function getQuotesByUser(userId: string) {
   // Auto-expire quotes past valid_until
   await query(
-    `UPDATE quotes SET status='expired'
+    `UPDATE acc_quotes SET status='expired'
      WHERE user_id=$1 AND status IN ('draft','sent') AND valid_until < CURRENT_DATE`,
     [userId]
   );
-  const r = await query(`SELECT * FROM quotes WHERE user_id=$1 ORDER BY created_at DESC`, [userId]);
+  const r = await query(`SELECT * FROM acc_quotes WHERE user_id=$1 ORDER BY created_at DESC`, [userId]);
   return r.rows;
 }
 
 export async function getQuoteById(quoteId: string, userId: string) {
-  const r = await query(`SELECT * FROM quotes WHERE id=$1 AND user_id=$2`, [quoteId, userId]);
+  const r = await query(`SELECT * FROM acc_quotes WHERE id=$1 AND user_id=$2`, [quoteId, userId]);
   if (!r.rows[0]) return null;
-  const items = await query(`SELECT * FROM quote_items WHERE quote_id=$1 ORDER BY line_order`, [quoteId]);
+  const items = await query(`SELECT * FROM acc_quote_items WHERE quote_id=$1 ORDER BY line_order`, [quoteId]);
   return { ...r.rows[0], items: items.rows };
 }
 
 export async function updateQuoteStatus(quoteId: string, userId: string, status: string) {
   const r = await query(
-    `UPDATE quotes SET status=$1, updated_at=NOW() WHERE id=$2 AND user_id=$3 RETURNING *`,
+    `UPDATE acc_quotes SET status=$1, updated_at=NOW() WHERE id=$2 AND user_id=$3 RETURNING *`,
     [status, quoteId, userId]
   );
   return r.rows[0] || null;
 }
 
 export async function deleteQuote(quoteId: string, userId: string) {
-  await query(`DELETE FROM quotes WHERE id=$1 AND user_id=$2`, [quoteId, userId]);
+  await query(`DELETE FROM acc_quotes WHERE id=$1 AND user_id=$2`, [quoteId, userId]);
 }
 
 export async function convertQuoteToInvoice(quoteId: string, userId: string, entityId: string) {
@@ -112,7 +112,7 @@ export async function convertQuoteToInvoice(quoteId: string, userId: string, ent
   // Mark quote as accepted — wrap in transaction so the two UPDATEs are atomic
   await withTransaction(async (client) => {
     await client.query(
-      `UPDATE quotes SET status='accepted', converted_invoice_id=$1, updated_at=NOW() WHERE id=$2`,
+      `UPDATE acc_quotes SET status='accepted', converted_invoice_id=$1, updated_at=NOW() WHERE id=$2`,
       [inv.id, quoteId]
     );
   });

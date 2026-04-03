@@ -24,7 +24,7 @@ export async function logRecordingUpload(params: {
   description: string | null
 }): Promise<string> {
   const result = await query(
-    `INSERT INTO recording_uploads (user_id, entity_id, filename, size_bytes, storage_key, description)
+    `INSERT INTO acc_recording_uploads (user_id, entity_id, filename, size_bytes, storage_key, description)
      VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING id`,
     [params.userId, params.entityId, params.filename, params.sizeBytes, params.storageKey, params.description]
@@ -42,7 +42,7 @@ export async function getRecordingsForUser(userId: string): Promise<Array<{
 }>> {
   const result = await query(
     `SELECT id, filename, description, size_bytes, created_at, expires_at
-     FROM recording_uploads
+     FROM acc_recording_uploads
      WHERE user_id = $1 AND expires_at > NOW()
      ORDER BY created_at DESC`,
     [userId]
@@ -59,7 +59,7 @@ export async function getRecordingsForUser(userId: string): Promise<Array<{
 
 export async function getRecordingStorageKey(id: string, userId: string): Promise<string | null> {
   const result = await query(
-    `SELECT storage_key FROM recording_uploads WHERE id = $1 AND user_id = $2 AND expires_at > NOW()`,
+    `SELECT storage_key FROM acc_recording_uploads WHERE id = $1 AND user_id = $2 AND expires_at > NOW()`,
     [id, userId]
   )
   return result.rows[0]?.storage_key ?? null

@@ -1,7 +1,7 @@
 -- 026_migration_runs.sql
 -- Run: docker exec -i infra-postgres psql -U relentify_user -d relentify < database/migrations/026_migration_runs.sql
 
-CREATE TABLE IF NOT EXISTS migration_runs (
+CREATE TABLE IF NOT EXISTS acc_migration_runs (
   id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   entity_id           UUID NOT NULL REFERENCES entities(id),
   user_id             UUID NOT NULL,
@@ -15,5 +15,5 @@ CREATE TABLE IF NOT EXISTS migration_runs (
   created_at          TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_migration_runs_entity ON migration_runs(entity_id);
-CREATE INDEX IF NOT EXISTS idx_migration_runs_user   ON migration_runs(user_id);
+CREATE INDEX IF NOT EXISTS idx_migration_runs_entity ON acc_migration_runs(entity_id);
+CREATE INDEX IF NOT EXISTS idx_migration_runs_user   ON acc_migration_runs(user_id);

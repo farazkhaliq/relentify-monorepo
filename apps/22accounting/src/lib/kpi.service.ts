@@ -32,29 +32,29 @@ export async function getKpiData(userId: string, entityId?: string) {
     unpaidInvoiceCount,
   ] = await Promise.all([
     // This month revenue (paid invoices)
-    query(`SELECT COALESCE(SUM(total), 0) as val FROM invoices WHERE user_id=$1 AND status='paid' AND paid_at >= $2 ${eInv}`, invParams(thisMonthStart)),
+    query(`SELECT COALESCE(SUM(total), 0) as val FROM acc_invoices WHERE user_id=$1 AND status='paid' AND paid_at >= $2 ${eInv}`, invParams(thisMonthStart)),
     // Last month revenue
     entityId
-      ? query(`SELECT COALESCE(SUM(total), 0) as val FROM invoices WHERE user_id=$1 AND status='paid' AND paid_at BETWEEN $2 AND $3 AND entity_id=$4`, [userId, lastMonthStart, lastMonthEnd, entityId])
-      : query(`SELECT COALESCE(SUM(total), 0) as val FROM invoices WHERE user_id=$1 AND status='paid' AND paid_at BETWEEN $2 AND $3`, [userId, lastMonthStart, lastMonthEnd]),
+      ? query(`SELECT COALESCE(SUM(total), 0) as val FROM acc_invoices WHERE user_id=$1 AND status='paid' AND paid_at BETWEEN $2 AND $3 AND entity_id=$4`, [userId, lastMonthStart, lastMonthEnd, entityId])
+      : query(`SELECT COALESCE(SUM(total), 0) as val FROM acc_invoices WHERE user_id=$1 AND status='paid' AND paid_at BETWEEN $2 AND $3`, [userId, lastMonthStart, lastMonthEnd]),
     // This month expenses (bills due)
-    query(`SELECT COALESCE(SUM(amount), 0) as val FROM bills WHERE user_id=$1 AND due_date >= $2 ${eBill}`, billParams(thisMonthStart)),
+    query(`SELECT COALESCE(SUM(amount), 0) as val FROM acc_bills WHERE user_id=$1 AND due_date >= $2 ${eBill}`, billParams(thisMonthStart)),
     // YTD revenue
-    query(`SELECT COALESCE(SUM(total), 0) as val FROM invoices WHERE user_id=$1 AND status='paid' AND paid_at >= $2 ${eInv}`, invParams(yearStart)),
+    query(`SELECT COALESCE(SUM(total), 0) as val FROM acc_invoices WHERE user_id=$1 AND status='paid' AND paid_at >= $2 ${eInv}`, invParams(yearStart)),
     // YTD expenses
-    query(`SELECT COALESCE(SUM(amount), 0) as val FROM bills WHERE user_id=$1 AND due_date >= $2 ${eBill}`, billParams(yearStart)),
+    query(`SELECT COALESCE(SUM(amount), 0) as val FROM acc_bills WHERE user_id=$1 AND due_date >= $2 ${eBill}`, billParams(yearStart)),
     // Outstanding receivables (unpaid sent invoices)
-    query(`SELECT COALESCE(SUM(total), 0) as val FROM invoices WHERE user_id=$1 AND status IN ('sent','overdue') ${eInv2}`, entityId ? [userId, entityId] : [userId]),
+    query(`SELECT COALESCE(SUM(total), 0) as val FROM acc_invoices WHERE user_id=$1 AND status IN ('sent','overdue') ${eInv2}`, entityId ? [userId, entityId] : [userId]),
     // Overdue bills total
-    query(`SELECT COALESCE(SUM(amount), 0) as val FROM bills WHERE user_id=$1 AND status='overdue' ${eBill2}`, entityId ? [userId, entityId] : [userId]),
+    query(`SELECT COALESCE(SUM(amount), 0) as val FROM acc_bills WHERE user_id=$1 AND status='overdue' ${eBill2}`, entityId ? [userId, entityId] : [userId]),
     // Avg invoice value (all time)
-    query(`SELECT COALESCE(AVG(total), 0) as val FROM invoices WHERE user_id=$1 AND status='paid' ${eInv2}`, entityId ? [userId, entityId] : [userId]),
+    query(`SELECT COALESCE(AVG(total), 0) as val FROM acc_invoices WHERE user_id=$1 AND status='paid' ${eInv2}`, entityId ? [userId, entityId] : [userId]),
     // Avg days to payment (sent_at → paid_at)
-    query(`SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (paid_at - sent_at)) / 86400), 0) as val FROM invoices WHERE user_id=$1 AND status='paid' AND sent_at IS NOT NULL AND paid_at IS NOT NULL ${eInv2}`, entityId ? [userId, entityId] : [userId]),
+    query(`SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (paid_at - sent_at)) / 86400), 0) as val FROM acc_invoices WHERE user_id=$1 AND status='paid' AND sent_at IS NOT NULL AND paid_at IS NOT NULL ${eInv2}`, entityId ? [userId, entityId] : [userId]),
     // Invoice count this month
-    query(`SELECT COUNT(*) as val FROM invoices WHERE user_id=$1 AND created_at >= $2 ${eInv}`, invParams(thisMonthStart)),
+    query(`SELECT COUNT(*) as val FROM acc_invoices WHERE user_id=$1 AND created_at >= $2 ${eInv}`, invParams(thisMonthStart)),
     // Unpaid invoice count
-    query(`SELECT COUNT(*) as val FROM invoices WHERE user_id=$1 AND status IN ('sent','overdue') ${eInv2}`, entityId ? [userId, entityId] : [userId]),
+    query(`SELECT COUNT(*) as val FROM acc_invoices WHERE user_id=$1 AND status IN ('sent','overdue') ${eInv2}`, entityId ? [userId, entityId] : [userId]),
   ])
 
   const revenue = parseFloat(thisMonthRevenue.rows[0].val)

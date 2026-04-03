@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const entries = await query(
-      `SELECT id, entity_id, user_id FROM journal_entries
+      `SELECT id, entity_id, user_id FROM acc_journal_entries
        WHERE is_accrual = TRUE
          AND reversal_date::date = $1::date
          AND reversed_by IS NULL
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
     for (const entry of entries.rows) {
       const reversalId = await reverseJournalEntry(entry.id, entry.user_id, today);
       await query(
-        `UPDATE journal_entries SET reversed_by = $1 WHERE id = $2`,
+        `UPDATE acc_journal_entries SET reversed_by = $1 WHERE id = $2`,
         [reversalId, entry.id]
       );
       await logAudit(

@@ -64,7 +64,7 @@ export async function postJournalEntry(
     : (sql: string, p: unknown[]) => query(sql, p);
 
   const entryRes = await exec(
-    `INSERT INTO journal_entries
+    `INSERT INTO acc_journal_entries
        (entity_id, user_id, entry_date, reference, description, source_type, source_id, status, is_locked)
      VALUES ($1,$2,$3,$4,$5,$6,$7,'posted',TRUE) RETURNING id`,
     [entityId, userId, date, reference ?? null, description ?? null, sourceType ?? null, sourceId ?? null]
@@ -73,7 +73,7 @@ export async function postJournalEntry(
 
   for (const line of lines) {
     await exec(
-      `INSERT INTO journal_lines (entry_id, account_id, description, debit, credit)
+      `INSERT INTO acc_journal_lines (entry_id, account_id, description, debit, credit)
        VALUES ($1,$2,$3,$4,$5)`,
       [
         entryId, line.accountId, line.description ?? null,
@@ -99,13 +99,13 @@ export async function reverseJournalEntry(
 ): Promise<string> {
   // Fetch original entry + lines
   const entryRes = await query(
-    'SELECT * FROM journal_entries WHERE id=$1', [originalEntryId]
+    'SELECT * FROM acc_journal_entries WHERE id=$1', [originalEntryId]
   );
   const original = entryRes.rows[0];
   if (!original) throw new Error('Original journal entry not found');
 
   const linesRes = await query(
-    'SELECT * FROM journal_lines WHERE entry_id=$1', [originalEntryId]
+    'SELECT * FROM acc_journal_lines WHERE entry_id=$1', [originalEntryId]
   );
 
   // Reverse: swap debit/credit on every line
@@ -152,9 +152,9 @@ export async function getJournalEntries(
         'debit',       jl.debit,
         'credit',      jl.credit
       ) ORDER BY coa.code) AS lines
-    FROM journal_entries je
-    JOIN journal_lines jl ON jl.entry_id = je.id
-    JOIN chart_of_accounts coa ON coa.id = jl.account_id
+    FROM acc_journal_entries je
+    JOIN acc_journal_lines jl ON jl.entry_id = je.id
+    JOIN acc_chart_of_accounts coa ON coa.id = jl.account_id
     WHERE je.entity_id = $1
   `;
   const params: (string | number)[] = [entityId];
@@ -199,9 +199,9 @@ export async function getTrialBalance(entityId: string, asOf?: string) {
        COALESCE(SUM(jl.debit),  0) AS total_debit,
        COALESCE(SUM(jl.credit), 0) AS total_credit,
        COALESCE(SUM(jl.debit) - SUM(jl.credit), 0) AS net
-     FROM chart_of_accounts coa
-     LEFT JOIN journal_lines jl ON jl.account_id = coa.id
-     LEFT JOIN journal_entries je ON je.id = jl.entry_id
+     FROM acc_chart_of_accounts coa
+     LEFT JOIN acc_journal_lines jl ON jl.account_id = coa.id
+     LEFT JOIN acc_journal_entries je ON je.id = jl.entry_id
        AND je.entity_id = $1 ${dateFilter}
      WHERE coa.entity_id = $1
      GROUP BY coa.id, coa.code, coa.name, coa.account_type
@@ -223,9 +223,9 @@ export async function getProfitAndLoss(entityId: string, from: string, to: strin
        coa.name,
        coa.account_type,
        COALESCE(SUM(jl.debit) - SUM(jl.credit), 0) AS net
-     FROM chart_of_accounts coa
-     LEFT JOIN journal_lines jl ON jl.account_id = coa.id
-     LEFT JOIN journal_entries je ON je.id = jl.entry_id
+     FROM acc_chart_of_accounts coa
+     LEFT JOIN acc_journal_lines jl ON jl.account_id = coa.id
+     LEFT JOIN acc_journal_entries je ON je.id = jl.entry_id
        AND je.entity_id = $1
        AND je.entry_date >= $2
        AND je.entry_date <= $3
@@ -274,9 +274,9 @@ export async function getBalanceSheet(entityId: string, asOf?: string) {
        coa.name,
        coa.account_type,
        COALESCE(SUM(jl.debit) - SUM(jl.credit), 0) AS net
-     FROM chart_of_accounts coa
-     LEFT JOIN journal_lines jl ON jl.account_id = coa.id
-     LEFT JOIN journal_entries je ON je.id = jl.entry_id
+     FROM acc_chart_of_accounts coa
+     LEFT JOIN acc_journal_lines jl ON jl.account_id = coa.id
+     LEFT JOIN acc_journal_entries je ON je.id = jl.entry_id
        AND je.entity_id = $1 ${dateFilter}
      WHERE coa.entity_id = $1
        AND coa.account_type IN ('ASSET','LIABILITY','EQUITY')

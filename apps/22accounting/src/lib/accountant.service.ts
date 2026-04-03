@@ -7,7 +7,7 @@ export async function inviteClient(accountantUserId: string, inviteEmail: string
   const token = crypto.randomBytes(32).toString('hex');
   // Upsert: if pending invite exists for this accountant+email, refresh the token
   const r = await query(
-    `INSERT INTO accountant_clients (accountant_user_id, invite_email, invite_token)
+    `INSERT INTO acc_accountant_clients (accountant_user_id, invite_email, invite_token)
      VALUES ($1, $2, $3)
      ON CONFLICT (accountant_user_id, invite_email) WHERE status = 'pending'
      DO UPDATE SET invite_token = EXCLUDED.invite_token, invited_at = NOW()
@@ -20,7 +20,7 @@ export async function inviteClient(accountantUserId: string, inviteEmail: string
 export async function getInviteByToken(token: string) {
   const r = await query(
     `SELECT ac.*, u.full_name as accountant_name, u.business_name as accountant_firm
-     FROM accountant_clients ac
+     FROM acc_accountant_clients ac
      JOIN users u ON u.id = ac.accountant_user_id
      WHERE ac.invite_token = $1`,
     [token]
@@ -33,13 +33,13 @@ export async function getInviteByToken(token: string) {
 export async function acceptInvite(token: string, clientUserId: string) {
   // Check if client already has an active accountant
   const existing = await query(
-    `SELECT id FROM accountant_clients WHERE client_user_id = $1 AND status = 'active'`,
+    `SELECT id FROM acc_accountant_clients WHERE client_user_id = $1 AND status = 'active'`,
     [clientUserId]
   );
   if (existing.rows.length > 0) throw new Error('CLIENT_HAS_ACCOUNTANT');
 
   const r = await query(
-    `UPDATE accountant_clients
+    `UPDATE acc_accountant_clients
      SET status = 'active', client_user_id = $1, accepted_at = NOW()
      WHERE invite_token = $2 AND status = 'pending'
      RETURNING *`,
@@ -66,7 +66,7 @@ export async function acceptInvite(token: string, clientUserId: string) {
 
 export async function revokeAccess(accountantUserId: string, clientUserId: string) {
   await query(
-    `UPDATE accountant_clients SET status = 'revoked', revoked_at = NOW()
+    `UPDATE acc_accountant_clients SET status = 'revoked', revoked_at = NOW()
      WHERE accountant_user_id = $1 AND client_user_id = $2 AND status = 'active'`,
     [accountantUserId, clientUserId]
   );
@@ -74,7 +74,7 @@ export async function revokeAccess(accountantUserId: string, clientUserId: strin
 
 export async function revokeAccessByClient(clientUserId: string) {
   await query(
-    `UPDATE accountant_clients SET status = 'revoked', revoked_at = NOW()
+    `UPDATE acc_accountant_clients SET status = 'revoked', revoked_at = NOW()
      WHERE client_user_id = $1 AND status = 'active'`,
     [clientUserId]
   );
@@ -89,7 +89,7 @@ export async function getAccountantClients(accountantUserId: string) {
        ac.invited_at, ac.accepted_at,
        u.full_name, u.email, u.business_name, u.subscription_plan as tier,
        u.active_entity_id
-     FROM accountant_clients ac
+     FROM acc_accountant_clients ac
      LEFT JOIN users u ON u.id = ac.client_user_id
      WHERE ac.accountant_user_id = $1 AND ac.status IN ('pending', 'active')
      ORDER BY ac.created_at DESC`,
@@ -100,7 +100,7 @@ export async function getAccountantClients(accountantUserId: string) {
 
 export async function getActiveClientForAccountant(accountantUserId: string, clientUserId: string) {
   const r = await query(
-    `SELECT ac.* FROM accountant_clients ac
+    `SELECT ac.* FROM acc_accountant_clients ac
      WHERE ac.accountant_user_id = $1 AND ac.client_user_id = $2 AND ac.status = 'active'`,
     [accountantUserId, clientUserId]
   );
@@ -117,7 +117,7 @@ export async function getClientHealthStats(clientUserIds: string[]) {
   // Overdue invoices
   const overdueR = await query(
     `SELECT user_id, COUNT(*) as count
-     FROM invoices
+     FROM acc_invoices
      WHERE user_id IN (${placeholders}) AND status = 'overdue'
      GROUP BY user_id`,
     clientUserIds
@@ -126,7 +126,7 @@ export async function getClientHealthStats(clientUserIds: string[]) {
   // Unmatched bank transactions
   const unmatchedR = await query(
     `SELECT user_id, COUNT(*) as count
-     FROM bank_transactions
+     FROM acc_bank_transactions
      WHERE user_id IN (${placeholders}) AND status = 'unmatched'
      GROUP BY user_id`,
     clientUserIds
@@ -135,8 +135,8 @@ export async function getClientHealthStats(clientUserIds: string[]) {
   // Bills without any attachment (missing receipts)
   const missingR = await query(
     `SELECT b.user_id, COUNT(*) as count
-     FROM bills b
-     LEFT JOIN attachments a ON a.record_type = 'bill' AND a.record_id = b.id::text
+     FROM acc_bills b
+     LEFT JOIN acc_attachments a ON a.record_type = 'bill' AND a.record_id = b.id::text
      WHERE b.user_id IN (${placeholders}) AND a.id IS NULL AND b.status != 'paid'
      GROUP BY b.user_id`,
     clientUserIds
@@ -160,7 +160,7 @@ export async function getClientAccountant(clientUserId: string) {
   const r = await query(
     `SELECT ac.id, ac.accountant_user_id, ac.status, ac.accepted_at,
             u.full_name as accountant_name, u.email as accountant_email, u.business_name as accountant_firm
-     FROM accountant_clients ac
+     FROM acc_accountant_clients ac
      JOIN users u ON u.id = ac.accountant_user_id
      WHERE ac.client_user_id = $1 AND ac.status = 'active'`,
     [clientUserId]

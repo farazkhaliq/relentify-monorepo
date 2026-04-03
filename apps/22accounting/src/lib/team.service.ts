@@ -10,7 +10,7 @@ export async function inviteMember(
 ) {
   const token = crypto.randomUUID();
   const r = await query(
-    `INSERT INTO workspace_members (owner_user_id, invited_email, permissions, invite_token)
+    `INSERT INTO acc_workspace_members (owner_user_id, invited_email, permissions, invite_token)
      VALUES ($1, $2, $3, $4)
      ON CONFLICT (owner_user_id, invited_email)
      DO UPDATE SET permissions=$3, invite_token=$4, status='pending', invited_at=NOW()
@@ -23,7 +23,7 @@ export async function inviteMember(
 export async function getMembersByOwner(ownerUserId: string) {
   const r = await query(
     `SELECT wm.*, u.full_name as member_name
-     FROM workspace_members wm
+     FROM acc_workspace_members wm
      LEFT JOIN users u ON u.id = wm.member_user_id
      WHERE wm.owner_user_id = $1 AND wm.status != 'revoked'
      ORDER BY wm.invited_at DESC`,
@@ -34,7 +34,7 @@ export async function getMembersByOwner(ownerUserId: string) {
 
 export async function getMember(memberId: string, ownerUserId: string) {
   const r = await query(
-    `SELECT * FROM workspace_members WHERE id=$1 AND owner_user_id=$2`,
+    `SELECT * FROM acc_workspace_members WHERE id=$1 AND owner_user_id=$2`,
     [memberId, ownerUserId]
   );
   return r.rows[0] || null;
@@ -46,7 +46,7 @@ export async function updateMemberPermissions(
   permissions: WorkspacePermissions
 ) {
   const r = await query(
-    `UPDATE workspace_members SET permissions=$1
+    `UPDATE acc_workspace_members SET permissions=$1
      WHERE id=$2 AND owner_user_id=$3
      RETURNING *`,
     [JSON.stringify(permissions), memberId, ownerUserId]
@@ -56,7 +56,7 @@ export async function updateMemberPermissions(
 
 export async function revokeMember(memberId: string, ownerUserId: string) {
   await query(
-    `UPDATE workspace_members SET status='revoked'
+    `UPDATE acc_workspace_members SET status='revoked'
      WHERE id=$1 AND owner_user_id=$2`,
     [memberId, ownerUserId]
   );
@@ -64,7 +64,7 @@ export async function revokeMember(memberId: string, ownerUserId: string) {
 
 export async function acceptInvite(token: string, memberUserId: string, memberEmail: string) {
   const r = await query(
-    `SELECT * FROM workspace_members WHERE invite_token=$1 AND status='pending'`,
+    `SELECT * FROM acc_workspace_members WHERE invite_token=$1 AND status='pending'`,
     [token]
   );
   const row = r.rows[0];
@@ -72,7 +72,7 @@ export async function acceptInvite(token: string, memberUserId: string, memberEm
   if (row.invited_email.toLowerCase() !== memberEmail.toLowerCase()) return null;
 
   const updated = await query(
-    `UPDATE workspace_members
+    `UPDATE acc_workspace_members
      SET member_user_id=$1, status='active', accepted_at=NOW(), invite_token=NULL
      WHERE id=$2
      RETURNING *`,
@@ -85,7 +85,7 @@ export async function getWorkspacesForMember(memberUserId: string) {
   const r = await query(
     `SELECT wm.id, wm.owner_user_id, wm.permissions, wm.status,
             u.full_name as owner_name, u.email as owner_email, u.business_name as owner_business_name
-     FROM workspace_members wm
+     FROM acc_workspace_members wm
      JOIN users u ON u.id = wm.owner_user_id
      WHERE wm.member_user_id=$1 AND wm.status='active'`,
     [memberUserId]
@@ -96,7 +96,7 @@ export async function getWorkspacesForMember(memberUserId: string) {
 export async function getMemberByToken(token: string) {
   const r = await query(
     `SELECT wm.*, u.full_name as owner_name, u.business_name as owner_business_name
-     FROM workspace_members wm
+     FROM acc_workspace_members wm
      JOIN users u ON u.id = wm.owner_user_id
      WHERE wm.invite_token=$1 AND wm.status='pending'`,
     [token]
@@ -106,7 +106,7 @@ export async function getMemberByToken(token: string) {
 
 export async function getActiveMembership(ownerUserId: string, memberUserId: string) {
   const r = await query(
-    `SELECT * FROM workspace_members
+    `SELECT * FROM acc_workspace_members
      WHERE owner_user_id=$1 AND member_user_id=$2 AND status='active'`,
     [ownerUserId, memberUserId]
   );
@@ -121,7 +121,7 @@ export async function getMemberRole(
   if (ownerUserId === memberUserId) return 'admin'
 
   const r = await query(
-    `SELECT role FROM workspace_members
+    `SELECT role FROM acc_workspace_members
      WHERE owner_user_id=$1 AND member_user_id=$2 AND status='accepted'`,
     [ownerUserId, memberUserId]
   )

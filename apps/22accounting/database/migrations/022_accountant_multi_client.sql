@@ -15,8 +15,8 @@ ALTER TABLE users
   ADD COLUMN IF NOT EXISTS accountant_sort_code         TEXT,
   ADD COLUMN IF NOT EXISTS accountant_account_number    TEXT;
 
--- New accountant_clients table: tracks invite + access lifecycle
-CREATE TABLE IF NOT EXISTS accountant_clients (
+-- New acc_accountant_clients table: tracks invite + access lifecycle
+CREATE TABLE IF NOT EXISTS acc_accountant_clients (
   id                  UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   accountant_user_id  UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   client_user_id      UUID        REFERENCES users(id) ON DELETE CASCADE, -- NULL until accepted
@@ -32,16 +32,16 @@ CREATE TABLE IF NOT EXISTS accountant_clients (
 
 -- Only one active accountant per client at a time
 CREATE UNIQUE INDEX IF NOT EXISTS accountant_clients_one_active_per_client
-  ON accountant_clients (client_user_id)
+  ON acc_accountant_clients (client_user_id)
   WHERE status = 'active' AND client_user_id IS NOT NULL;
 
 -- No duplicate pending invite from same accountant to same email
 CREATE UNIQUE INDEX IF NOT EXISTS accountant_clients_no_dup_pending
-  ON accountant_clients (accountant_user_id, invite_email)
+  ON acc_accountant_clients (accountant_user_id, invite_email)
   WHERE status = 'pending';
 
 -- Referral earnings: one row per Stripe invoice (UNIQUE on stripe_invoice_id = idempotency)
-CREATE TABLE IF NOT EXISTS accountant_referral_earnings (
+CREATE TABLE IF NOT EXISTS acc_accountant_referral_earnings (
   id                  UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   accountant_user_id  UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   client_user_id      UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -54,5 +54,5 @@ CREATE TABLE IF NOT EXISTS accountant_referral_earnings (
   created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Add actor_id to audit_log (NULL = user acted for themselves)
-ALTER TABLE audit_log ADD COLUMN IF NOT EXISTS actor_id UUID REFERENCES users(id);
+-- Add actor_id to acc_audit_log (NULL = user acted for themselves)
+ALTER TABLE acc_audit_log ADD COLUMN IF NOT EXISTS actor_id UUID REFERENCES users(id);

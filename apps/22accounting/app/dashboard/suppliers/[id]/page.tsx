@@ -16,7 +16,7 @@ export default async function SupplierDetailPage({ params }: { params: Promise<{
 
   const billsResult = await query(
     `SELECT id, supplier_name, amount, currency, status, invoice_date, due_date, reference
-     FROM bills WHERE user_id = $1 AND supplier_name = $2 ORDER BY invoice_date DESC`,
+     FROM acc_bills WHERE user_id = $1 AND supplier_name = $2 ORDER BY invoice_date DESC`,
     [auth.userId, supplier.name]
   );
   const bills = billsResult.rows;

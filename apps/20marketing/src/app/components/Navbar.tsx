@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { useTheme, useRegion, Region } from '../App';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X, ChevronDown, Sun, Moon } from 'lucide-react';
 import Logo from './Logo';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -12,7 +12,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 export default function Navbar() {
-  const { theme, isDarkMode } = useTheme();
+  const { theme, isDarkMode, toggleDarkMode } = useTheme();
   const { region, setRegion } = useRegion();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -58,8 +58,8 @@ export default function Navbar() {
 
   const handleNavClick = (link: any) => {
     if (link.isContact) {
-      if ((window as any).Tawk_API) {
-        (window as any).Tawk_API.toggle();
+      if ((window as any).$chatwoot) {
+        (window as any).$chatwoot.toggle();
       }
       setIsMobileMenuOpen(false);
       return;
@@ -220,6 +220,13 @@ export default function Navbar() {
               )}
             </div>
           ))}
+          <button
+            onClick={toggleDarkMode}
+            className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-[var(--theme-text)]/40 hover:text-[var(--theme-text)] transition-all flex items-center justify-center"
+            aria-label="Toggle Dark Mode"
+          >
+            {isDarkMode ? <Sun size={14} /> : <Moon size={14} />}
+          </button>
           <a
             href="https://auth.relentify.com/login?redirect=https://relentify.com/portal"
             className={cn(
@@ -292,6 +299,13 @@ export default function Navbar() {
               >
                 Login
               </a>
+              <button
+                onClick={toggleDarkMode}
+                className="flex items-center gap-3 text-2xl font-bold tracking-tight text-[var(--theme-text)]"
+              >
+                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+                <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+              </button>
             </div>
           </motion.div>
         )}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { query } from '@/lib/db'
+import { toPhoto } from '@/lib/types'
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData()
@@ -13,15 +14,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
   }
 
-  const photo = await prisma.photo.create({
-    data: {
-      inventoryId,
-      room,
-      condition,
-      description: description || null,
-      imageData: imageData || null,
-    },
-  })
+  const { rows } = await query(
+    `INSERT INTO inv_photos (inventory_id, room, condition, description, image_data)
+     VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+    [inventoryId, room, condition, description || null, imageData || null]
+  )
 
-  return NextResponse.json(photo, { status: 201 })
+  return NextResponse.json(toPhoto(rows[0]), { status: 201 })
 }

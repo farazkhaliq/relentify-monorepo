@@ -22,7 +22,7 @@ export interface ExpenseApprovalSettings {
 export async function getExpenseApprovalSettings(entityId: string): Promise<ExpenseApprovalSettings | null> {
   const r = await query(
     `SELECT eas.*, u.full_name AS approver_name, u.email AS approver_email
-     FROM expense_approval_settings eas
+     FROM acc_expense_approval_settings eas
      LEFT JOIN users u ON eas.approver_user_id = u.id
      WHERE eas.entity_id = $1`,
     [entityId]
@@ -35,7 +35,7 @@ export async function upsertExpenseApprovalSettings(
   data: { enabled: boolean; approverUserId?: string | null }
 ): Promise<ExpenseApprovalSettings> {
   const r = await query(
-    `INSERT INTO expense_approval_settings (entity_id, enabled, approver_user_id)
+    `INSERT INTO acc_expense_approval_settings (entity_id, enabled, approver_user_id)
      VALUES ($1, $2, $3)
      ON CONFLICT (entity_id) DO UPDATE SET
        enabled = EXCLUDED.enabled,
@@ -54,7 +54,7 @@ export async function approveExpense(
 ): Promise<boolean> {
   const approved = await withTransaction(async (client) => {
     const r = await client.query(
-      `UPDATE expenses SET
+      `UPDATE acc_expenses SET
          status = 'approved',
          approved_by_id = $2,
          approved_at = NOW()
@@ -101,7 +101,7 @@ export async function rejectExpense(
   reason: string
 ): Promise<boolean> {
   const r = await query(
-    `UPDATE expenses SET
+    `UPDATE acc_expenses SET
        status = 'rejected',
        approved_by_id = $2,
        rejected_at = NOW(),
@@ -120,7 +120,7 @@ export async function approveMileage(
 ): Promise<boolean> {
   return withTransaction(async (client) => {
     const r = await client.query(
-      `UPDATE mileage_claims SET
+      `UPDATE acc_mileage_claims SET
          status = 'approved',
          approved_by_id = $2,
          approved_at = NOW()
@@ -153,7 +153,7 @@ export async function rejectMileage(
   reason: string
 ): Promise<boolean> {
   const r = await query(
-    `UPDATE mileage_claims SET
+    `UPDATE acc_mileage_claims SET
        status = 'rejected',
        approved_by_id = $2,
        rejected_at = NOW(),
@@ -176,7 +176,7 @@ export async function getPendingApprovals(entityId: string): Promise<{
   const [expenses, mileage] = await Promise.all([
     query(
       `SELECT e.*, u.full_name AS claimant_name, u.email AS claimant_email
-       FROM expenses e
+       FROM acc_expenses e
        JOIN users u ON e.user_id = u.id
        WHERE e.status = 'pending_approval'
          AND e.user_id IN (
@@ -189,7 +189,7 @@ export async function getPendingApprovals(entityId: string): Promise<{
     ).catch(() => query(
       // Fallback: return all pending if workspace_users doesn't exist
       `SELECT e.*, u.full_name AS claimant_name, u.email AS claimant_email
-       FROM expenses e
+       FROM acc_expenses e
        JOIN users u ON e.user_id = u.id
        WHERE e.status = 'pending_approval'
        ORDER BY e.created_at ASC`,
@@ -197,7 +197,7 @@ export async function getPendingApprovals(entityId: string): Promise<{
     )),
     query(
       `SELECT mc.*, u.full_name AS claimant_name, u.email AS claimant_email
-       FROM mileage_claims mc
+       FROM acc_mileage_claims mc
        JOIN users u ON mc.user_id = u.id
        WHERE mc.status = 'pending_approval'
          AND mc.user_id IN (
@@ -209,7 +209,7 @@ export async function getPendingApprovals(entityId: string): Promise<{
       [entityId]
     ).catch(() => query(
       `SELECT mc.*, u.full_name AS claimant_name, u.email AS claimant_email
-       FROM mileage_claims mc
+       FROM acc_mileage_claims mc
        JOIN users u ON mc.user_id = u.id
        WHERE mc.status = 'pending_approval'
        ORDER BY mc.created_at ASC`,

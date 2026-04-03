@@ -51,7 +51,7 @@ export async function generateApiKey(params: {
   const keyPrefix = rawBytes.slice(0, 8); // first 8 chars of the hex portion
 
   const r = await query(
-    `INSERT INTO api_keys
+    `INSERT INTO acc_api_keys
        (entity_id, user_id, name, key_hash, key_prefix, scopes, is_test_mode, allowed_ips, expires_at)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      RETURNING *`,
@@ -76,7 +76,7 @@ export async function validateApiKey(rawKey: string, clientIp?: string): Promise
   const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
 
   const r = await query(
-    `SELECT * FROM api_keys WHERE key_hash = $1`,
+    `SELECT * FROM acc_api_keys WHERE key_hash = $1`,
     [keyHash]
   );
   if (r.rows.length === 0) return null;
@@ -100,7 +100,7 @@ export async function validateApiKey(rawKey: string, clientIp?: string): Promise
   }
 
   // Update last_used_at asynchronously (fire-and-forget, non-blocking)
-  query('UPDATE api_keys SET last_used_at = NOW() WHERE id = $1', [key.id]).catch(() => {});
+  query('UPDATE acc_api_keys SET last_used_at = NOW() WHERE id = $1', [key.id]).catch(() => {});
 
   return key;
 }
@@ -109,14 +109,14 @@ export async function validateApiKey(rawKey: string, clientIp?: string): Promise
 export async function rotateApiKey(keyId: string, entityId: string): Promise<{ rawKey: string; newKey: ApiKey } | null> {
   // Fetch old key to copy config
   const r = await query(
-    'SELECT * FROM api_keys WHERE id = $1 AND entity_id = $2 AND revoked_at IS NULL',
+    'SELECT * FROM acc_api_keys WHERE id = $1 AND entity_id = $2 AND revoked_at IS NULL',
     [keyId, entityId]
   );
   if (r.rows.length === 0) return null;
   const old: ApiKey = r.rows[0];
 
   // Mark old key as rotated (starts 1-hour grace period)
-  await query('UPDATE api_keys SET rotated_at = NOW() WHERE id = $1', [keyId]);
+  await query('UPDATE acc_api_keys SET rotated_at = NOW() WHERE id = $1', [keyId]);
 
   // Create new key with same config
   return generateApiKey({
@@ -133,7 +133,7 @@ export async function rotateApiKey(keyId: string, entityId: string): Promise<{ r
 /** Revoke a key immediately. */
 export async function revokeApiKey(keyId: string, entityId: string): Promise<boolean> {
   const r = await query(
-    'UPDATE api_keys SET revoked_at = NOW() WHERE id = $1 AND entity_id = $2 AND revoked_at IS NULL RETURNING id',
+    'UPDATE acc_api_keys SET revoked_at = NOW() WHERE id = $1 AND entity_id = $2 AND revoked_at IS NULL RETURNING id',
     [keyId, entityId]
   );
   return r.rows.length > 0;
@@ -144,7 +144,7 @@ export async function listApiKeys(entityId: string): Promise<ApiKey[]> {
   const r = await query(
     `SELECT id, entity_id, user_id, name, key_prefix, scopes, is_test_mode,
             allowed_ips, last_used_at, rotated_at, created_at, expires_at, revoked_at
-     FROM api_keys WHERE entity_id = $1 ORDER BY created_at DESC`,
+     FROM acc_api_keys WHERE entity_id = $1 ORDER BY created_at DESC`,
     [entityId]
   );
   return r.rows;
@@ -160,7 +160,7 @@ export function logApiRequest(params: {
   durationMs: number;
 }): void {
   query(
-    `INSERT INTO api_requests (key_id, entity_id, endpoint, method, status_code, duration_ms)
+    `INSERT INTO acc_api_requests (key_id, entity_id, endpoint, method, status_code, duration_ms)
      VALUES ($1, $2, $3, $4, $5, $6)`,
     [params.keyId, params.entityId, params.endpoint, params.method, params.statusCode, params.durationMs]
   ).catch(() => {}); // never throw — logging must not block responses

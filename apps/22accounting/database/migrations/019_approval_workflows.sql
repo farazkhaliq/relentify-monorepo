@@ -1,9 +1,9 @@
 -- Migration 019: Approval workflows
 -- Adds per-staff PO approver mappings, expense approval settings,
--- and approval status columns to expenses and mileage_claims.
+-- and approval status columns to acc_expenses and acc_mileage_claims.
 
 -- Per-staff PO approver overrides (staff member -> their specific approver)
-CREATE TABLE IF NOT EXISTS po_approver_mappings (
+CREATE TABLE IF NOT EXISTS acc_po_approver_mappings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   entity_id UUID NOT NULL REFERENCES entities(id) ON DELETE CASCADE,
   staff_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS po_approver_mappings (
 );
 
 -- Expense/mileage approval settings per entity
-CREATE TABLE IF NOT EXISTS expense_approval_settings (
+CREATE TABLE IF NOT EXISTS acc_expense_approval_settings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   entity_id UUID NOT NULL REFERENCES entities(id) ON DELETE CASCADE,
   enabled BOOLEAN NOT NULL DEFAULT FALSE,
@@ -23,25 +23,25 @@ CREATE TABLE IF NOT EXISTS expense_approval_settings (
   UNIQUE(entity_id)
 );
 
--- Approval columns on expenses
-ALTER TABLE expenses ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending';
-ALTER TABLE expenses ADD COLUMN IF NOT EXISTS approved_by_id UUID REFERENCES users(id);
-ALTER TABLE expenses ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ;
-ALTER TABLE expenses ADD COLUMN IF NOT EXISTS rejected_at TIMESTAMPTZ;
-ALTER TABLE expenses ADD COLUMN IF NOT EXISTS rejection_reason TEXT;
+-- Approval columns on acc_expenses
+ALTER TABLE acc_expenses ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending';
+ALTER TABLE acc_expenses ADD COLUMN IF NOT EXISTS approved_by_id UUID REFERENCES users(id);
+ALTER TABLE acc_expenses ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ;
+ALTER TABLE acc_expenses ADD COLUMN IF NOT EXISTS rejected_at TIMESTAMPTZ;
+ALTER TABLE acc_expenses ADD COLUMN IF NOT EXISTS rejection_reason TEXT;
 
--- Approval columns on mileage_claims
-ALTER TABLE mileage_claims ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending';
-ALTER TABLE mileage_claims ADD COLUMN IF NOT EXISTS approved_by_id UUID REFERENCES users(id);
-ALTER TABLE mileage_claims ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ;
-ALTER TABLE mileage_claims ADD COLUMN IF NOT EXISTS rejected_at TIMESTAMPTZ;
-ALTER TABLE mileage_claims ADD COLUMN IF NOT EXISTS rejection_reason TEXT;
+-- Approval columns on acc_mileage_claims
+ALTER TABLE acc_mileage_claims ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending';
+ALTER TABLE acc_mileage_claims ADD COLUMN IF NOT EXISTS approved_by_id UUID REFERENCES users(id);
+ALTER TABLE acc_mileage_claims ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ;
+ALTER TABLE acc_mileage_claims ADD COLUMN IF NOT EXISTS rejected_at TIMESTAMPTZ;
+ALTER TABLE acc_mileage_claims ADD COLUMN IF NOT EXISTS rejection_reason TEXT;
 
--- Escalation tracking on purchase_orders (for 24h cron)
-ALTER TABLE purchase_orders ADD COLUMN IF NOT EXISTS escalated_at TIMESTAMPTZ;
+-- Escalation tracking on acc_purchase_orders (for 24h cron)
+ALTER TABLE acc_purchase_orders ADD COLUMN IF NOT EXISTS escalated_at TIMESTAMPTZ;
 
--- Fix: Update expenses status check constraint to include approval statuses
+-- Fix: Update acc_expenses status check constraint to include approval statuses
 -- (original constraint only had 'pending' and 'reimbursed')
-ALTER TABLE expenses DROP CONSTRAINT IF EXISTS expenses_status_check;
-ALTER TABLE expenses ADD CONSTRAINT expenses_status_check
+ALTER TABLE acc_expenses DROP CONSTRAINT IF EXISTS expenses_status_check;
+ALTER TABLE acc_expenses ADD CONSTRAINT expenses_status_check
   CHECK (status = ANY (ARRAY['pending', 'pending_approval', 'approved', 'reimbursed', 'rejected']));

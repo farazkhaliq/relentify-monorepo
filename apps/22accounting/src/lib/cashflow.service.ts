@@ -21,8 +21,8 @@ export async function getCashFlowForecast(userId: string, days = 90, entityId?: 
 
   // Current bank balance (sum of all connected accounts)
   const balRes = entityId
-    ? await query(`SELECT COALESCE(SUM(balance), 0) as total FROM bank_connections WHERE user_id=$1 AND entity_id=$2 AND balance IS NOT NULL`, [userId, entityId])
-    : await query(`SELECT COALESCE(SUM(balance), 0) as total FROM bank_connections WHERE user_id=$1 AND balance IS NOT NULL`, [userId])
+    ? await query(`SELECT COALESCE(SUM(balance), 0) as total FROM acc_bank_connections WHERE user_id=$1 AND entity_id=$2 AND balance IS NOT NULL`, [userId, entityId])
+    : await query(`SELECT COALESCE(SUM(balance), 0) as total FROM acc_bank_connections WHERE user_id=$1 AND balance IS NOT NULL`, [userId])
   const openingBalance = parseFloat(balRes.rows[0]?.total || '0')
 
   const invParams = entityId ? [userId, todayStr, endStr, entityId] : [userId, todayStr, endStr]
@@ -31,7 +31,7 @@ export async function getCashFlowForecast(userId: string, days = 90, entityId?: 
   // Unpaid invoices due in range (expected income) — GBP only
   const invoiceRes = await query(
     `SELECT due_date, COALESCE(SUM(total), 0) as amount
-     FROM invoices WHERE user_id=$1 AND status IN ('sent','overdue') AND due_date BETWEEN $2 AND $3 ${eInv} AND currency = 'GBP'
+     FROM acc_invoices WHERE user_id=$1 AND status IN ('sent','overdue') AND due_date BETWEEN $2 AND $3 ${eInv} AND currency = 'GBP'
      GROUP BY due_date ORDER BY due_date`,
     invParams
   )
@@ -39,7 +39,7 @@ export async function getCashFlowForecast(userId: string, days = 90, entityId?: 
   // Unpaid bills due in range (expected expenses) — GBP only
   const billRes = await query(
     `SELECT due_date, COALESCE(SUM(amount), 0) as amount
-     FROM bills WHERE user_id=$1 AND status IN ('unpaid','overdue') AND due_date BETWEEN $2 AND $3 ${eBill} AND currency = 'GBP'
+     FROM acc_bills WHERE user_id=$1 AND status IN ('unpaid','overdue') AND due_date BETWEEN $2 AND $3 ${eBill} AND currency = 'GBP'
      GROUP BY due_date ORDER BY due_date`,
     billParams
   )

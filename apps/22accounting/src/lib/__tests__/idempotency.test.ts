@@ -12,7 +12,7 @@ function assert(cond: boolean, msg: string) {
 }
 
 async function cleanup() {
-  await query(`DELETE FROM idempotency_keys WHERE entity_id = $1`, [TEST_ENTITY])
+  await query(`DELETE FROM acc_idempotency_keys WHERE entity_id = $1`, [TEST_ENTITY])
 }
 
 async function run() {

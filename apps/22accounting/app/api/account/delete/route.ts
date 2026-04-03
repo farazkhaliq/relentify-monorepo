@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   if (!valid) return NextResponse.json({ error: 'Incorrect password' }, { status: 403 });
 
   // Delete user data (cascades handle most relations, explicit order for safety)
-  await query(`DELETE FROM accountant_clients WHERE client_user_id = $1 OR accountant_user_id = $1`, [auth.userId]);
+  await query(`DELETE FROM acc_accountant_clients WHERE client_user_id = $1 OR accountant_user_id = $1`, [auth.userId]);
   await query(`DELETE FROM entities WHERE user_id = $1`, [auth.userId]);
   await query(`DELETE FROM users WHERE id = $1`, [auth.userId]);
 

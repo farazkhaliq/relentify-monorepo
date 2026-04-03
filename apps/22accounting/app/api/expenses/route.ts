@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
 
     // If approval required, update status to pending_approval
     if (needsApproval && entity) {
-      await query(`UPDATE expenses SET status = 'pending_approval' WHERE id = $1`, [expense.id]);
+      await query(`UPDATE acc_expenses SET status = 'pending_approval' WHERE id = $1`, [expense.id]);
       expense.status = 'pending_approval' as any;
 
       // Notify approver

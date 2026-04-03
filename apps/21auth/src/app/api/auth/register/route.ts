@@ -52,13 +52,13 @@ export async function POST(req: NextRequest) {
     if (refToken) {
       try {
         const inviteR = await pool.query(
-          `SELECT * FROM accountant_clients WHERE invite_token = $1 AND status = 'pending'`,
+          `SELECT * FROM acc_accountant_clients WHERE invite_token = $1 AND status = 'pending'`,
           [refToken]
         )
         const invite = inviteR.rows[0]
         if (invite && invite.invite_email.toLowerCase() === email.toLowerCase()) {
           await pool.query(
-            `UPDATE accountant_clients
+            `UPDATE acc_accountant_clients
              SET status = 'active', client_user_id = $1, accepted_at = NOW()
              WHERE invite_token = $2`,
             [user.id, refToken]

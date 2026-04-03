@@ -20,8 +20,8 @@ export async function GET() {
               je.status, je.reversed_by, je.is_accrual,
               COALESCE(SUM(jl.debit), 0) AS total_debit,
               COUNT(jl.id) AS line_count
-       FROM journal_entries je
-       LEFT JOIN journal_lines jl ON jl.entry_id = je.id
+       FROM acc_journal_entries je
+       LEFT JOIN acc_journal_lines jl ON jl.entry_id = je.id
        WHERE je.entity_id = $1 AND je.source_type = 'manual'
        GROUP BY je.id
        ORDER BY je.entry_date DESC, je.created_at DESC
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
       // Draft: insert header + lines directly, no GL posting
       entryId = await withTransaction(async (client) => {
         const r = await client.query(
-          `INSERT INTO journal_entries
+          `INSERT INTO acc_journal_entries
              (entity_id, user_id, entry_date, reference, description, source_type, status, is_accrual, reversal_date)
            VALUES ($1,$2,$3,$4,$5,'manual','draft',$6,$7) RETURNING id`,
           [entity.id, auth.userId, date, reference ?? null, description ?? null, isAccrual ?? false, reversalDate ?? null]
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
         const eid = r.rows[0].id as string;
         for (const line of lines) {
           await client.query(
-            `INSERT INTO journal_lines (entry_id, account_id, description, debit, credit) VALUES ($1,$2,$3,$4,$5)`,
+            `INSERT INTO acc_journal_lines (entry_id, account_id, description, debit, credit) VALUES ($1,$2,$3,$4,$5)`,
             [eid, line.accountId, line.description ?? null, line.debit || 0, line.credit || 0]
           );
         }
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
       // Persist accrual metadata if provided
       if (isAccrual || reversalDate) {
         await query(
-          `UPDATE journal_entries SET is_accrual=$1, reversal_date=$2 WHERE id=$3`,
+          `UPDATE acc_journal_entries SET is_accrual=$1, reversal_date=$2 WHERE id=$3`,
           [isAccrual ?? false, reversalDate ?? null, entryId]
         );
       }

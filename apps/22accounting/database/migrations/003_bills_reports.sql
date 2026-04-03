@@ -1,5 +1,5 @@
 -- Bills table
-CREATE TABLE IF NOT EXISTS bills (
+CREATE TABLE IF NOT EXISTS acc_bills (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   supplier_name TEXT NOT NULL,
@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS bills (
   paid_at TIMESTAMPTZ
 );
 
-CREATE INDEX IF NOT EXISTS idx_bills_user_id ON bills(user_id);
-CREATE INDEX IF NOT EXISTS idx_bills_user_status ON bills(user_id, status);
+CREATE INDEX IF NOT EXISTS idx_bills_user_id ON acc_bills(user_id);
+CREATE INDEX IF NOT EXISTS idx_bills_user_status ON acc_bills(user_id, status);
 
 -- Card payment toggle
 ALTER TABLE users ADD COLUMN IF NOT EXISTS accept_card_payments BOOLEAN DEFAULT TRUE;

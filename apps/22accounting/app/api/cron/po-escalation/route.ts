@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     // Find POs pending approval for over 24h with no escalation yet
     const stalePos = await query(`
       SELECT po.*, e.id as entity_id
-      FROM purchase_orders po
+      FROM acc_purchase_orders po
       JOIN entities e ON e.id = (
         SELECT entity_id FROM users WHERE id = po.user_id LIMIT 1
       )
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
           rejectUrl: `${appUrl}/api/po/approve-link?token=${po.approval_token}&action=reject`,
         });
 
-        await query(`UPDATE purchase_orders SET escalated_at = NOW() WHERE id = $1`, [po.id]);
+        await query(`UPDATE acc_purchase_orders SET escalated_at = NOW() WHERE id = $1`, [po.id]);
         escalatedCount++;
       } catch (err) {
         console.error(`[PO escalation] Failed for PO ${po.id}:`, err);

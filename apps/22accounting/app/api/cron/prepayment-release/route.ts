@@ -19,10 +19,10 @@ export async function GET(req: NextRequest) {
     const prepayments = await query(
       `SELECT bt.*,
               bt.amount / bt.prepayment_months::numeric AS monthly_amount,
-              (SELECT COUNT(*) FROM journal_entries je
+              (SELECT COUNT(*) FROM acc_journal_entries je
                WHERE je.source_type = 'prepayment_release'
                  AND je.source_id LIKE bt.id::text || '-%') AS releases_done
-       FROM bank_transactions bt
+       FROM acc_bank_transactions bt
        WHERE bt.is_prepayment = TRUE
          AND bt.prepayment_months IS NOT NULL
          AND bt.prepayment_months > 0`,
