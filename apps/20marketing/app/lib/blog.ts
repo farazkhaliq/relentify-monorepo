@@ -7,6 +7,8 @@ import readingTime from 'reading-time';
 
 const BLOG_DIR = path.join(process.cwd(), 'content', 'blog');
 
+export type BlogRegion = 'all' | 'uk' | 'usa';
+
 export interface BlogPost {
   title: string;
   slug: string;
@@ -17,6 +19,7 @@ export interface BlogPost {
   image: string;
   imageAlt: string;
   tags: string[];
+  region: BlogRegion;
   readingTime: string;
 }
 
@@ -46,6 +49,7 @@ export function getAllPosts(): BlogPost[] {
         image: data.image,
         imageAlt: data.imageAlt || '',
         tags: data.tags || [],
+        region: (data.region as BlogRegion) || 'all',
         readingTime: stats.text,
       } as BlogPost;
     })
@@ -79,6 +83,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPostWithContent |
         image: data.image,
         imageAlt: data.imageAlt || '',
         tags: data.tags || [],
+        region: (data.region as BlogRegion) || 'all',
         readingTime: stats.text,
         content: processedContent.toString(),
       };

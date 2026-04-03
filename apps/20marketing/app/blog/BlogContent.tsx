@@ -1,10 +1,11 @@
 'use client';
-import React from 'react';
-import { useTheme } from '@relentify/ui';
+import React, { useMemo } from 'react';
+import { useTheme, useRegion } from '@relentify/ui';
 import { motion } from 'motion/react';
 import { ArrowRight, Clock, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import type { BlogRegion } from '@/app/lib/blog';
 
 interface BlogPostPreview {
   title: string;
@@ -15,11 +16,32 @@ interface BlogPostPreview {
   excerpt: string;
   image: string;
   imageAlt: string;
+  region: BlogRegion;
   readingTime: string;
+}
+
+function RegionBadge({ region }: { region: BlogRegion }) {
+  if (region === 'all') return null;
+  const label = region === 'uk' ? 'UK Guide' : 'US Guide';
+  return (
+    <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-[var(--theme-accent)]/15 text-[var(--theme-accent)]">
+      {label}
+    </span>
+  );
 }
 
 export default function BlogContent({ posts }: { posts: BlogPostPreview[] }) {
   const { theme } = useTheme();
+  const { region } = useRegion();
+
+  const filteredPosts = useMemo(() => {
+    return posts.filter((post) => {
+      if (post.region === 'all') return true;
+      if (post.region === 'uk' && region === 'UK') return true;
+      if (post.region === 'usa' && region === 'USA') return true;
+      return false;
+    });
+  }, [posts, region]);
 
   return (
     <div className="w-full pt-32 px-6">
@@ -39,7 +61,7 @@ export default function BlogContent({ posts }: { posts: BlogPostPreview[] }) {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
-          {posts.map((post, i) => (
+          {filteredPosts.map((post, i) => (
             <motion.article
               key={i}
               initial={{ opacity: 0, y: 20 }}
@@ -55,10 +77,11 @@ export default function BlogContent({ posts }: { posts: BlogPostPreview[] }) {
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-700"
                   />
-                  <div className="absolute top-6 left-6">
+                  <div className="absolute top-6 left-6 flex items-center gap-2">
                     <span className="px-4 py-2 rounded-full bg-[var(--theme-card)]/90 backdrop-blur-md text-xs font-bold uppercase tracking-widest">
                       {post.category}
                     </span>
+                    <RegionBadge region={post.region} />
                   </div>
                 </div>
 

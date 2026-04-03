@@ -82,9 +82,16 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
     <div className="w-full pt-32 pb-20 px-6">
       <article className="max-w-3xl mx-auto">
         <div className="mb-10">
-          <span className="text-xs font-bold uppercase tracking-widest text-[var(--theme-accent)]">
-            {post.category}
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-bold uppercase tracking-widest text-[var(--theme-accent)]">
+              {post.category}
+            </span>
+            {post.region && post.region !== 'all' && (
+              <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-[var(--theme-accent)]/15 text-[var(--theme-accent)]">
+                {post.region === 'uk' ? 'UK Guide' : 'US Guide'}
+              </span>
+            )}
+          </div>
           <h1 className="text-4xl md:text-5xl font-bold mt-4 mb-6 leading-tight">
             {post.title}
           </h1>

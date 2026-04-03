@@ -17,6 +17,7 @@ export default function BlogPage() {
     excerpt: post.excerpt,
     image: post.image,
     imageAlt: post.imageAlt,
+    region: post.region,
     readingTime: post.readingTime,
   }));
 
