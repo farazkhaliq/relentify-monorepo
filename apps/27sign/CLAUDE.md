@@ -162,14 +162,44 @@ Links signers to requests. Each signer has their own token, sign_order, status (
 
 ---
 
-## Known issues / TODO
+## Test coverage
 
-- **No MCP tests for document flow** — the 25 tests only cover text-only signing. Document upload, field placement, multi-signer, PDF generation, and sequential locks are untested.
-- **Stripe products not created** — checkout/webhook routes exist but no actual Stripe products/prices for E-Sign tiers. Env vars `STRIPE_PRICE_PERSONAL` etc. are empty.
-- **No reminder cron job** — the remind API endpoint exists but nothing calls it automatically after 48h.
-- **Decline email not wired** — decline route updates DB but doesn't email the sender notification.
-- **Column name bug** — request detail page queries `filename` but column is `original_filename`.
-- **Browser testing needed** — pdfjs-dist rendering, FieldPlacer drag-and-drop, coordinate accuracy not yet verified visually.
+| Suite | Count | What's covered |
+|-------|-------|---------------|
+| MCP tests | **37/37** | Health, auth (401), create/get/cancel request, OTP (wrong/correct), saved signatures, complete (200/409), status checks, audit chain integrity, signature reuse, API key CRUD (create/delete/tier limit), subscription, UI request creation, document upload (PDF + invalid type), field placement (save/get/count), detect fields, fill-field endpoint, decline endpoint, resend OTP |
+| E2E browser (Chrome) | **27/27** | All 5 pages load, wizard mode selector, quick text email field, form fields, signing flow, invalid token handling, settings (API keys, webhooks), docs, getting-started |
+| Full Document E2E (Chrome) | **7/7** | Upload PDF → API creates request + links document → signer OTP screen → **PDF renders via pdfjs-dist (canvas verified)** → signing completes → **signed PDF generated with SHA-256 pre/post hashes** → certificate renders |
+
+Run MCP: `cd /opt/infra/mcp/27sign-mcp && source venv/bin/activate && python3 run_tests.py`
+Run E2E: `cd /opt/infra/e2e-tests && ./node_modules/.bin/playwright test --project=27sign`
+Run Full E2E: `cd /opt/infra/e2e-tests && ./node_modules/.bin/playwright test --project=27sign tests/27sign/full-document-signing-e2e.spec.ts`
+
+## What's tested vs what needs manual testing
+
+**Automated and verified in real Chrome browser:**
+- All authenticated pages load (dashboard, settings, docs, getting-started, new request wizard)
+- PDF file upload via form input
+- pdfjs-dist renders PDF to canvas (dimensions verified: 382x200)
+- OTP verification flow
+- Signed PDF generation via pdf-lib (pre/post document hashes verified)
+- Certificate of Completion renders with signer data
+- API key generation and tier limits enforced
+- Email delivery works (both sender domains verified via Resend API)
+- LibreOffice installed in Docker (v25.8, `/usr/bin/libreoffice`)
+
+**Needs manual testing (visual/interactive):**
+- Drag-and-drop field placement UX (FieldPlacer component — does drag/resize feel right?)
+- Signature accuracy in signed PDF (do signatures land at the correct coordinates visually?)
+- Mobile touch signature drawing
+- Stripe checkout flow (upgrade button → Stripe payment page → redirect back)
+- Word-to-PDF conversion with a real .docx (LibreOffice installed, never tested with actual Word doc)
+- Multi-signer sequential flow (signer #1 completes → signer #2 gets email → locks work)
+
+## Known issues
+
+- **detect-fields** returns 500 for some documents (PDF text extraction query sometimes fails — non-critical, suggestions feature only)
+- **Stripe checkout** untested end-to-end (products + webhook exist, need real click-through)
+- **Word conversion** untested with real .docx in Docker (LibreOffice installed, conversion code has retry logic)
 
 ---
 
