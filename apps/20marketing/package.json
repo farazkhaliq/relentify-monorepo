@@ -3,31 +3,28 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "vite --host --port 3020",
-    "build": "vite build",
-    "preview": "vite preview --port 3020",
-    "lint": "eslint ."
+    "dev": "next dev --port 3020",
+    "build": "next build",
+    "start": "next start --port 3020"
   },
   "dependencies": {
+    "@relentify/ui": "workspace:*",
     "@sentry/react": "^10.47.0",
     "clsx": "^2.1.1",
+    "framer-motion": "^11.18.2",
     "gsap": "^3.14.2",
     "lucide-react": "^0.400.0",
     "motion": "^11.18.2",
+    "next": "15.3.1",
     "posthog-js": "^1.363.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "react-router-dom": "^6.30.3",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.2.1",
-    "@types/node": "^22.19.15",
+    "@tailwindcss/postcss": "^4.2.1",
     "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^4.7.0",
     "tailwindcss": "^4.2.1",
-    "typescript": "^5.9.3",
-    "vite": "^6.4.1"
+    "typescript": "^5.9.3"
   }
 }

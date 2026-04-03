@@ -1,7 +1,7 @@
-/** @type {import('next').NextConfig} */
+const path = require('path')
 const nextConfig = {
-  transpilePackages: ["@relentify/ui", "@relentify/config", "@relentify/utils"],
-  output: 'export' // Static Export for Marketing
-};
-
-module.exports = nextConfig;
+  output: 'standalone',
+  outputFileTracingRoot: path.join(__dirname, '../../'),
+  transpilePackages: ['@relentify/ui'],
+}
+module.exports = nextConfig
