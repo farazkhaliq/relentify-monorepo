@@ -22,12 +22,12 @@ export async function POST(
 
   const { id } = await params
 
-  // Fetch document
+  // Fetch document — check it exists and belongs to a request this user created
   const { rows } = await query(
     `SELECT d.id, d.pdf_data, d.page_count
      FROM documents d
-     JOIN signing_requests sr ON sr.document_id = d.id
-     WHERE d.id = $1 AND sr.created_by_user_id = $2
+     JOIN signing_requests sr ON d.signing_request_id = sr.id
+     WHERE d.id = $1 AND (sr.created_by_user_id = $2 OR d.signing_request_id IN (SELECT id FROM signing_requests WHERE created_by_user_id = $2))
      LIMIT 1`,
     [id, user.userId]
   )

@@ -15,6 +15,7 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/api/health') ||
     pathname.startsWith('/api/webhooks/') ||
     pathname.startsWith('/api/documents/') ||
+    pathname.startsWith('/api/cron/') ||
     pathname.startsWith('/certificate/')
   ) {
     return NextResponse.next({ request: { headers: requestHeaders } })

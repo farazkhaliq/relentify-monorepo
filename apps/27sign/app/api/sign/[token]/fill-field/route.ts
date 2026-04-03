@@ -18,15 +18,25 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
     signerEmail = session.signerEmail
     signingRequestId = session.signingRequestId
   } else {
-    // Legacy: look up signer by URL token, check OTP verified
+    // Try multi-signer token first, then fall back to request-level token
     const signer = await getSignerByToken(token)
-    if (!signer) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-
-    const verified = await isOtpVerified(signer.signing_request_id)
-    if (!verified) return NextResponse.json({ error: 'Not verified' }, { status: 403 })
-
-    signerEmail = signer.email
-    signingRequestId = signer.signing_request_id
+    if (signer) {
+      const verified = await isOtpVerified(signer.signing_request_id)
+      if (!verified) return NextResponse.json({ error: 'Not verified' }, { status: 403 })
+      signerEmail = signer.email
+      signingRequestId = signer.signing_request_id
+    } else {
+      // Fallback: look up by signing_requests.token (single-signer / no explicit signer rows)
+      const { rows: srRows } = await query(
+        'SELECT id, signer_email FROM signing_requests WHERE token = $1',
+        [token]
+      )
+      if (srRows.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+      const verified = await isOtpVerified(srRows[0].id)
+      if (!verified) return NextResponse.json({ error: 'Not verified' }, { status: 403 })
+      signerEmail = srRows[0].signer_email
+      signingRequestId = srRows[0].id
+    }
   }
 
   const body = await req.json()

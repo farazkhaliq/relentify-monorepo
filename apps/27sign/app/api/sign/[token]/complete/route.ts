@@ -5,8 +5,10 @@ import { isOtpVerified } from '@/lib/otp'
 import { appendAuditLog } from '@/lib/audit'
 import { dispatchWebhook } from '@/lib/webhook'
 import { requestTimestamp } from '@/lib/tsa'
-import { areAllSignersComplete } from '@/lib/signers'
+import { areAllSignersComplete, getSignersForRequest } from '@/lib/signers'
 import { compositeSignedPdf } from '@/lib/pdf-composer'
+import { sendEmail } from '@/lib/email'
+import { allCompletedEmail } from '@/lib/email-templates'
 
 const MAX_SIGNATURE_SIZE = 500 * 1024 // 500KB
 
@@ -124,6 +126,41 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
     if (allDone) {
       try {
         await compositeSignedPdf(sr.id)
+
+        // Email the signed PDF to all parties
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://esign.relentify.com'
+        const downloadUrl = `${appUrl}/certificate/${token}`
+
+        // Get signing request details for email
+        const { rows: srFull } = await query(
+          'SELECT title, sender_email, signer_email FROM signing_requests WHERE id = $1',
+          [sr.id]
+        )
+        const srInfo = srFull[0]
+
+        const template = allCompletedEmail({
+          documentTitle: srInfo?.title || 'Signed Document',
+          downloadUrl,
+        })
+
+        // Email all signers
+        const signers = await getSignersForRequest(sr.id)
+        if (signers.length > 0) {
+          for (const s of signers) {
+            if (s.status === 'signed') sendEmail(s.email, template)
+          }
+        } else {
+          // Text-only: email the single signer
+          if (srInfo?.signer_email) sendEmail(srInfo.signer_email, template)
+        }
+
+        // Email the sender
+        if (srInfo?.sender_email) sendEmail(srInfo.sender_email, template)
+
+        await appendAuditLog({
+          signingRequestId: sr.id,
+          action: 'completion_emails_sent',
+        })
       } catch (err) {
         console.error('Failed to generate signed PDF:', err)
         await appendAuditLog({
