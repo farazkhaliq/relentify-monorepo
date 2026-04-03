@@ -31,8 +31,8 @@ export default function QuickBooksVsRelentify() {
             QuickBooks has the history, but Relentify has the future. Compare the key features to see why more businesses are making the switch.
           </p>
           <div className="flex justify-center">
-            <Link 
-              to="/accounting"
+            <Link
+              href="/accounting"
               className="px-10 py-5 rounded-full font-bold text-white shadow-cinematic hover:scale-105 transition-transform bg-[var(--theme-accent)]"
             >
               Switch Now

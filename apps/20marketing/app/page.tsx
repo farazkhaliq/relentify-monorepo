@@ -193,8 +193,8 @@ const SuiteCard = ({ title, subtitle, features, icon, link, color }: { title: st
       </div>
 
       <div className="mt-auto relative z-10">
-        <Link 
-          to={link} 
+        <Link
+          href={link}
           className="inline-flex items-center gap-2 font-bold text-sm group/btn"
         >
           Explore {title}
@@ -369,9 +369,9 @@ export default function Home() {
             { title: 'Payroll & HR', icon: <CreditCard />, link: '/payroll', color: 'var(--theme-accent)' },
             { title: 'Websites', icon: <Globe />, link: '/websites', color: 'var(--theme-accent)' }
           ].map((s, i) => (
-            <Link 
-              key={i} 
-              to={s.link}
+            <Link
+              key={i}
+              href={s.link}
               className="p-8 bg-[var(--theme-card)] rounded-cinematic border border-[var(--theme-border)] shadow-sm hover:shadow-cinematic transition-all group flex flex-col items-center text-center"
             >
               <div className="w-12 h-12 rounded-xl bg-[var(--theme-border)] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform" style={{ color: s.color }}>

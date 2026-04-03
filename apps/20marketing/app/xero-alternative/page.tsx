@@ -31,8 +31,8 @@ export default function XeroAlternative() {
             Xero has long been a staple, but for many businesses, the complexity and rising costs are becoming a burden. Relentify offers a streamlined, high-performance alternative that puts clarity and value first.
           </p>
           <div className="flex justify-center">
-            <Link 
-              to="/accounting"
+            <Link
+              href="/accounting"
               className="px-10 py-5 rounded-full font-bold text-white shadow-cinematic hover:scale-105 transition-transform bg-[var(--theme-accent)]"
             >
               Switch to Relentify Now

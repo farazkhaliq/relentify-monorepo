@@ -31,8 +31,8 @@ export default function XeroVsRelentify() {
             Choosing between Xero and Relentify comes down to whether you want a legacy ecosystem or a modern, streamlined engine. Here is how we stack up.
           </p>
           <div className="flex justify-center">
-            <Link 
-              to="/accounting"
+            <Link
+              href="/accounting"
               className="px-10 py-5 rounded-full font-bold text-white shadow-cinematic hover:scale-105 transition-transform bg-[var(--theme-accent)]"
             >
               Start Your Free Trial

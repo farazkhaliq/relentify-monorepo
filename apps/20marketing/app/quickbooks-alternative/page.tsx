@@ -31,8 +31,8 @@ export default function QuickBooksAlternative() {
             QuickBooks is powerful, but it can often feel cluttered and legacy-heavy. Relentify provides a fresh start with a focus on speed, simplicity, and the features that actually move the needle for your business.
           </p>
           <div className="flex justify-center">
-            <Link 
-              to="/accounting"
+            <Link
+              href="/accounting"
               className="px-10 py-5 rounded-full font-bold text-white shadow-cinematic hover:scale-105 transition-transform bg-[var(--theme-accent)]"
             >
               Experience the Relentify Difference

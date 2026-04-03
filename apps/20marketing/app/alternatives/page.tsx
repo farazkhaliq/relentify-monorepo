@@ -30,8 +30,8 @@ export default function AlternativesHub() {
             Legacy accounting software was built for a different era. Relentify is the modern alternative designed for the speed of today’s business. Explore how we compare to the market leaders.
           </p>
           <div className="flex justify-center">
-            <Link 
-              to="/accounting"
+            <Link
+              href="/accounting"
               className="px-10 py-5 rounded-full font-bold text-white shadow-cinematic hover:scale-105 transition-transform bg-[var(--theme-accent)]"
             >
               Start Your Free Trial
@@ -41,9 +41,9 @@ export default function AlternativesHub() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {links.map((link, i) => (
-            <Link 
+            <Link
               key={i}
-              to={link.path}
+              href={link.path}
               className="p-12 bg-[var(--theme-card)] rounded-cinematic border border-[var(--theme-border)] shadow-sm hover:shadow-cinematic transition-all group flex flex-col justify-between"
             >
               <div>
