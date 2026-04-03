@@ -13,16 +13,17 @@ const steps = [
   {
     icon: Code2,
     title: '2. Create a Signing Request',
-    description: 'Call our API to create a signing request. You\'ll get a signing URL to send to your signer.',
-    code: `curl -X POST https://esign.relentify.com/api/v1/requests \\
+    description: 'Upload a PDF with signature fields in one call. Use pageNumber: -1 for "last page". For text-only confirmations, omit the file.',
+    code: `# Document signing (one call)
+curl -X POST https://esign.relentify.com/api/v1/requests \\
   -H "Authorization: Bearer rs_live_YOUR_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "signerEmail": "tenant@example.com",
-    "title": "Document Title",
-    "bodyText": "I acknowledge this document.",
-    "callbackUrl": "https://your-app.com/webhooks/signed"
-  }'`,
+  -F "file=@contract.pdf" \\
+  -F 'title=Tenancy Agreement — 14 Oak Lane' \\
+  -F 'bodyText=I acknowledge this agreement.' \\
+  -F 'signers=[{"email":"tenant@example.com","name":"Jane"}]' \\
+  -F 'fields=[{"signerEmail":"tenant@example.com","fieldType":"signature","pageNumber":-1,"xPercent":55,"yPercent":82,"widthPercent":30,"heightPercent":8}]' \\
+  -F "callbackUrl=https://your-app.com/webhooks/signed" \\
+  -F "callbackSecret=whsec_your_secret"`,
   },
   {
     icon: Send,
