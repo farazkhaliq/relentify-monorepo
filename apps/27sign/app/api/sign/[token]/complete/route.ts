@@ -122,8 +122,17 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
     [sr.id]
   )
   if (srDocRows.length > 0 && srDocRows[0].document_id) {
+    // Check if all signers are done. For requests without explicit signer rows
+    // (single-signer via API), the request being signed IS completion.
     const allDone = await areAllSignersComplete(sr.id)
-    if (allDone) {
+    const { rows: signerCountRows } = await query(
+      'SELECT COUNT(*) as n FROM signing_request_signers WHERE signing_request_id = $1',
+      [sr.id]
+    )
+    const hasSignerRows = parseInt(signerCountRows[0]?.n || '0') > 0
+    const shouldGeneratePdf = allDone || !hasSignerRows // No signer rows = single-signer, always generate
+
+    if (shouldGeneratePdf) {
       try {
         await compositeSignedPdf(sr.id)
 

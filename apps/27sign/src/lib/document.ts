@@ -210,6 +210,9 @@ export async function uploadDocument(
     ]
   )
 
+  // Link document back to signing request
+  await query('UPDATE signing_requests SET document_id = $1 WHERE id = $2', [rows[0].id, signingRequestId])
+
   return {
     documentId: rows[0].id as string,
     pageCount,
