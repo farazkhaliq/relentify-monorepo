@@ -45,7 +45,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
   let doc: any = null
   if (req.document_id) {
     const { rows: docRows } = await query(
-      'SELECT id, filename, page_count FROM documents WHERE id = $1',
+      'SELECT id, original_filename, page_count FROM documents WHERE id = $1',
       [req.document_id]
     )
     if (docRows.length > 0) doc = docRows[0]
@@ -130,7 +130,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
             <CardContent className="p-6 space-y-4">
               <div>
                 <p className="text-[var(--theme-text-dim)] text-xs font-mono uppercase tracking-widest mb-1">Filename</p>
-                <p className="font-bold text-[var(--theme-text)] truncate">{doc.filename}</p>
+                <p className="font-bold text-[var(--theme-text)] truncate">{doc.original_filename}</p>
               </div>
               {doc.page_count && (
                 <div>

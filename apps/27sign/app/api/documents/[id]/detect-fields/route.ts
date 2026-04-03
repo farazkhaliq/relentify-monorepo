@@ -24,7 +24,7 @@ export async function POST(
 
   // Fetch document
   const { rows } = await query(
-    `SELECT d.id, d.file_data, d.page_count
+    `SELECT d.id, d.pdf_data, d.page_count
      FROM documents d
      JOIN signing_requests sr ON sr.document_id = d.id
      WHERE d.id = $1 AND sr.created_by_user_id = $2

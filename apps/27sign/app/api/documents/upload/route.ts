@@ -17,8 +17,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing signingRequestId' }, { status: 400 })
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer())
-  const result = await uploadDocument(buffer, file.name, file.type, signingRequestId)
-
-  return NextResponse.json(result, { status: 201 })
+  try {
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const result = await uploadDocument(buffer, file.name, file.type, signingRequestId)
+    return NextResponse.json(result, { status: 201 })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Upload failed'
+    return NextResponse.json({ error: message }, { status: 400 })
+  }
 }

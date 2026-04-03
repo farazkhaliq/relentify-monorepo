@@ -33,8 +33,8 @@ export async function POST(req: NextRequest) {
   const { rows } = await query(
     `INSERT INTO signing_requests
      (token, app_id, signer_email, signer_name, title, body_text, body_text_hash,
-      expires_at, created_by_user_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      expires_at, created_by_user_id, sender_email)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING id, token`,
     [
       token, 'esign-ui',
@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       title, bodyText, bodyTextHash,
       expiresAt.toISOString(),
       user.userId,
+      user.email,
     ]
   )
 

@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   const {
     signerEmail, signerName, title, bodyText,
     callbackUrl, callbackSecret, metadata,
-    expiresInDays = 30, createdByUserId, createdByEntityId,
+    expiresInDays = 30, createdByUserId, createdByEntityId, senderEmail,
   } = body
 
   if (!signerEmail || !title || !bodyText) {
@@ -44,8 +44,8 @@ export async function POST(req: NextRequest) {
   const { rows } = await query(
     `INSERT INTO signing_requests
      (token, app_id, api_key_id, signer_email, signer_name, title, body_text, body_text_hash,
-      metadata, callback_url, callback_secret, expires_at, created_by_user_id, created_by_entity_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      metadata, callback_url, callback_secret, expires_at, created_by_user_id, created_by_entity_id, sender_email)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
      RETURNING id, token`,
     [
       token, auth.appId, auth.keyId,
@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
       metadata ? JSON.stringify(metadata) : null,
       callbackUrl || null, callbackSecret || null,
       expiresAt.toISOString(),
-      createdByUserId || null, createdByEntityId || null,
+      createdByUserId || null, createdByEntityId || null, senderEmail || null,
     ]
   )
 

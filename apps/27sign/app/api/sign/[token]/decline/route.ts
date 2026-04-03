@@ -3,6 +3,9 @@ import { verifySignerSession } from '@/lib/signer-session'
 import { isOtpVerified } from '@/lib/otp'
 import { getSignerByToken, markSignerDeclined } from '@/lib/signers'
 import { appendAuditLog } from '@/lib/audit'
+import { query } from '@/lib/db'
+import { sendEmail } from '@/lib/email'
+import { signerDeclinedEmail } from '@/lib/email-templates'
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
@@ -40,6 +43,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
     userAgent: req.headers.get('user-agent') || null,
     details: reason ? { reason } : null,
   })
+
+  // Notify the sender
+  const { rows: srRows } = await query(
+    'SELECT sender_email, title, signer_email FROM signing_requests WHERE id = $1',
+    [signingRequestId]
+  )
+  if (srRows.length > 0 && srRows[0].sender_email) {
+    const sr = srRows[0]
+    sendEmail(sr.sender_email, signerDeclinedEmail({
+      signerName: sr.signer_email,
+      documentTitle: sr.title,
+      reason: reason || undefined,
+    }))
+  }
 
   return NextResponse.json({ success: true })
 }
