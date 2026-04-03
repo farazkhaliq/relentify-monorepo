@@ -132,6 +132,8 @@ Markdown-based blog with date-gated static generation.
 - 1,000–1,500 words per article
 - Link to relevant product page where natural
 
+**Full SEO content plan:** `/root/.claude/plans/zany-doodling-gem.md`
+
 ---
 
 ## Key Files
