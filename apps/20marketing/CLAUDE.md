@@ -1,19 +1,18 @@
-# 20marketing — Marketing Website
+# 20marketing — Marketing Website (relentify.com)
 
-**Container**: `relentify-com` | **Port**: 3020 → 3000 (nginx) | **Runtime**: Vite + React 19 | **Database**: None
+**Container**: `20marketing` | **Port**: 3020 → 3000 | **Runtime**: Next.js 15 App Router | **Database**: None
 
-Static SPA marketing site at `relentify.com`. No backend API — all content is client-side rendered via React Router and served through nginx.
+Marketing site at `relentify.com`. Migrated from Vite to Next.js 15 on 2026-04-03.
 
 ---
 
 ## Tech Stack
 
-- **Framework**: Vite 6.4 + React 19 + React Router 6.30
+- **Framework**: Next.js 15.3 (App Router), React 19, TypeScript
 - **Styling**: Tailwind CSS 4.2 with CSS variables (theme system)
-- **Animations**: GSAP 3.14, Motion 11.18
+- **Animations**: GSAP 3.14, Framer Motion 11.18
 - **Icons**: Lucide React 0.400
-- **Server**: Nginx (static SPA with `try_files` fallback)
-- **Build**: Multi-stage Docker (turbo prune → pnpm → vite build → nginx)
+- **Build**: Multi-stage Docker (turbo prune → pnpm → Next.js standalone)
 
 ---
 
@@ -33,32 +32,28 @@ Health check: `wget -q --spider http://127.0.0.1:3000/` every 30s.
 
 ## All Routes
 
-| Route | Component | Purpose |
-|-------|-----------|---------|
-| `/` | `Home` | Hero + LiquidityMonitor + feature overview |
-| `/accounting` | `Accounting` | Pricing tiers + feature comparison |
-| `/inventory` | `Inventory` | Property Inventories product page |
-| `/crm` | `CRM` | CRM product page |
-| `/reminders` | `Reminders` | Reminders product page |
-| `/timesheets` | `Timesheets` | Timesheets product page |
-| `/esign` | `ESign` | E-Sign product page |
-| `/websites` | `Websites` | Websites product page |
-| `/payroll` | `Payroll` | Payroll & HR product page |
-| `/blog` | `Blog` | Blog post listing |
-| `/privacy` | `Privacy` | Privacy policy |
-| `/alternatives` | `AlternativesHub` | Competitor comparison hub |
-| `/xero-alternative` | `XeroAlternative` | Xero competitor positioning |
-| `/xero-v-relentify` | `XeroVsRelentify` | Xero vs Relentify comparison |
-| `/quickbooks-alternative` | `QuickBooksAlternative` | QuickBooks competitor positioning |
-| `/quickbooks-v-relentify` | `QuickBooksVsRelentify` | QuickBooks vs Relentify comparison |
+| Route | Type | Purpose |
+|-------|------|---------|
+| `/` | Page | Hero + LiquidityMonitor + feature overview |
+| `/accounting` | Page | Pricing tiers + feature comparison |
+| `/inventory` | Page | Property Inventories product page |
+| `/crm` | Page | CRM product page |
+| `/reminders` | Page | Reminders product page |
+| `/timesheets` | Page | Timesheets product page |
+| `/esign` | Page | E-Sign product page |
+| `/websites` | Page | Websites product page |
+| `/payroll` | Page | Payroll & HR product page |
+| `/blog` | Server → Client | Blog index (server reads markdown, client renders with framer-motion) |
+| `/blog/[slug]` | Server | Individual blog post with SEO |
+| `/privacy` | Page | Privacy policy |
+| `/alternatives` | Page | Competitor comparison hub |
+| `/xero-alternative` | Page | Xero competitor positioning |
+| `/xero-v-relentify` | Page | Xero vs Relentify comparison |
+| `/quickbooks-alternative` | Page | QuickBooks competitor positioning |
+| `/quickbooks-v-relentify` | Page | QuickBooks vs Relentify comparison |
+| `/sitemap.xml` | Generated | Dynamic sitemap (all pages + blog posts) |
 
-**Total**: 16 routes
-
----
-
-## API Routes
-
-None. This is a static frontend-only app.
+**Total**: 17 routes + sitemap
 
 ---
 
@@ -107,41 +102,82 @@ CSS variables injected at runtime: `--theme-primary`, `--theme-accent`, `--theme
 
 ---
 
+## Blog System (Added 2026-04-03)
+
+Markdown-based blog with date-gated static generation.
+
+| Item | Detail |
+|------|--------|
+| Blog lib | `app/lib/blog.ts` — getAllPosts, getPostBySlug, getAllSlugs |
+| Content dir | `content/blog/*.md` |
+| Image dir | `public/blog/*.jpg` |
+| Parsing | gray-matter + remark + remark-html + reading-time |
+| Blog index | `app/blog/page.tsx` (server) → `app/blog/BlogContent.tsx` (client, framer-motion) |
+| Post route | `app/blog/[slug]/page.tsx` — **Next.js 15 async params** (`const { slug } = await params`) |
+| Sitemap | `app/sitemap.ts` — all product pages + blog posts |
+| SEO | Per-post OpenGraph, Twitter Cards, JSON-LD BlogPosting, canonical URLs |
+| Date-gating | `publishDate <= today` at build time |
+| Publishing | Daily midnight cron rebuild |
+| Current posts | 1 sample |
+| Target | 104 articles (2/week for 52 weeks) — SEO content plan in progress |
+
+**Frontmatter fields:** title, slug, publishDate, author, category, excerpt, image, imageAlt, tags
+
+**Categories:** Small Business Guides, Accounting & Finance, Product Insights, Industry Comparisons, Property & Lettings Tech, Productivity & Growth
+
+**Writing rules:**
+- Subtly position Relentify as the modern alternative (not salesy)
+- UK-focused but globally applicable
+- Use `var(--theme-*)` CSS variables — no hardcoded colours
+- 1,000–1,500 words per article
+- Link to relevant product page where natural
+
+---
+
 ## Key Files
 
 | File | Purpose |
 |------|---------|
-| `src/app/App.tsx` | Router + context providers |
-| `src/app/main.tsx` | React entry point |
-| `src/app/themes.ts` | Theme presets (A/B/C/D) |
-| `src/app/lib/utils.ts` | `cn()`, `formatPrice()`, `getCurrencySymbol()`, `getRegionMultiplier()` |
-| `src/app/components/Navbar.tsx` | Marketing navbar with Apps dropdown + region switcher |
-| `src/app/components/Footer.tsx` | Footer with links |
-| `src/app/components/ThemeSwitcher.tsx` | Dark mode toggle |
-| `src/app/components/CookieBanner.tsx` | Cookie consent |
-| `src/styles/globals.css` | Tailwind, fonts, theme variables, utilities |
-| `index.html` | Vite entry (GA + Chatwoot scripts) |
-| `vite.config.ts` | React + Tailwind plugins |
-| `nginx.conf` | SPA routing + gzip |
-| `Dockerfile` | Multi-stage build (turbo prune → pnpm → nginx) |
-| `docker-compose.yml` | Container config (0.5 CPU, 256MB RAM) |
+| `app/layout.tsx` | Root layout — ThemeProvider, RegionProvider, shared TopBar, Footer |
+| `app/globals.css` | Tailwind, fonts, theme variables, utilities |
+| `app/lib/themes.ts` | Theme presets (A/B/C/D) |
+| `app/lib/blog.ts` | Blog markdown parsing utilities |
+| `app/blog/page.tsx` | Blog index (server component) |
+| `app/blog/BlogContent.tsx` | Blog index client component (framer-motion) |
+| `app/blog/[slug]/page.tsx` | Individual blog post (server, async params) |
+| `app/sitemap.ts` | Dynamic sitemap generation |
+| `app/components/RegionSwitcher.tsx` | Region dropdown (passed to TopBar navLinks) |
+| `app/components/Footer.tsx` | Footer with product + legal links |
+| `app/components/Analytics.tsx` | GA + PostHog (combined) |
+| `app/components/ChatWidget.tsx` | Chatwoot live chat widget |
+| `app/components/CookieBanner.tsx` | Cookie consent |
+| `next.config.js` | standalone output, transpilePackages |
+| `Dockerfile` | Multi-stage build (turbo prune → pnpm → Next.js standalone) |
+| `docker-compose.yml` | Container config (0.5 CPU, 384MB RAM) |
 
 ---
 
 ## External Services
 
-- **Google Analytics**: GA-RGV6F6BLSP (in `index.html`)
-- **Chatwoot**: Live chat at chat.relentify.com (website token: ca9Jcc8BiJQD68gdgCyYPqKA). AI chatbot responds via n8n workflow, escalates to human agents.
+- **Google Analytics**: GA-RGV6F6BLSP (via `Analytics.tsx`)
+- **Chatwoot**: Live chat at chat.relentify.com (website token: ca9Jcc8BiJQD68gdgCyYPqKA). AI chatbot (Aria) responds via n8n workflow, escalates to human agents (Jon, Sarah).
+- **PostHog**: Session recording + pageviews (via `Analytics.tsx`)
 
 ---
 
 ## Components
 
-### Marketing-Specific (stay local, not in @relentify/ui)
-- `Navbar.tsx` — Apps dropdown, region switcher, Chatwoot toggle
+### From @relentify/ui (shared)
+- `TopBar` — Floating pill navbar with dark mode toggle (replaces old local Navbar)
+- `TopBarDropdown` — Apps dropdown in TopBar
+- `Logo` — SVG R icon + "RELENTIFY" text
+- `ThemeProvider` + `RegionProvider` — Theme/region context
+
+### Marketing-Specific (local, in app/components/)
+- `RegionSwitcher.tsx` — Region dropdown with flag icons (passed to TopBar)
 - `Footer.tsx` — Links + copyright
-- `Logo.tsx` — SVG brand icon
-- `ThemeSwitcher.tsx` — Dark mode button
+- `Analytics.tsx` — GA + PostHog combined
+- `ChatWidget.tsx` — Chatwoot script loader
 - `CookieBanner.tsx` — GDPR banner
 
 ### Page Components
@@ -182,9 +218,11 @@ All in `src/app/pages/`:
 | Home page + hero | Done |
 | Accounting pricing page | Done |
 | Product pages (7) | Done |
-| Blog page | Done |
+| Blog infrastructure (markdown) | Done (2026-04-03) |
+| Blog content (104 articles) | In progress — titles/keywords phase |
 | Privacy policy | Done |
 | Competitor comparisons (4) | Done |
+| Sitemap (all pages + blog) | Done (2026-04-03) |
 | Theme system (4 presets) | Done |
 | Dark mode | Done |
 | Region system (6 regions) | Done |
