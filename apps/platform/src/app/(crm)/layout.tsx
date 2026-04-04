@@ -9,6 +9,7 @@ import type { TopBarDropdownItem } from '@relentify/ui'
 import { getAuthUser } from '@/lib/auth'
 import { getProduct, PRODUCT_NAMES } from '@/lib/product-context'
 import { canAccess } from '@/lib/feature-flags'
+import { SharedAuthProvider } from '@/hooks/use-shared-auth'
 
 export default async function CrmLayout({ children }: { children: React.ReactNode }) {
   const [user, product] = await Promise.all([getAuthUser(), getProduct()])
@@ -84,7 +85,7 @@ export default async function CrmLayout({ children }: { children: React.ReactNod
       }
     >
       <div className="p-4 sm:p-6">
-        {children}
+        <SharedAuthProvider>{children}</SharedAuthProvider>
       </div>
     </NavShell>
   )

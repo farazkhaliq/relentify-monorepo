@@ -27,7 +27,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   let sessionId = ticket.session_id
   if (!sessionId) {
     const { createSession } = await import('@/lib/services/chat/session.service')
-    const session = await createSession(user.activeEntityId, ticket.visitor_id || user.userId, {
+    let visitorId = ticket.visitor_id
+    if (!visitorId) {
+      const { getOrCreateVisitor } = await import('@/lib/services/chat/visitor.service')
+      const visitor = await getOrCreateVisitor(user.activeEntityId, `agent-${user.userId}`, {
+        name: user.fullName || 'Agent',
+        email: user.email,
+      })
+      visitorId = visitor.id
+      const pool = (await import('@/lib/pool')).default
+      await pool.query('UPDATE chat_tickets SET visitor_id = $1 WHERE id = $2', [visitorId, id])
+    }
+    const session = await createSession(user.activeEntityId, visitorId, {
       subject: ticket.subject,
       department: ticket.department || undefined,
     })

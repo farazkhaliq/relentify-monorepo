@@ -10,12 +10,7 @@ export async function GET() {
     `SELECT u.id, u.full_name, u.email
      FROM users u
      JOIN entities e ON e.user_id = u.id
-     WHERE e.id = $1
-     UNION
-     SELECT u.id, u.full_name, u.email
-     FROM users u
-     JOIN app_access aa ON aa.user_id = u.id
-     WHERE aa.entity_id = $1`,
+     WHERE e.id = $1`,
     [user.activeEntityId]
   )
 
