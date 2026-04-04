@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken, getRedirectUrl, AUTH_COOKIE_NAME } from '@relentify/auth'
 
-type Product = 'chat' | 'connect' | 'crm'
+type Product = 'chat' | 'connect' | 'crm' | 'reminders'
 
 const HOST_MAP: Record<string, Product> = {
   'chat.relentify.com': 'chat',
   'connect.relentify.com': 'connect',
   'crm.relentify.com': 'crm',
+  'reminders.relentify.com': 'reminders',
 }
 
 // Routes that never need auth
@@ -30,7 +31,11 @@ const PRODUCT_ROUTES: Record<string, Product[]> = {
   '/reports': ['crm'],
   '/audit-log': ['crm'],
   '/dashboard': ['crm'],
+  '/my-tasks': ['reminders', 'crm'],
   '/communications': ['crm'],
+  '/momentum': ['reminders', 'crm'],
+  '/activity': ['reminders', 'crm'],
+  '/reminders-settings': ['reminders'],
 }
 
 function getProduct(host: string): Product {

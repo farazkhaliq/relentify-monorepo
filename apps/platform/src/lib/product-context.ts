@@ -1,11 +1,12 @@
 import { headers, cookies } from 'next/headers'
 
-export type Product = 'chat' | 'connect' | 'crm'
+export type Product = 'chat' | 'connect' | 'crm' | 'reminders'
 
 const HOST_TO_PRODUCT: Record<string, Product> = {
   'chat.relentify.com': 'chat',
   'connect.relentify.com': 'connect',
   'crm.relentify.com': 'crm',
+  'reminders.relentify.com': 'reminders',
   // Dev fallbacks
   'localhost:3040': 'crm',
 }
@@ -16,7 +17,7 @@ const HOST_TO_PRODUCT: Record<string, Product> = {
 export async function getProduct(): Promise<Product> {
   const h = await headers()
   const explicit = h.get('x-product')
-  if (explicit && ['chat', 'connect', 'crm'].includes(explicit)) return explicit as Product
+  if (explicit && ['chat', 'connect', 'crm', 'reminders'].includes(explicit)) return explicit as Product
 
   const host = h.get('x-forwarded-host') || h.get('host') || ''
   for (const [domain, product] of Object.entries(HOST_TO_PRODUCT)) {
@@ -33,6 +34,7 @@ export const PRODUCT_NAMES: Record<Product, string> = {
   chat: 'Relentify Chat',
   connect: 'Relentify Connect',
   crm: 'Relentify CRM',
+  reminders: 'Relentify Reminders',
 }
 
 /**
@@ -42,4 +44,5 @@ export const PRODUCT_URLS: Record<Product, string> = {
   chat: 'https://chat.relentify.com',
   connect: 'https://connect.relentify.com',
   crm: 'https://crm.relentify.com',
+  reminders: 'https://reminders.relentify.com',
 }

@@ -16,8 +16,14 @@ const CONNECT_FEATURES = [
   'qa_ai', 'connect_billing',
 ]
 
+const REMINDERS_FEATURES = [
+  'reminders_tasks', 'reminders_momentum', 'reminders_activity',
+  'reminders_settings', 'reminders_workspaces', 'reminders_gamification',
+]
+
 const CRM_FEATURES = [
   ...CONNECT_FEATURES,
+  ...REMINDERS_FEATURES,
   'contacts', 'properties', 'tenancies', 'maintenance',
   'documents', 'transactions', 'tasks', 'reports', 'audit_log',
   'dashboard', 'communications_archive', 'crm_portal',
@@ -27,6 +33,7 @@ const PRODUCT_FEATURES: Record<Product, string[]> = {
   chat: CHAT_FEATURES,
   connect: CONNECT_FEATURES,
   crm: CRM_FEATURES,
+  reminders: REMINDERS_FEATURES,
 }
 
 export function canAccess(product: Product, feature: string): boolean {

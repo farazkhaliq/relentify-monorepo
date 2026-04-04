@@ -14,7 +14,7 @@ export function TasksOverview() {
   React.useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const res = await fetch('/api/tasks');
+        const res = await fetch('/api/reminders/tasks');
         if (res.ok) {
           const data = await res.json();
           setAllTasks(data);

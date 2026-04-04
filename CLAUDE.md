@@ -13,7 +13,7 @@ All UI components, theming, and navigation must come from `@relentify/ui`.
 | 21auth | 21auth | 3021 | Auth pages only, no main nav |
 | 22accounting | 22accounting | 3022 | TopBar layout (no sidebar) |
 | 23inventory | 23inventory | 3023 | TopBar layout |
-| 24reminders | 24reminders | 3024 | TopBar layout |
+| 24reminders | ~~24reminders~~ → platform | 3040 | **Retired** — migrated to platform (2026-04-04) |
 | 25crm | ~~25crm~~ → platform | 3040 | **Retired** — migrated to platform (2026-04-04) |
 | 26help | 26help | 3026 | Static export (output: 'export'), TopBar layout, Pagefind search, help.relentify.com |
 | 27sign | 27sign | 3027 | Digital signature service, Preset D theme, sign.relentify.com |
