@@ -117,13 +117,15 @@ Markdown-based blog with date-gated static generation.
 | Sitemap | `app/sitemap.ts` — all product pages + blog posts |
 | SEO | Per-post OpenGraph, Twitter Cards, JSON-LD BlogPosting, canonical URLs |
 | Date-gating | `publishDate <= today` at build time |
-| Publishing | Daily midnight cron rebuild |
-| Current posts | 1 sample |
-| Target | 104 articles (2/week for 52 weeks) — SEO content plan in progress |
+| Publishing | Daily 5:30am cron rebuild (`30 5 * * *`) |
+| Current posts | 396 (1 original + 395 new SEO articles) |
+| Schedule | Daily, 5 Apr 2026 to 4 May 2027 (13 months) |
+| Region gating | `region` field in frontmatter — "uk", "usa", or "all" (default). Blog index filters by visitor region. Badges on cards/posts. |
+| Status | **DONE** — all 395 articles + images written and committed |
 
 **Frontmatter fields:** title, slug, publishDate, author, category, excerpt, image, imageAlt, tags
 
-**Categories:** Small Business Guides, Accounting & Finance, Product Insights, Industry Comparisons, Property & Lettings Tech, Productivity & Growth
+**Categories:** Accounting & Finance (75), CRM & Estate Agents (50), Property Inventories (38), Timesheets & Workforce (38), HR & Payroll (55), Chat (37), Connect (37), Small Business & Growth (20), Industry Comparisons (45)
 
 **Writing rules:**
 - Subtly position Relentify as the modern alternative (not salesy)
