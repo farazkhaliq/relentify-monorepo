@@ -48,6 +48,11 @@ export default async function CrmLayout({ children }: { children: React.ReactNod
     { label: 'Reports', href: '/reports' },
   ]
 
+  const toolsItems: TopBarDropdownItem[] = [
+    { label: 'E-sign', href: '/esign' },
+    { label: 'Inventory', href: '/inventory' },
+  ]
+
   return (
     <NavShell
       topbar={
@@ -63,6 +68,7 @@ export default async function CrmLayout({ children }: { children: React.ReactNod
               <TopBarDropdown label="Channels" items={connectItems} />
               <TopBarDropdown label="Management" items={crmItems} />
               <TopBarDropdown label="Operations" items={crmOpsItems} />
+              <TopBarDropdown label="Tools" items={toolsItems} />
               <TopBarLink href="/analytics">Analytics</TopBarLink>
               <TopBarLink href="/settings" aria-label="Settings">
                 <Settings size={14} />

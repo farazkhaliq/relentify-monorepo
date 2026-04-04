@@ -1,0 +1,185 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createHash } from 'crypto'
+import { query } from '@/lib/services/esign/db'
+import { isOtpVerified } from '@/lib/services/esign/otp'
+import { appendAuditLog } from '@/lib/services/esign/audit'
+import { dispatchWebhook } from '@/lib/services/esign/webhook'
+import { requestTimestamp } from '@/lib/services/esign/tsa'
+import { areAllSignersComplete, getSignersForRequest } from '@/lib/services/esign/signers'
+import { compositeSignedPdf } from '@/lib/services/esign/pdf-composer'
+import { sendEmail } from '@/lib/services/esign/email'
+import { allCompletedEmail } from '@/lib/services/esign/email-templates'
+
+const MAX_SIGNATURE_SIZE = 500 * 1024 // 500KB
+
+export async function POST(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params
+  const body = await req.json()
+  const { signatureData, source = 'draw', saveForFuture = false } = body
+
+  if (!signatureData || typeof signatureData !== 'string') {
+    return NextResponse.json({ error: 'signatureData is required' }, { status: 400 })
+  }
+
+  if (signatureData.length > MAX_SIGNATURE_SIZE) {
+    return NextResponse.json({ error: 'Signature too large (max 500KB)' }, { status: 400 })
+  }
+
+  if (!signatureData.startsWith('data:image/png;base64,') && !signatureData.startsWith('data:image/jpeg;base64,')) {
+    return NextResponse.json({ error: 'Invalid format — must be base64 PNG or JPEG' }, { status: 400 })
+  }
+
+  // Fetch signing request
+  const { rows: srRows } = await query(
+    'SELECT id, signer_email, status, body_text, body_text_hash, callback_url, callback_secret, metadata FROM esign_signing_requests WHERE token = $1',
+    [token]
+  )
+  if (srRows.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const sr = srRows[0]
+  if (sr.status === 'signed') return NextResponse.json({ error: 'Already signed' }, { status: 409 })
+  if (sr.status !== 'pending') return NextResponse.json({ error: 'Cannot sign — status is ' + sr.status }, { status: 409 })
+
+  // Verify OTP was completed
+  const verified = await isOtpVerified(sr.id)
+  if (!verified) return NextResponse.json({ error: 'Email verification required' }, { status: 403 })
+
+  // Verify document integrity
+  const currentHash = createHash('sha256').update(sr.body_text).digest('hex')
+  if (currentHash !== sr.body_text_hash) {
+    return NextResponse.json({ error: 'Document integrity check failed' }, { status: 409 })
+  }
+
+  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || null
+  const userAgent = req.headers.get('user-agent') || null
+  const email = sr.signer_email.toLowerCase().trim()
+
+  // Save or reuse signature
+  let signatureId: string
+
+  if (saveForFuture) {
+    // Upsert: deactivate old signatures for this email, insert new
+    await query('UPDATE esign_signatures SET is_active = FALSE WHERE email = $1', [email])
+    const { rows: sigRows } = await query(
+      'INSERT INTO esign_signatures (email, image_data, source) VALUES ($1, $2, $3) RETURNING id',
+      [email, signatureData, source]
+    )
+    signatureId = sigRows[0].id
+  } else {
+    // Store signature without email linkage (one-time)
+    const { rows: sigRows } = await query(
+      'INSERT INTO esign_signatures (email, image_data, source, is_active) VALUES ($1, $2, $3, FALSE) RETURNING id',
+      [email, signatureData, source]
+    )
+    signatureId = sigRows[0].id
+  }
+
+  // Update signing request
+  await query(
+    `UPDATE esign_signing_requests
+     SET status = 'signed', signed_at = NOW(), signer_ip = $2, signer_user_agent = $3, signature_id = $4, updated_at = NOW()
+     WHERE id = $1`,
+    [sr.id, ip, userAgent, signatureId]
+  )
+
+  // Audit log
+  await appendAuditLog({
+    signingRequestId: sr.id,
+    action: 'signed',
+    ip,
+    userAgent,
+    details: { source, savedForFuture: saveForFuture },
+  })
+
+  // Request RFC 3161 timestamp
+  const tsaData = JSON.stringify({ signatureId, signedAt: new Date().toISOString(), bodyTextHash: sr.body_text_hash })
+  const tsaToken = await requestTimestamp(tsaData)
+  if (tsaToken) {
+    await appendAuditLog({
+      signingRequestId: sr.id,
+      action: 'tsa_timestamped',
+      details: { tsaResponse: tsaToken.substring(0, 200) + '...' }, // Truncate for storage
+    })
+  }
+
+  // Dispatch webhook
+  if (sr.callback_url && sr.callback_secret) {
+    // Fire and forget — don't block the response
+    dispatchWebhook(sr.callback_url, sr.callback_secret, {
+      event: 'signing.completed',
+      signingRequestId: sr.id,
+      signerEmail: sr.signer_email,
+      signedAt: new Date().toISOString(),
+      signatureImageBase64: signatureData,
+      metadata: sr.metadata,
+    })
+  }
+
+  // Check if this signing request has a document (PDF signing flow)
+  // and if all signers are now complete — generate the signed PDF
+  const { rows: srDocRows } = await query(
+    'SELECT document_id FROM esign_signing_requests WHERE id = $1',
+    [sr.id]
+  )
+  if (srDocRows.length > 0 && srDocRows[0].document_id) {
+    // Check if all signers are done. For requests without explicit signer rows
+    // (single-signer via API), the request being signed IS completion.
+    const allDone = await areAllSignersComplete(sr.id)
+    const { rows: signerCountRows } = await query(
+      'SELECT COUNT(*) as n FROM esign_signing_request_signers WHERE signing_request_id = $1',
+      [sr.id]
+    )
+    const hasSignerRows = parseInt(signerCountRows[0]?.n || '0') > 0
+    const shouldGeneratePdf = allDone || !hasSignerRows // No signer rows = single-signer, always generate
+
+    if (shouldGeneratePdf) {
+      try {
+        await compositeSignedPdf(sr.id)
+
+        // Email the signed PDF to all parties
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://esign.relentify.com'
+        const downloadUrl = `${appUrl}/certificate/${token}`
+
+        // Get signing request details for email
+        const { rows: srFull } = await query(
+          'SELECT title, sender_email, signer_email FROM esign_signing_requests WHERE id = $1',
+          [sr.id]
+        )
+        const srInfo = srFull[0]
+
+        const template = allCompletedEmail({
+          documentTitle: srInfo?.title || 'Signed Document',
+          downloadUrl,
+        })
+
+        // Email all signers
+        const signers = await getSignersForRequest(sr.id)
+        if (signers.length > 0) {
+          for (const s of signers) {
+            if (s.status === 'signed') sendEmail(s.email, template)
+          }
+        } else {
+          // Text-only: email the single signer
+          if (srInfo?.signer_email) sendEmail(srInfo.signer_email, template)
+        }
+
+        // Email the sender
+        if (srInfo?.sender_email) sendEmail(srInfo.sender_email, template)
+
+        await appendAuditLog({
+          signingRequestId: sr.id,
+          action: 'completion_emails_sent',
+        })
+      } catch (err) {
+        console.error('Failed to generate signed PDF:', err)
+        await appendAuditLog({
+          signingRequestId: sr.id,
+          action: 'pdf_generation_failed',
+          details: { error: err instanceof Error ? err.message : String(err) },
+        })
+      }
+    }
+  }
+
+  return NextResponse.json({ success: true })
+}

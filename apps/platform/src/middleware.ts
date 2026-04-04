@@ -1,17 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken, getRedirectUrl, AUTH_COOKIE_NAME } from '@relentify/auth'
 
-type Product = 'chat' | 'connect' | 'crm' | 'reminders'
+type Product = 'chat' | 'connect' | 'crm' | 'reminders' | 'esign' | 'inventory'
 
 const HOST_MAP: Record<string, Product> = {
   'chat.relentify.com': 'chat',
   'connect.relentify.com': 'connect',
   'crm.relentify.com': 'crm',
   'reminders.relentify.com': 'reminders',
+  'esign.relentify.com': 'esign',
+  'inventory.relentify.com': 'inventory',
 }
 
 // Routes that never need auth
-const PUBLIC_PATHS = ['/_next', '/api/health', '/api/widget', '/api/webhooks', '/widget.js', '/portal']
+const PUBLIC_PATHS = ['/_next', '/api/health', '/api/widget', '/api/webhooks', '/widget.js', '/portal', '/s/', '/certificate/', '/confirm/']
 // Routes that handle their own auth (API key, cron secret, etc.)
 const API_PATHS = ['/api']
 
@@ -36,6 +38,8 @@ const PRODUCT_ROUTES: Record<string, Product[]> = {
   '/momentum': ['reminders', 'crm'],
   '/activity': ['reminders', 'crm'],
   '/reminders-settings': ['reminders'],
+  '/esign': ['esign', 'crm'],
+  '/inventory': ['inventory', 'crm'],
 }
 
 function getProduct(host: string): Product {

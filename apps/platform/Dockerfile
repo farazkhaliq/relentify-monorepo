@@ -28,7 +28,7 @@ RUN pnpm build
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-RUN apk add --no-cache openssl
+RUN apk add --no-cache openssl libreoffice-writer libreoffice-common font-noto
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=builder /app/apps/platform/public ./apps/platform/public
 COPY --from=builder --chown=nextjs:nodejs /app/apps/platform/.next/standalone ./

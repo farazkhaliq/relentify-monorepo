@@ -21,9 +21,19 @@ const REMINDERS_FEATURES = [
   'reminders_settings', 'reminders_workspaces', 'reminders_gamification',
 ]
 
+const ESIGN_FEATURES = [
+  'esign_dashboard', 'esign_requests', 'esign_settings', 'esign_docs', 'esign_billing',
+]
+
+const INVENTORY_FEATURES = [
+  'inventory_list', 'inventory_create', 'inventory_edit', 'inventory_report', 'inventory_photos',
+]
+
 const CRM_FEATURES = [
   ...CONNECT_FEATURES,
   ...REMINDERS_FEATURES,
+  ...ESIGN_FEATURES,
+  ...INVENTORY_FEATURES,
   'contacts', 'properties', 'tenancies', 'maintenance',
   'documents', 'transactions', 'tasks', 'reports', 'audit_log',
   'dashboard', 'communications_archive', 'crm_portal',
@@ -34,6 +44,8 @@ const PRODUCT_FEATURES: Record<Product, string[]> = {
   connect: CONNECT_FEATURES,
   crm: CRM_FEATURES,
   reminders: REMINDERS_FEATURES,
+  esign: ESIGN_FEATURES,
+  inventory: INVENTORY_FEATURES,
 }
 
 export function canAccess(product: Product, feature: string): boolean {
