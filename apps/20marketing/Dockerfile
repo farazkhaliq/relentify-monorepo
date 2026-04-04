@@ -23,6 +23,8 @@ COPY --from=pruner /app/out/full/ .
 COPY --from=deps /app/apps/20marketing/node_modules ./apps/20marketing/node_modules
 COPY --from=deps /app/packages/ui/node_modules ./packages/ui/node_modules
 WORKDIR /app/apps/20marketing
+ARG PREVIEW=false
+ENV PREVIEW=${PREVIEW}
 RUN pnpm build
 
 FROM base AS runner

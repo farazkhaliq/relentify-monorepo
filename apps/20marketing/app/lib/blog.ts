@@ -53,7 +53,7 @@ export function getAllPosts(): BlogPost[] {
         readingTime: stats.text,
       } as BlogPost;
     })
-    .filter((post) => new Date(post.publishDate) <= new Date())
+    .filter((post) => process.env.PREVIEW === 'true' || new Date(post.publishDate) <= new Date())
     .sort((a, b) => new Date(b.publishDate).getTime() - new Date(a.publishDate).getTime());
 
   return posts;
