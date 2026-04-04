@@ -23,10 +23,10 @@ RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=pruner /app/out/full/ .
-COPY --from=deps /app/apps/22accounting/node_modules ./apps/22accounting/node_modules
+COPY --from=deps /app/apps/23accounting/node_modules ./apps/23accounting/node_modules
 COPY --from=deps /app/packages/ui/node_modules ./packages/ui/node_modules
 RUN cd packages/database && npx prisma@5.22.0 generate
-WORKDIR /app/apps/22accounting
+WORKDIR /app/apps/23accounting
 RUN pnpm build
 
 FROM base AS runner
@@ -34,11 +34,11 @@ WORKDIR /app
 ENV NODE_ENV=production
 RUN apk add --no-cache openssl ghostscript
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
-COPY --from=builder /app/apps/22accounting/public ./apps/22accounting/public
-COPY --from=builder --chown=nextjs:nodejs /app/apps/22accounting/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/22accounting/.next/static ./apps/22accounting/.next/static
+COPY --from=builder /app/apps/23accounting/public ./apps/23accounting/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/23accounting/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/23accounting/.next/static ./apps/23accounting/.next/static
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
-CMD ["node", "apps/22accounting/server.js"]
+CMD ["node", "apps/23accounting/server.js"]

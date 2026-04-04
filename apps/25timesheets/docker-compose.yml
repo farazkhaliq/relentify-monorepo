@@ -2,8 +2,8 @@ services:
   web:
     build:
       context: ../../
-      dockerfile: apps/28timesheets/Dockerfile
-    container_name: 28timesheets
+      dockerfile: apps/25timesheets/Dockerfile
+    container_name: 25timesheets
     restart: unless-stopped
     deploy:
       resources:
@@ -11,7 +11,7 @@ services:
           cpus: '0.50'
           memory: 384M
     ports:
-      - "3028:3000"
+      - "3025:3000"
     env_file:
       - .env
     networks:

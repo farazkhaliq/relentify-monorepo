@@ -2,17 +2,20 @@ services:
   web:
     build:
       context: ../../
-      dockerfile: apps/26help/Dockerfile
-    container_name: 26help
+      dockerfile: apps/23accounting/Dockerfile
+    container_name: 23accounting
     restart: unless-stopped
     deploy:
       resources:
         limits:
-          cpus: '0.25'
-          memory: 256M
+          cpus: '0.50'
+          memory: 512M
     ports:
-      - "3026:3000"
+      - "3023:3000"
+    env_file:
+      - .env
     networks:
+      - relentify_default
       - infra_default
     logging:
       driver: "json-file"
@@ -20,12 +23,15 @@ services:
         max-size: "10m"
         max-file: "3"
     healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3000/ || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3000/api/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
 
 networks:
+  relentify_default:
+    external: true
+    name: relentify_default
   infra_default:
     external: true
     name: infra_default

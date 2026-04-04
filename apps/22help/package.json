@@ -1,11 +1,11 @@
 {
-  "name": "26help",
+  "name": "22help",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3026",
+    "dev": "next dev -p 3022",
     "build": "next build",
-    "start": "serve out -p 3026",
+    "start": "serve out -p 3022",
     "lint": "next lint",
     "record": "ts-node -T playwright/record.ts",
     "validate": "ts-node -T playwright/validate.ts",

@@ -1,6 +1,6 @@
 services:
   web:
-    container_name: platform
+    container_name: 24crm
     deploy:
       resources:
         limits:
@@ -8,14 +8,14 @@ services:
           memory: 512M
     build:
       context: ../../
-      dockerfile: apps/platform/Dockerfile
+      dockerfile: apps/24crm/Dockerfile
     restart: always
     env_file:
       - .env
     volumes:
       - ./uploads:/app/apps/platform/uploads
     ports:
-      - "3040:3000"
+      - "3024:3000"
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:3000/api/health || exit 1"]
       interval: 30s

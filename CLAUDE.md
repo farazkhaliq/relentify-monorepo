@@ -11,18 +11,20 @@ All UI components, theming, and navigation must come from `@relentify/ui`.
 |-----|-----------|------|-------|
 | 20marketing | 20marketing | 3020 | Next.js App Router, shared TopBar, live at relentify.com |
 | 21auth | 21auth | 3021 | Auth pages only, no main nav |
-| 22accounting | 22accounting | 3022 | TopBar layout (no sidebar) |
-| 23inventory | ~~23inventory~~ → platform | 3040 | **Retired** — migrated to platform (2026-04-04) |
-| 24reminders | ~~24reminders~~ → platform | 3040 | **Retired** — migrated to platform (2026-04-04) |
-| 25crm | ~~25crm~~ → platform | 3040 | **Retired** — migrated to platform (2026-04-04) |
-| 26help | 26help | 3026 | Static export (output: 'export'), TopBar layout, Pagefind search, help.relentify.com |
-| 27sign | ~~27sign~~ → platform | 3040 | **Retired** — migrated to platform (2026-04-04) |
-| 28timesheets | 28timesheets | 3028 | GPS-verified mobile timesheets, Preset B theme, timesheets.relentify.com |
-| 29chat | ~~29chat~~ → platform | 3040 | **Retired** — migrated to platform (2026-04-04) |
-| 30connect | ~~30connect~~ → platform | 3040 | **Retired** — migrated to platform (2026-04-04) |
-| platform | platform | 3040 | Unified comms platform: chat + connect + crm, serves 3 domains |
+| 22help | 22help | 3022 | Static export (output: 'export'), Pagefind search, help.relentify.com |
+| 23accounting | 23accounting | 3023 | TopBar layout (no sidebar), accounting.relentify.com |
+| 24crm | 24crm | 3024 | Unified platform: crm + chat + connect + reminders + esign + inventory (serves 6 domains) |
+| 25timesheets | 25timesheets | 3025 | GPS-verified mobile timesheets, Preset B theme, timesheets.relentify.com |
 
-**Container naming**: All containers are named to match their app folder (20marketing, 21auth, etc.).
+**Renumbered 2026-04-04**: folders + ports now align sequentially. Former names:
+- `22accounting` → `23accounting` (port 3022 → 3023)
+- `26help` → `22help` (port 3026 → 3022)
+- `28timesheets` → `25timesheets` (port 3028 → 3025)
+- `platform` → `24crm` (port 3040 → 3024)
+
+**Archived** (in `apps/_archive/`): 23inventory, 24reminders, 25crm, 27sign, 29chat, 30connect — all migrated into 24crm.
+
+**Container naming**: All containers are named to match their app folder.
 The old names (relentify-com, relentify-login, relentify-accounts, etc.) are retired — containers deleted.
 
 ## Packages

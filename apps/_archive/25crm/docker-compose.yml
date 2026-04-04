@@ -13,7 +13,7 @@ services:
     env_file:
       - .env
     volumes:
-      - /opt/25crm-uploads:/app/uploads
+      - /opt/relentify-monorepo/apps/25crm/uploads:/app/uploads
     ports:
       - "3025:3000"
     healthcheck:
