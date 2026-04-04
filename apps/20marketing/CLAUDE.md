@@ -122,10 +122,10 @@ Markdown-based blog with date-gated static generation.
 | SEO | Per-post OpenGraph, Twitter Cards, JSON-LD BlogPosting, canonical URLs |
 | Date-gating | `publishDate <= today` at build time |
 | Publishing | Daily 5:30am cron rebuild (`30 5 * * *`) |
-| Current posts | 396 (1 original + 395 new SEO articles) |
+| Current posts | 448 (1 original + 395 batch 1 + 11 Thursday batch + 42 Monday batch 2) |
 | Schedule | Daily, 5 Apr 2026 to 4 May 2027 (13 months) |
 | Region gating | `region` field in frontmatter — "uk", "usa", or "all" (default). Blog index filters by visitor region. Badges on cards/posts. |
-| Status | **DONE** — all 395 articles + images written and committed |
+| Status | **DONE** — 448 articles total (395 daily + 11 Thu + 42 Mon batch 2) |
 
 **Frontmatter fields:** title, slug, publishDate, author, category, excerpt, image, imageAlt, tags
 
