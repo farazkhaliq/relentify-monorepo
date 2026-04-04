@@ -65,7 +65,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <>
                   <TopBarDropdown label="Apps" items={appItems} />
                   <TopBarLink href="/pricing">Pricing</TopBarLink>
-                  <TopBarLink href="/blog">Blog</TopBarLink>
                   <TopBarLink href="https://auth.relentify.com/login?redirect=https://relentify.com/portal">Login</TopBarLink>
                 </>
               }
