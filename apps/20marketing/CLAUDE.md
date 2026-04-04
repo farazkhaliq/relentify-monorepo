@@ -51,9 +51,13 @@ Health check: `wget -q --spider http://127.0.0.1:3000/` every 30s.
 | `/xero-v-relentify` | Page | Xero vs Relentify comparison |
 | `/quickbooks-alternative` | Page | QuickBooks competitor positioning |
 | `/quickbooks-v-relentify` | Page | QuickBooks vs Relentify comparison |
+| `/chat` | Page | Chat product landing — features, Tawk.to comparison, pricing, embed snippet |
+| `/chat/demo` | Page | Interactive widget demo — live widget.js embed, agent view mockup |
+| `/connect` | Page | Connect product landing — channels, Intercom/Zendesk comparisons, savings calculator, pricing |
+| `/pricing` | Page | All plans — Chat/Connect toggle, feature matrix, FAQ |
 | `/sitemap.xml` | Generated | Dynamic sitemap (all pages + blog posts) |
 
-**Total**: 17 routes + sitemap
+**Total**: 21 routes + sitemap
 
 ---
 

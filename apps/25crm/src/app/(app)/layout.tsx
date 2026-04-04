@@ -28,6 +28,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   ];
 
   const operationsItems = [
+    { label: 'Inbox', href: '/inbox' },
     { label: 'Communications', href: '/communications' },
     { label: 'Tasks', href: '/tasks' },
     { label: 'Documents', href: '/documents' },

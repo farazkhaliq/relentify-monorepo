@@ -1,0 +1,17 @@
+{
+  "name": "@relentify/connect",
+  "version": "1.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "dependencies": {
+    "@relentify/chat": "workspace:*",
+    "pg": "^8.20.0",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.15.6",
+    "@types/uuid": "^10.0.0",
+    "typescript": "^5.9.3"
+  }
+}

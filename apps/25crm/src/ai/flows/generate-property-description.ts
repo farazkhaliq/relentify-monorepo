@@ -1,28 +1,48 @@
-'use server';
+// Stub — Gemini dependency removed. Returns a basic template description.
+// To enable AI descriptions, configure AI_DEFAULT_API_URL + AI_DEFAULT_API_KEY env vars.
 
-import { model } from '@/ai/genkit';
+export async function generatePropertyDescription(input: {
+  propertyType?: string
+  bedrooms?: number
+  bathrooms?: number
+  address?: string
+  features?: string[]
+}): Promise<string> {
+  const { propertyType, bedrooms, bathrooms, address, features } = input
 
-export interface GeneratePropertyDescriptionInput {
-  propertyType: string;
-  city: string;
-  numberOfBedrooms: number;
-  numberOfBathrooms: number;
-  description?: string;
+  // If AI env vars are configured, use them
+  const apiUrl = process.env.AI_DEFAULT_API_URL
+  const apiKey = process.env.AI_DEFAULT_API_KEY
+
+  if (apiUrl && apiKey) {
+    try {
+      const prompt = `Write a concise, professional property listing description for a ${bedrooms || '?'}-bedroom ${propertyType || 'property'} at ${address || 'undisclosed location'}. ${features?.length ? 'Features: ' + features.join(', ') + '.' : ''} Keep it under 150 words.`
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: process.env.AI_DEFAULT_MODEL || 'gpt-4o-mini',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 300,
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        return data.choices?.[0]?.message?.content || fallbackDescription(input)
+      }
+    } catch {}
+  }
+
+  return fallbackDescription(input)
 }
 
-export async function generatePropertyDescription(input: GeneratePropertyDescriptionInput): Promise<string> {
-  const prompt = `You are an expert real estate agent. Write a compelling and professional property description for a lettings advert.
-
-Use the following details:
-- Property Type: ${input.propertyType}
-- Location: ${input.city}
-- Bedrooms: ${input.numberOfBedrooms}
-- Bathrooms: ${input.numberOfBathrooms}
-
-${input.description ? `Incorporate the following key features or existing notes:\n${input.description}` : 'Be creative based on the property details.'}
-
-The description should be engaging, highlight the best features of the property, and appeal to potential tenants. Do not include a title or any formatting other than paragraphs.`;
-
-  const result = await model.generateContent(prompt);
-  return result.response.text();
+function fallbackDescription(input: any): string {
+  const parts = []
+  if (input.propertyType) parts.push(`A ${input.propertyType.toLowerCase()}`)
+  if (input.bedrooms) parts.push(`with ${input.bedrooms} bedroom${input.bedrooms > 1 ? 's' : ''}`)
+  if (input.bathrooms) parts.push(`and ${input.bathrooms} bathroom${input.bathrooms > 1 ? 's' : ''}`)
+  if (input.address) parts.push(`located at ${input.address}`)
+  return parts.length > 0 ? parts.join(' ') + '.' : 'Property description pending.'
 }

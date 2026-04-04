@@ -203,11 +203,21 @@ All 16 `crm_*` tables:
 
 ---
 
-## Current Status (2026-03-31)
+## Current Status (2026-04-04)
 
 - Firebase fully removed -- zero packages, zero imports, zero config files
+- Gemini (`@google/generative-ai`) removed — property descriptions use generic AI stub (or platform AI if env vars set)
 - All API routes use PostgreSQL via dedicated service files
 - Staff auth uses `@relentify/auth` JWT
 - Portal auth uses bcrypt + JWT via `crm_portal_users` table
 - All UI components use SWR + API routes (no Firestore subscriptions)
-- Build succeeds clean; `pnpm audit` clean for 25crm
+- Build succeeds clean
+
+### Communications Platform Integration (2026-04-04)
+- **Unified Inbox** at `/inbox` — multi-channel conversation view using `@relentify/connect` shared services
+- `@relentify/chat` + `@relentify/connect` workspace packages added as dependencies
+- Chat API routes at `/api/chat/conversations`, `/api/chat/conversations/[id]/messages`, `/api/chat/conversations/[id]/stream`, `/api/chat/events`
+- Contact conversation history at `/api/contacts/[id]/conversations` (queries both connect_conversations + chat_sessions by email)
+- Old `/communications` page converted to read-only archive with banner pointing to `/inbox`
+- "Inbox" added to Operations dropdown in nav
+- Caddy `flush_interval -1` added for SSE pass-through

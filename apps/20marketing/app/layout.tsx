@@ -26,6 +26,8 @@ export const metadata: Metadata = {
 };
 
 const appItems: TopBarDropdownItem[] = [
+  { label: 'Chat', href: '/chat' },
+  { label: 'Connect', href: '/connect' },
   { label: 'Accounting', href: '/accounting' },
   { label: 'Property Inventories', href: '/inventory' },
   { label: 'CRM', href: '/crm' },
@@ -62,6 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               navLinks={
                 <>
                   <TopBarDropdown label="Apps" items={appItems} />
+                  <TopBarLink href="/pricing">Pricing</TopBarLink>
                   <TopBarLink href="/blog">Blog</TopBarLink>
                   <TopBarLink href="https://auth.relentify.com/login?redirect=https://relentify.com/portal">Login</TopBarLink>
                 </>

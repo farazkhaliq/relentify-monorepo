@@ -46,8 +46,8 @@ Building a layered communications platform: `CRM ⊃ Connect ⊃ Chat`. Competes
 |---|-------------|------|--------|
 | 1 | **29chat** (Tawk.to competitor) | `PLANS/29chat-build.md` | ✅ All 15 phases complete — live at chat.relentify.com |
 | 2 | **30connect** (Intercom/Zendesk competitor) | `PLANS/30connect-build.md` | ✅ Phases 1-9 complete — all features built, pending DNS for connect.relentify.com |
-| 3 | **CRM Integration** (embed Connect in 25crm) | `PLANS/crm-integration-build.md` | Planned |
-| 4 | **Marketing Pages** (comparison/pricing on relentify.com) | `PLANS/marketing-pages-build.md` | Planned |
+| 3 | **CRM Integration** (embed Connect in 25crm) | `PLANS/crm-integration-build.md` | ✅ Complete — inbox in CRM, shared packages, Gemini removed, archive view |
+| 4 | **Marketing Pages** (comparison/pricing on relentify.com) | `PLANS/marketing-pages-build.md` | ✅ Complete — /chat, /connect, /pricing, /chat/demo live at relentify.com |
 
 **Master plan** (pricing, competitive comparisons, full scope): `PLANS/communications-platform-master-plan.md`
 

@@ -9,8 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "@relentify/auth": "workspace:*",
+    "@relentify/chat": "workspace:*",
+    "@relentify/connect": "workspace:*",
     "@relentify/config": "workspace:*",
     "@relentify/database": "workspace:*",
     "@relentify/ui": "workspace:*",
