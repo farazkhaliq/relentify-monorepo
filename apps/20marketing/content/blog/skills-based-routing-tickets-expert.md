@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Skills-Based Routing: Matching Tickets to the Right Expert"
 slug: "skills-based-routing-tickets-expert"
-publishDate: "2026-10-16"
+publishDate: "2025-09-16"
 author: "Relentify"
 category: "Connect"
 excerpt: "Skills-based routing matches every ticket to the agent best equipped to resolve it. Learn how to define skills, classify tickets, and improve first contact resolution."

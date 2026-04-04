@@ -1,7 +1,7 @@
 ---
 title: "How to Price Your Services as a Small Business or Freelancer"
 slug: "price-services-small-business-freelancer"
-publishDate: "2026-05-27"
+publishDate: "2025-04-27"
 author: "Relentify"
 category: "Small Business & Growth"
 excerpt: "A practical guide to setting prices that cover your costs, reflect your value, and help your business grow without scaring away clients."

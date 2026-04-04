@@ -1,7 +1,7 @@
 ---
 title: "How Automated Ticket Routing Sends Issues to the Right Agent Instantly"
 slug: "automated-ticket-routing-right-agent"
-publishDate: "2026-06-22"
+publishDate: "2025-05-23"
 author: "Relentify"
 category: "Connect"
 excerpt: "Manual ticket assignment wastes time and leads to misrouted issues. Learn how automated routing matches every ticket to the best-equipped agent instantly."

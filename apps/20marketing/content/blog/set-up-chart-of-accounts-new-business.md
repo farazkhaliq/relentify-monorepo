@@ -1,7 +1,7 @@
 ---
 title: "How to Set Up Your Chart of Accounts for a New Business"
 slug: "set-up-chart-of-accounts-new-business"
-publishDate: "2026-04-23"
+publishDate: "2025-03-24"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Your chart of accounts is the foundation of your bookkeeping. Here's how to set one up that actually works for your business."

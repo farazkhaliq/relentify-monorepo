@@ -1,7 +1,7 @@
 ---
 title: "A Beginner's Guide to Self-Assessment Tax Returns for Sole Traders"
 slug: "self-assessment-tax-returns-sole-traders"
-publishDate: "2026-04-14"
+publishDate: "2025-03-15"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Filing your first self-assessment tax return as a sole trader? This guide covers everything from registration to submission."

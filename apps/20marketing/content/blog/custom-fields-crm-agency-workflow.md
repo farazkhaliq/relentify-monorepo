@@ -1,7 +1,7 @@
 ---
 title: "How to Use Custom Fields in Your CRM to Match Your Agency's Workflow"
 slug: "custom-fields-crm-agency-workflow"
-publishDate: "2027-01-15"
+publishDate: "2025-12-16"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "No two agencies work exactly the same way. Custom fields let you adapt your CRM to capture the specific data that matters to your business, without changing how the system works."

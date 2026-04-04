@@ -1,7 +1,7 @@
 ---
 title: "Fixed Assets and Depreciation: A Small Business Guide"
 slug: "fixed-assets-depreciation-guide"
-publishDate: "2027-02-07"
+publishDate: "2026-01-08"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Fixed assets lose value over time, and depreciation reflects this in your accounts. Here's how it works and why it matters for your business."

@@ -1,7 +1,7 @@
 ---
 title: "How to Use Accounting Software to Prepare for Your Accountant"
 slug: "accounting-software-prepare-for-accountant"
-publishDate: "2027-02-25"
+publishDate: "2026-01-26"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Your accountant's time is expensive. Using your accounting software effectively throughout the year saves money and stress when year-end arrives."

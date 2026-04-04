@@ -1,7 +1,7 @@
 ---
 title: "How Trade Businesses Can Use CRM to Manage Jobs and Customers"
 slug: "crm-trade-businesses-jobs-customers"
-publishDate: "2027-03-22"
+publishDate: "2026-02-20"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Plumbers, electricians, builders, and other trades juggle dozens of jobs and customers simultaneously. A CRM brings order to the chaos and helps you deliver a more professional service."

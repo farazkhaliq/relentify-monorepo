@@ -1,7 +1,7 @@
 ---
 title: "How to Prepare for a Tax Investigation: What HMRC Looks For"
 slug: "prepare-tax-investigation-hmrc"
-publishDate: "2026-10-26"
+publishDate: "2025-09-26"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "An HMRC tax investigation does not have to be terrifying. Here's what triggers one, what to expect, and how to prepare."

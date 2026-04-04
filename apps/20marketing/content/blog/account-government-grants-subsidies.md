@@ -1,7 +1,7 @@
 ---
 title: "How to Account for Government Grants and Subsidies"
 slug: "account-government-grants-subsidies"
-publishDate: "2027-04-18"
+publishDate: "2026-03-19"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Government grants and subsidies require careful accounting treatment. This guide explains how to record grant income, match it to related expenses, and meet reporting requirements."

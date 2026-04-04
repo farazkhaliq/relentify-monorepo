@@ -1,7 +1,7 @@
 ---
 title: "How Integrated Payroll and HR Software Eliminates Double Entry"
 slug: "integrated-payroll-hr-software"
-publishDate: "2027-02-19"
+publishDate: "2026-01-20"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "Why running separate payroll and HR systems creates unnecessary work and errors, and how an integrated platform eliminates double entry, improves accuracy, and saves time."

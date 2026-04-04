@@ -1,7 +1,7 @@
 ---
 title: "How to Process Your First Payroll Run: A Step-by-Step Guide"
 slug: "process-first-payroll-run"
-publishDate: "2026-04-27"
+publishDate: "2025-03-28"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A practical walkthrough of processing your very first payroll run, covering everything from gathering employee data to making payments and filing with your tax authority."

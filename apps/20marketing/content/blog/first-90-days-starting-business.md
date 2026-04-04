@@ -1,7 +1,7 @@
 ---
 title: "The First 90 Days of Starting a Business: What to Set Up and When"
 slug: "first-90-days-starting-business"
-publishDate: "2026-04-30"
+publishDate: "2025-03-31"
 author: "Relentify"
 category: "Small Business & Growth"
 excerpt: "A practical timeline for your first three months in business, covering everything from registration to your first invoice."

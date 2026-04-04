@@ -1,7 +1,7 @@
 ---
 title: "How to Use Internal Notes in Chat to Collaborate with Your Team"
 slug: "internal-notes-chat-collaborate"
-publishDate: "2026-09-01"
+publishDate: "2025-08-02"
 author: "Relentify"
 category: "Chat"
 excerpt: "Internal notes let agents share context with teammates without the visitor seeing. Here is how to use them for smoother handoffs and better collaboration."

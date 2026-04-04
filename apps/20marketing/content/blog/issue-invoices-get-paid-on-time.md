@@ -1,7 +1,7 @@
 ---
 title: "How to Issue Invoices That Actually Get Paid on Time"
 slug: "issue-invoices-get-paid-on-time"
-publishDate: "2026-11-27"
+publishDate: "2025-10-28"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "The way you write and send your invoices directly affects how quickly you get paid. Here's how to create invoices that get to the front of the payment queue."

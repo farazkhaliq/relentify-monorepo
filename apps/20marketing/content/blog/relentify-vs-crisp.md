@@ -1,7 +1,7 @@
 ---
 title: "Relentify Connect vs Crisp: Multi-Channel Support Compared"
 slug: "relentify-vs-crisp"
-publishDate: "2027-01-29"
+publishDate: "2025-12-30"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Crisp offers a compelling all-in-one messaging platform. Here is how it stacks up against Relentify Connect for multi-channel customer support."

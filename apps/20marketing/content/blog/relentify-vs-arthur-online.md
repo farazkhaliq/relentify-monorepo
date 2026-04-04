@@ -1,7 +1,7 @@
 ---
 title: "Relentify CRM vs Arthur Online: Property Management Software Compared"
 slug: "relentify-vs-arthur-online"
-publishDate: "2026-09-13"
+publishDate: "2025-08-14"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Arthur Online focuses on property management for landlords and agents. Here is how it compares to Relentify CRM, which combines property management with a full CRM and business platform."

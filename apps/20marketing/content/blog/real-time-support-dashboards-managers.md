@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Real-Time Support Dashboards for Managers"
 slug: "real-time-support-dashboards-managers"
-publishDate: "2026-12-11"
+publishDate: "2025-11-11"
 author: "Relentify"
 category: "Connect"
 excerpt: "Real-time dashboards give support managers instant visibility into queue health, agent activity, and emerging issues. Here is how to build one that drives action."

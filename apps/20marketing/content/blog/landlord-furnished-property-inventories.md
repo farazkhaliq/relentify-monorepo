@@ -1,7 +1,7 @@
 ---
 title: "The Landlord's Guide to Furnished Property Inventories"
 slug: "landlord-furnished-property-inventories"
-publishDate: "2026-08-11"
+publishDate: "2025-07-12"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Furnished properties need more detailed inventories than unfurnished ones. This guide covers what to document, how to track contents, and how to handle common furnished property issues."

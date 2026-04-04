@@ -1,7 +1,7 @@
 ---
 title: "Why Letting Agents Should Outsource Inventories (and When to Keep Them In-House)"
 slug: "outsource-inventories-vs-in-house"
-publishDate: "2026-11-05"
+publishDate: "2025-10-06"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Should your agency outsource inventories to a specialist clerk or handle them in-house? The answer depends on your portfolio size, team capacity, and quality standards."

@@ -1,7 +1,7 @@
 ---
 title: "How Live Chat Increases Conversion Rates on Your Website"
 slug: "live-chat-increases-conversion-rates"
-publishDate: "2026-05-07"
+publishDate: "2025-04-07"
 author: "Relentify"
 category: "Chat"
 excerpt: "Websites with live chat consistently convert more visitors into customers. This article explains why real-time conversation removes buying friction and how to maximise the impact."

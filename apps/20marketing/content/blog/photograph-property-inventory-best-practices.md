@@ -1,7 +1,7 @@
 ---
 title: "How to Photograph a Property Inventory: Angles, Lighting, and Best Practices"
 slug: "photograph-property-inventory-best-practices"
-publishDate: "2027-01-24"
+publishDate: "2025-12-25"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Good inventory photography is not about being artistic — it is about capturing clear, consistent evidence. This guide covers the practical techniques that produce useful photos."

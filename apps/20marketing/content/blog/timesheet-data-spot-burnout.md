@@ -1,7 +1,7 @@
 ---
 title: "How Timesheet Data Helps You Spot Burnout Before It Happens"
 slug: "timesheet-data-spot-burnout"
-publishDate: "2027-02-02"
+publishDate: "2026-01-03"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Burnout does not appear overnight. Timesheet data can reveal the warning signs weeks or months before a worker reaches breaking point."

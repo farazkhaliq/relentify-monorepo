@@ -1,7 +1,7 @@
 ---
 title: "Relentify vs FreshBooks: Pricing, Features, and Who Each Suits Best"
 slug: "relentify-vs-freshbooks"
-publishDate: "2026-05-01"
+publishDate: "2025-04-01"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "FreshBooks is popular with freelancers and micro-businesses, but its pricing model and feature limitations start to pinch as you grow. Here is how it compares to Relentify."

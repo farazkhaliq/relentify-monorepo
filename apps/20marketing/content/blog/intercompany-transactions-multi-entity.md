@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Intercompany Transactions for Multi-Entity Businesses"
 slug: "intercompany-transactions-multi-entity"
-publishDate: "2027-02-21"
+publishDate: "2026-01-22"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Intercompany transactions are a fact of life for multi-entity businesses. Understanding how to record, reconcile, and eliminate them is essential for accurate consolidated reporting."

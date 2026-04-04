@@ -1,7 +1,7 @@
 ---
 title: "How to Manage Multi-Branch Estate Agencies with One System"
 slug: "manage-multi-branch-estate-agencies"
-publishDate: "2026-08-19"
+publishDate: "2025-07-20"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Running multiple branches without a unified system creates data silos, inconsistent processes, and management blind spots. A single CRM solves all three problems."

@@ -1,7 +1,7 @@
 ---
 title: "How to Use Live Chat for Appointment Booking and Scheduling"
 slug: "live-chat-appointment-booking"
-publishDate: "2027-01-19"
+publishDate: "2025-12-20"
 author: "Relentify"
 category: "Chat"
 excerpt: "Live chat turns scheduling from a multi-step process into a single conversation. Here is how to use it for appointment booking across different industries."

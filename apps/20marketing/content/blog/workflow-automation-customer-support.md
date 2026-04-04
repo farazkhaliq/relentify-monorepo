@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Workflow Automation in Customer Support"
 slug: "workflow-automation-customer-support"
-publishDate: "2026-08-15"
+publishDate: "2025-07-16"
 author: "Relentify"
 category: "Connect"
 excerpt: "Workflow automation connects the dots between triggers, conditions, and actions to run your support processes on autopilot. Here is how to design workflows that scale."

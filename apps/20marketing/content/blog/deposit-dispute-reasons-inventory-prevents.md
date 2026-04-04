@@ -1,7 +1,7 @@
 ---
 title: "Common Deposit Dispute Reasons and How a Good Inventory Prevents Them"
 slug: "deposit-dispute-reasons-inventory-prevents"
-publishDate: "2026-08-29"
+publishDate: "2025-07-30"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Most deposit disputes fall into a handful of common categories. A thorough inventory prevents the majority of them before they start."

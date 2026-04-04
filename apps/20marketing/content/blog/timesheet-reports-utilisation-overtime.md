@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Timesheet Reports: Utilisation, Overtime, and Trends"
 slug: "timesheet-reports-utilisation-overtime"
-publishDate: "2026-10-29"
+publishDate: "2025-09-29"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Timesheet data is only valuable if you use it. Learn which reports to generate, what they reveal, and how to turn data into better workforce decisions."

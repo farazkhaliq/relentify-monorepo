@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Timesheet Rounding Rules and Employment Law"
 slug: "timesheet-rounding-rules-employment-law"
-publishDate: "2026-08-21"
+publishDate: "2025-07-22"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Rounding clock-in times is common practice, but the rules are nuanced. Understand when rounding is permissible and when it crosses a legal line."

@@ -1,7 +1,7 @@
 ---
 title: "Why Every Small Business Website Needs Live Chat"
 slug: "small-business-website-needs-live-chat"
-publishDate: "2026-04-10"
+publishDate: "2025-03-11"
 author: "Relentify"
 category: "Chat"
 excerpt: "Live chat turns passive website visitors into active conversations. Here is why small businesses that add chat see more leads, faster responses, and happier customers."

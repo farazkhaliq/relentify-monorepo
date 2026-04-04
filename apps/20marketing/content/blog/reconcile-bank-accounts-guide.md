@@ -1,7 +1,7 @@
 ---
 title: "How to Reconcile Your Bank Accounts: A Step-by-Step Guide"
 slug: "reconcile-bank-accounts-guide"
-publishDate: "2026-06-16"
+publishDate: "2025-05-17"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Bank reconciliation catches errors, prevents fraud, and keeps your books accurate. Here's how to do it properly, whether manually or with software."

@@ -1,7 +1,7 @@
 ---
 title: "How to Merge Duplicate Tickets Without Losing Information"
 slug: "merge-duplicate-tickets"
-publishDate: "2026-09-02"
+publishDate: "2025-08-03"
 author: "Relentify"
 category: "Connect"
 excerpt: "Duplicate tickets clutter your queue and split conversations across multiple threads. Learn how to merge them cleanly while preserving every detail."

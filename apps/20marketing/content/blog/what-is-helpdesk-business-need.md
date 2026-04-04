@@ -1,7 +1,7 @@
 ---
 title: "What Is a Helpdesk and Does Your Business Need One?"
 slug: "what-is-helpdesk-business-need"
-publishDate: "2026-04-11"
+publishDate: "2025-03-12"
 author: "Relentify"
 category: "Connect"
 excerpt: "A helpdesk is more than a ticketing system. Learn what modern helpdesks do, who needs one, and when the right time is to adopt one for your business."

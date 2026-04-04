@@ -1,7 +1,7 @@
 ---
 title: "Understanding US Overtime Rules: FLSA Exempt vs Non-Exempt"
 slug: "us-overtime-rules-flsa-exempt"
-publishDate: "2027-04-10"
+publishDate: "2026-03-11"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "How to determine whether your employees are exempt or non-exempt under the FLSA, and what that means for overtime pay, record keeping, and compliance."

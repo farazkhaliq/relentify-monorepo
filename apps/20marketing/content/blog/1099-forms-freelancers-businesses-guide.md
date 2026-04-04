@@ -1,7 +1,7 @@
 ---
 title: "A Guide to 1099 Forms: What Freelancers and Businesses Need to Know"
 slug: "1099-forms-freelancers-businesses-guide"
-publishDate: "2027-04-26"
+publishDate: "2026-03-27"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "1099 forms report non-employment income to the IRS. Whether you are a freelancer receiving them or a business issuing them, understanding your obligations prevents costly mistakes."

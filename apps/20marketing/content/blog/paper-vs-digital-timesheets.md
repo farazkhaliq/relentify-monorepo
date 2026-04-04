@@ -1,7 +1,7 @@
 ---
 title: "Paper Timesheets vs Digital: Why It's Time to Make the Switch"
 slug: "paper-vs-digital-timesheets"
-publishDate: "2026-04-17"
+publishDate: "2025-03-18"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Paper timesheets are costing your business more than you think. Compare the real-world differences between paper and digital time tracking."

@@ -1,7 +1,7 @@
 ---
 title: "State Sales Tax Nexus: When Your Business Must Collect Sales Tax"
 slug: "state-sales-tax-nexus-explained"
-publishDate: "2027-04-30"
+publishDate: "2026-03-31"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Sales tax nexus determines where your business must collect and remit tax. Understanding nexus rules prevents compliance failures that can result in back taxes and penalties."

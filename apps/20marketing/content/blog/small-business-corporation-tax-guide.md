@@ -1,7 +1,7 @@
 ---
 title: "The Small Business Guide to Corporation Tax"
 slug: "small-business-corporation-tax-guide"
-publishDate: "2026-10-18"
+publishDate: "2025-09-18"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Corporation tax applies to all limited companies. Here's what you need to know about rates, deadlines, allowable deductions, and filing."

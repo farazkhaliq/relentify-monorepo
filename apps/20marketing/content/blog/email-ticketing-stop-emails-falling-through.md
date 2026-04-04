@@ -1,7 +1,7 @@
 ---
 title: "Email Ticketing 101: How to Stop Customer Emails Falling Through the Cracks"
 slug: "email-ticketing-stop-emails-falling-through"
-publishDate: "2026-04-29"
+publishDate: "2025-03-30"
 author: "Relentify"
 category: "Connect"
 excerpt: "Customer emails get lost in shared inboxes. An email ticketing system ensures every message is tracked, assigned, and resolved. Here is how it works."

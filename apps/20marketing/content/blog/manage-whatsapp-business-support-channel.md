@@ -1,7 +1,7 @@
 ---
 title: "How to Manage WhatsApp Business as a Support Channel"
 slug: "manage-whatsapp-business-support-channel"
-publishDate: "2026-07-01"
+publishDate: "2025-06-01"
 author: "Relentify"
 category: "Connect"
 excerpt: "WhatsApp has over two billion users worldwide. Here is how to add it as a support channel and manage conversations alongside your other helpdesk queues."

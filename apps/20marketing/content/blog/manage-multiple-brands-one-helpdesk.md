@@ -1,7 +1,7 @@
 ---
 title: "How to Manage Multiple Brands or Products from One Helpdesk"
 slug: "manage-multiple-brands-one-helpdesk"
-publishDate: "2027-01-20"
+publishDate: "2025-12-21"
 author: "Relentify"
 category: "Connect"
 excerpt: "Running multiple brands does not mean running multiple helpdesks. Learn how to manage distinct brands from a single platform while keeping each customer experience separate."

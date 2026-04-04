@@ -1,7 +1,7 @@
 ---
 title: "How to Manage Absence and Sickness Records for Your Team"
 slug: "manage-absence-sickness-records"
-publishDate: "2027-01-02"
+publishDate: "2025-12-03"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A practical guide to tracking employee absence and sickness, including what records to keep, how to spot patterns, when to intervene, and how to balance welfare with business needs."

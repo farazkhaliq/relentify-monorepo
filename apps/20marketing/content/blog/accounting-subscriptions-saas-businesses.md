@@ -1,7 +1,7 @@
 ---
 title: "Accounting for Subscriptions and SaaS Businesses"
 slug: "accounting-subscriptions-saas-businesses"
-publishDate: "2027-04-23"
+publishDate: "2026-03-24"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Subscription and SaaS businesses have unique accounting requirements around revenue recognition, deferred revenue, and key metrics. This guide explains how to get them right."

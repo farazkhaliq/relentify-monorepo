@@ -1,7 +1,7 @@
 ---
 title: "Understanding Deferred Revenue and Prepayments"
 slug: "deferred-revenue-prepayments-explained"
-publishDate: "2027-04-11"
+publishDate: "2026-03-12"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Deferred revenue and prepayments adjust the timing of how income and expenses appear in your accounts. Understanding them gives you a more accurate picture of your business performance."

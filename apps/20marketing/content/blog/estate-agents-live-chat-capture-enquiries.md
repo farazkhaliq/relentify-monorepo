@@ -1,7 +1,7 @@
 ---
 title: "How Estate Agents Can Use Live Chat to Capture Enquiries"
 slug: "estate-agents-live-chat-capture-enquiries"
-publishDate: "2027-01-03"
+publishDate: "2025-12-04"
 author: "Relentify"
 category: "Chat"
 excerpt: "Property seekers browse listings at all hours. Live chat captures their interest in the moment, turning passive browsing into booked viewings and qualified leads."

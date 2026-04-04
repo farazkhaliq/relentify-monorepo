@@ -1,7 +1,7 @@
 ---
 title: "How to Run Payroll for Directors: Dividends, Salary, and NI"
 slug: "run-payroll-directors-dividends"
-publishDate: "2026-08-22"
+publishDate: "2025-07-23"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "How to handle payroll for company directors in the UK, including the optimal salary and dividend split, directors' National Insurance calculations, and common mistakes to avoid."

@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Key Handover Documentation"
 slug: "key-handover-documentation-guide"
-publishDate: "2026-11-21"
+publishDate: "2025-10-22"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Key handover documentation is often overlooked in property management. A proper key log protects landlords, agents, and tenants from disputes and security concerns."

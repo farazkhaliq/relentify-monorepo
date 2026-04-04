@@ -1,7 +1,7 @@
 ---
 title: "How Photo Evidence in Inventories Prevents Deposit Disputes"
 slug: "photo-evidence-inventories-deposit-disputes"
-publishDate: "2026-05-04"
+publishDate: "2025-04-04"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Photographs are the strongest evidence in deposit disputes. Learn how to capture, organise, and present photo evidence that stands up to adjudication."

@@ -1,7 +1,7 @@
 ---
 title: "How to Onboard New Employees: A First-Week Checklist"
 slug: "onboard-new-employees-checklist"
-publishDate: "2026-10-30"
+publishDate: "2025-09-30"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A practical first-week onboarding checklist for small businesses, covering everything from paperwork and equipment to introductions and early goals that set new employees up for success."

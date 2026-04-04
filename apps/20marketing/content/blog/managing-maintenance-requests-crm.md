@@ -1,7 +1,7 @@
 ---
 title: "Managing Maintenance Requests Through Your CRM"
 slug: "managing-maintenance-requests-crm"
-publishDate: "2026-07-05"
+publishDate: "2025-06-05"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Maintenance is where tenant satisfaction is won or lost. A CRM-based approach to tracking requests from report to resolution ensures nothing gets missed and everyone stays informed."

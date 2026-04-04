@@ -1,7 +1,7 @@
 ---
 title: "How to Process a Leaver: Final Pay, P45, and Outstanding Holiday"
 slug: "process-leaver-final-pay"
-publishDate: "2026-08-04"
+publishDate: "2025-07-05"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A step-by-step guide to processing an employee's departure through payroll, covering final pay calculations, outstanding holiday, deductions, and issuing the correct documentation."

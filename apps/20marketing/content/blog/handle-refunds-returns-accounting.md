@@ -1,7 +1,7 @@
 ---
 title: "How to Handle Refunds and Returns in Your Accounting System"
 slug: "handle-refunds-returns-accounting"
-publishDate: "2027-03-30"
+publishDate: "2026-02-28"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Refunds and returns happen in every business. Recording them correctly in your accounting system keeps your revenue figures accurate and your tax reporting clean."

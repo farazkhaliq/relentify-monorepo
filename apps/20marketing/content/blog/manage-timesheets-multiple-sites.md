@@ -1,7 +1,7 @@
 ---
 title: "How to Manage Timesheets for Multiple Sites and Locations"
 slug: "manage-timesheets-multiple-sites"
-publishDate: "2026-06-01"
+publishDate: "2025-05-02"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Managing timesheets across multiple locations creates unique challenges. Here is how to keep time tracking consistent, accurate, and manageable."

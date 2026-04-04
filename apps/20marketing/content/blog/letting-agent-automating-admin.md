@@ -1,7 +1,7 @@
 ---
 title: "The Letting Agent's Guide to Automating Routine Admin Tasks"
 slug: "letting-agent-automating-admin"
-publishDate: "2026-08-28"
+publishDate: "2025-07-29"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Admin consumes hours every day in a typical letting agency. Automating the repetitive parts frees your team to focus on the work that actually grows the business."

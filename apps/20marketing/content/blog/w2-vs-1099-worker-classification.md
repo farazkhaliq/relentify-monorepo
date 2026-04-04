@@ -1,7 +1,7 @@
 ---
 title: "W-2 vs 1099: Understanding Worker Classification in the US"
 slug: "w2-vs-1099-worker-classification"
-publishDate: "2027-04-27"
+publishDate: "2026-03-28"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Misclassifying workers as independent contractors instead of employees is one of the most common and costly compliance mistakes a US business can make."

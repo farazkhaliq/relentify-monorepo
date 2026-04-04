@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Inventory Reports for Student Accommodation"
 slug: "inventory-reports-student-accommodation"
-publishDate: "2026-10-04"
+publishDate: "2025-09-04"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Student accommodation presents unique inventory challenges including high turnover, shared living, and deposit disputes. This guide covers how to handle them effectively."

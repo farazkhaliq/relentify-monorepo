@@ -1,7 +1,7 @@
 ---
 title: "A Guide to W-2 Forms: What Employers Need to File and When"
 slug: "w2-forms-employer-guide"
-publishDate: "2027-03-23"
+publishDate: "2026-02-21"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A clear guide to W-2 forms for US employers, covering what information is required, filing deadlines, common mistakes, and how to handle corrections."

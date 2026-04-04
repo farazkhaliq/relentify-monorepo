@@ -1,7 +1,7 @@
 ---
 title: "A Guide to CSAT Surveys in Customer Support"
 slug: "csat-surveys-customer-support-guide"
-publishDate: "2026-09-29"
+publishDate: "2025-08-30"
 author: "Relentify"
 category: "Connect"
 excerpt: "Customer satisfaction surveys are the most direct way to measure how your support team is performing. Learn how to design, deploy, and act on CSAT data."

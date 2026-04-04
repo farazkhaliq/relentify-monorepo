@@ -1,7 +1,7 @@
 ---
 title: "Understanding Federal and State Payroll Taxes in the US"
 slug: "federal-state-payroll-taxes-us"
-publishDate: "2027-03-26"
+publishDate: "2026-02-24"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A clear breakdown of the federal and state payroll taxes US employers must withhold, calculate, and remit, including FICA, FUTA, and state-specific obligations."

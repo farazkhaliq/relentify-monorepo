@@ -1,7 +1,7 @@
 ---
 title: "How to Handle I-9 Employment Verification for New Hires"
 slug: "i9-employment-verification-new-hires"
-publishDate: "2027-04-08"
+publishDate: "2026-03-09"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A practical guide to completing Form I-9 correctly, meeting deadlines, and avoiding the costly mistakes that trip up many US employers."

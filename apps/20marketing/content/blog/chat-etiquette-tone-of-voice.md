@@ -1,7 +1,7 @@
 ---
 title: "The Small Business Guide to Chat Etiquette and Tone of Voice"
 slug: "chat-etiquette-tone-of-voice"
-publishDate: "2026-08-23"
+publishDate: "2025-07-24"
 author: "Relentify"
 category: "Chat"
 excerpt: "The way your team writes in live chat shapes how customers perceive your business. Here is a practical guide to chat etiquette that feels professional without being stiff."

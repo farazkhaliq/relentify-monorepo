@@ -1,7 +1,7 @@
 ---
 title: "Side Conversations: How to Loop in Colleagues Without Confusing the Customer"
 slug: "side-conversations-loop-in-colleagues"
-publishDate: "2026-09-11"
+publishDate: "2025-08-12"
 author: "Relentify"
 category: "Connect"
 excerpt: "Not every conversation in a ticket should be visible to the customer. Learn how to use side conversations and internal notes to collaborate without confusion."

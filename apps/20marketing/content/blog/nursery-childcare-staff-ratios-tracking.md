@@ -1,7 +1,7 @@
 ---
 title: "The Nursery and Childcare Guide to Staff Ratios and Time Tracking"
 slug: "nursery-childcare-staff-ratios-tracking"
-publishDate: "2027-02-10"
+publishDate: "2026-01-11"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Childcare settings must maintain strict staff-to-child ratios at all times. Here is how timesheet data supports ratio compliance and inspection readiness."

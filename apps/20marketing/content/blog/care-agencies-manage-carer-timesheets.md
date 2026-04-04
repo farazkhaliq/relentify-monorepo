@@ -1,7 +1,7 @@
 ---
 title: "How Care Agencies Can Manage Carer Timesheets and Visits"
 slug: "care-agencies-manage-carer-timesheets"
-publishDate: "2026-07-25"
+publishDate: "2025-06-25"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Domiciliary care agencies face unique time tracking challenges. Learn how to manage carer timesheets, verify visit attendance, and maintain compliant records."

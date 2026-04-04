@@ -1,7 +1,7 @@
 ---
 title: "The Future of PropTech: How Technology Is Changing Estate Agency"
 slug: "future-proptech-technology-estate-agency"
-publishDate: "2026-12-06"
+publishDate: "2025-11-06"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "PropTech is reshaping how properties are marketed, managed, and transacted. Understanding the trajectory helps agencies prepare for what comes next."

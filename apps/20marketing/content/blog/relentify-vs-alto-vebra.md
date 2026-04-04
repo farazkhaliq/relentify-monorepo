@@ -1,7 +1,7 @@
 ---
 title: "Relentify CRM vs Alto by Vebra: Which Is Better for Letting Agents?"
 slug: "relentify-vs-alto-vebra"
-publishDate: "2026-08-08"
+publishDate: "2025-07-09"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Alto by Vebra is widely used by UK letting agents, but its aging interface and pricing are opening the door for modern alternatives. Here is a direct comparison with Relentify CRM."

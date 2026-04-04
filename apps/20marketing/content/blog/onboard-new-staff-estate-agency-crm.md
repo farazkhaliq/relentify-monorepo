@@ -1,7 +1,7 @@
 ---
 title: "How to Onboard New Staff at Your Estate Agency with a CRM"
 slug: "onboard-new-staff-estate-agency-crm"
-publishDate: "2026-10-27"
+publishDate: "2025-09-27"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "A new team member's first weeks shape their long-term effectiveness. A well-configured CRM accelerates onboarding by providing structure, context, and institutional knowledge."

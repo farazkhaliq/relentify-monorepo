@@ -1,7 +1,7 @@
 ---
 title: "The Small Business Tech Stack: Essential Software for Your First Year"
 slug: "small-business-tech-stack-essential"
-publishDate: "2026-06-05"
+publishDate: "2025-05-06"
 author: "Relentify"
 category: "Small Business & Growth"
 excerpt: "A no-nonsense guide to the software every new business actually needs in year one, what you can skip, and how to avoid subscription overload."

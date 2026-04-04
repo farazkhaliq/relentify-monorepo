@@ -1,7 +1,7 @@
 ---
 title: "Relentify CRM vs Goodlord: Lettings Platform Comparison"
 slug: "relentify-vs-goodlord"
-publishDate: "2026-09-22"
+publishDate: "2025-08-23"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Goodlord streamlines the lettings transaction process, but it is not a full CRM. Here is how it compares to Relentify CRM, which covers the entire lettings lifecycle."

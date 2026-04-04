@@ -1,7 +1,7 @@
 ---
 title: "The Small Business Guide to Getting Paid Faster"
 slug: "small-business-getting-paid-faster"
-publishDate: "2026-07-29"
+publishDate: "2025-06-29"
 author: "Relentify"
 category: "Small Business & Growth"
 excerpt: "Proven strategies for reducing payment delays, improving cash flow, and spending less time chasing overdue invoices."

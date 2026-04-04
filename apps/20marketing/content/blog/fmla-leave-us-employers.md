@@ -1,7 +1,7 @@
 ---
 title: "FMLA Leave: What US Employers Need to Know"
 slug: "fmla-leave-us-employers"
-publishDate: "2027-04-06"
+publishDate: "2026-03-07"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A practical guide to the Family and Medical Leave Act for US employers, covering eligibility, employee rights, employer obligations, and common compliance pitfalls."

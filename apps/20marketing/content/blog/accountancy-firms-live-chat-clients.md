@@ -1,7 +1,7 @@
 ---
 title: "How Accountancy Firms Can Use Live Chat for Client Communication"
 slug: "accountancy-firms-live-chat-clients"
-publishDate: "2027-01-11"
+publishDate: "2025-12-12"
 author: "Relentify"
 category: "Chat"
 excerpt: "Accountancy firms handle sensitive, time-sensitive client queries. Live chat provides a fast, documented communication channel that fits how modern clients want to interact."

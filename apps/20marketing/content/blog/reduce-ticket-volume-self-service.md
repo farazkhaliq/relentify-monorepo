@@ -1,7 +1,7 @@
 ---
 title: "How to Reduce Ticket Volume with Better Self-Service"
 slug: "reduce-ticket-volume-self-service"
-publishDate: "2027-02-05"
+publishDate: "2026-01-06"
 author: "Relentify"
 category: "Connect"
 excerpt: "Every ticket your customers can resolve themselves is a ticket your team does not have to handle. Learn how to build self-service that actually reduces volume."

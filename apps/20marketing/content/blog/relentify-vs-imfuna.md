@@ -1,7 +1,7 @@
 ---
 title: "Relentify Inventories vs Imfuna: Which Property Inspection App Does More?"
 slug: "relentify-vs-imfuna"
-publishDate: "2026-11-18"
+publishDate: "2025-10-19"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "A detailed comparison of Relentify Inventories and Imfuna for property inspections — covering features, pricing, report quality, and ease of use."

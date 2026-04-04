@@ -1,7 +1,7 @@
 ---
 title: "Understanding Profit and Loss Statements for Non-Accountants"
 slug: "profit-loss-statements-non-accountants"
-publishDate: "2026-06-25"
+publishDate: "2025-05-26"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "The profit and loss statement is one of the most important reports in your business. Here's how to read it without an accounting degree."

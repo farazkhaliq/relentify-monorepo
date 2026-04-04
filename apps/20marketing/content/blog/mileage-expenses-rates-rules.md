@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Mileage Expenses: Rates, Rules, and Record-Keeping"
 slug: "mileage-expenses-rates-rules"
-publishDate: "2026-09-14"
+publishDate: "2025-08-15"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Claiming mileage expenses correctly saves tax and avoids HMRC enquiries. Here's everything you need to know about rates, rules, and keeping proper records."

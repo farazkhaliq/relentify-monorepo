@@ -1,7 +1,7 @@
 ---
 title: "How Live Chat Reduces Support Ticket Volume"
 slug: "live-chat-reduces-support-tickets"
-publishDate: "2026-07-27"
+publishDate: "2025-06-27"
 author: "Relentify"
 category: "Chat"
 excerpt: "Live chat resolves questions before they become tickets. Here is how real-time conversations deflect support volume and keep your queue manageable."

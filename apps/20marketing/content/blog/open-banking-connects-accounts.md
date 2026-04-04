@@ -1,7 +1,7 @@
 ---
 title: "Understanding Open Banking and How It Connects to Your Accounts"
 slug: "open-banking-connects-accounts"
-publishDate: "2027-03-09"
+publishDate: "2026-02-07"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Open banking is transforming how businesses manage their finances. Learn how it works and why connecting your bank to your accounting software saves time and improves accuracy."

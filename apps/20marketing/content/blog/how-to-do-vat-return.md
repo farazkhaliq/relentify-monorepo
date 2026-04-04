@@ -1,7 +1,7 @@
 ---
 title: "How to Do a VAT Return: A Step-by-Step Guide"
 slug: "how-to-do-vat-return"
-publishDate: "2027-01-30"
+publishDate: "2025-12-31"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Filing a VAT return does not have to be stressful. Here's a step-by-step walkthrough of the entire process, from preparation to submission."

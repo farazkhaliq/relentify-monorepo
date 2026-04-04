@@ -1,7 +1,7 @@
 ---
 title: "How to Track Project Profitability in Your Accounting Software"
 slug: "track-project-profitability-accounting"
-publishDate: "2027-03-05"
+publishDate: "2026-02-03"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Knowing your overall profit is not enough. Tracking profitability at the project level reveals which work actually makes money and which quietly drains it."

@@ -1,7 +1,7 @@
 ---
 title: "Relentify Chat vs Tawk.to: Everything Free, Plus More"
 slug: "relentify-vs-tawkto"
-publishDate: "2027-02-06"
+publishDate: "2026-01-07"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Tawk.to is free live chat. Relentify Chat is also free — but with more features, better AI, and no hidden upsells. Here is the full comparison."

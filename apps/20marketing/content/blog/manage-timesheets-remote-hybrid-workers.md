@@ -1,7 +1,7 @@
 ---
 title: "How to Manage Timesheets for Remote and Hybrid Workers"
 slug: "manage-timesheets-remote-hybrid-workers"
-publishDate: "2026-10-05"
+publishDate: "2025-09-05"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Remote and hybrid working models require a different approach to time tracking. Learn how to maintain visibility and compliance without micromanaging."

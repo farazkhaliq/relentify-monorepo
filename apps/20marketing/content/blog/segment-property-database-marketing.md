@@ -1,7 +1,7 @@
 ---
 title: "How to Segment Your Property Database for Better Marketing"
 slug: "segment-property-database-marketing"
-publishDate: "2026-07-14"
+publishDate: "2025-06-14"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Generic marketing messages get ignored. Segmenting your property database allows you to send targeted, relevant communications that actually drive engagement and results."

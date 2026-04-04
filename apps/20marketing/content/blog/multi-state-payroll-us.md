@@ -1,7 +1,7 @@
 ---
 title: "How to Handle Multi-State Payroll in the United States"
 slug: "multi-state-payroll-us"
-publishDate: "2027-04-14"
+publishDate: "2026-03-15"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A practical guide to managing payroll across multiple US states, from registration and withholding to compliance challenges and remote workers."

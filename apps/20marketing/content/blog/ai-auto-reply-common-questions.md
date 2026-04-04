@@ -1,7 +1,7 @@
 ---
 title: "How AI Auto-Reply Handles Common Questions While You Sleep"
 slug: "ai-auto-reply-common-questions"
-publishDate: "2026-09-28"
+publishDate: "2025-08-29"
 author: "Relentify"
 category: "Chat"
 excerpt: "AI auto-reply answers routine questions instantly, day and night. Here is how it works, what it handles well, and where human agents still shine."

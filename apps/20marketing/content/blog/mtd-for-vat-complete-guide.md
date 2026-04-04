@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to MTD for VAT: Software, Bridging, and Filing"
 slug: "mtd-for-vat-complete-guide"
-publishDate: "2026-12-21"
+publishDate: "2025-11-21"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Making Tax Digital for VAT is now mandatory. Here's everything you need to know about compatible software, digital links, and filing your returns."

@@ -1,7 +1,7 @@
 ---
 title: "How to Manage Landlord Relationships with a CRM"
 slug: "manage-landlord-relationships-crm"
-publishDate: "2026-04-15"
+publishDate: "2025-03-16"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Landlords are the lifeblood of any letting agency. A CRM helps you track every interaction, anticipate their needs, and deliver the kind of service that keeps them loyal."

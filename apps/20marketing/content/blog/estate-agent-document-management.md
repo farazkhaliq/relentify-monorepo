@@ -1,7 +1,7 @@
 ---
 title: "The Estate Agent's Guide to Document Management and Storage"
 slug: "estate-agent-document-management"
-publishDate: "2026-11-20"
+publishDate: "2025-10-21"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Estate agents deal with hundreds of documents — tenancy agreements, certificates, identity documents, correspondence. A structured approach to document management saves time and reduces risk."

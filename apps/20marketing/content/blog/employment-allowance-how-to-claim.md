@@ -1,7 +1,7 @@
 ---
 title: "Understanding the Employment Allowance and How to Claim It"
 slug: "employment-allowance-how-to-claim"
-publishDate: "2026-08-31"
+publishDate: "2025-08-01"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A guide to the Employment Allowance for UK employers, explaining who qualifies, how much you can save, how to claim through payroll, and common eligibility mistakes."

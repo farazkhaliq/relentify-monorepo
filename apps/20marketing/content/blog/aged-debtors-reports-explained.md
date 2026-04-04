@@ -1,7 +1,7 @@
 ---
 title: "Understanding Aged Debtors Reports and Why They Matter"
 slug: "aged-debtors-reports-explained"
-publishDate: "2026-11-19"
+publishDate: "2025-10-20"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "An aged debtors report shows who owes you money and how long it has been outstanding. Here's how to read one and use it to improve collections."

@@ -1,7 +1,7 @@
 ---
 title: "How Estate Agents Can Use CRM Data to Win More Instructions"
 slug: "crm-data-win-more-instructions"
-publishDate: "2026-06-26"
+publishDate: "2025-05-27"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Winning new landlord instructions is about credibility and preparation. CRM data gives you the evidence to back up your pitch and stand out from the competition."

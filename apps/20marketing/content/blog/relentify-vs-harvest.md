@@ -1,7 +1,7 @@
 ---
 title: "Relentify Timesheets vs Harvest: Time Tracking and Billing Compared"
 slug: "relentify-vs-harvest"
-publishDate: "2027-03-12"
+publishDate: "2026-02-10"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Harvest combines time tracking with invoicing for project-based businesses. Here is how Relentify Timesheets compares for workforce time management."

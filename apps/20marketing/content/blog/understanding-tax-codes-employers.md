@@ -1,7 +1,7 @@
 ---
 title: "Understanding Tax Codes: A Plain-English Guide for Employers"
 slug: "understanding-tax-codes-employers"
-publishDate: "2026-04-18"
+publishDate: "2025-03-19"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "Tax codes determine how much income tax to deduct from your employees. This guide explains what they mean, how they work, and what to do when they change."

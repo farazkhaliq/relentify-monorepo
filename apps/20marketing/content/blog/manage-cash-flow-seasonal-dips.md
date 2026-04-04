@@ -1,7 +1,7 @@
 ---
 title: "How to Manage Cash Flow During Seasonal Business Dips"
 slug: "manage-cash-flow-seasonal-dips"
-publishDate: "2027-04-09"
+publishDate: "2026-03-10"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Seasonal fluctuations are a reality for many businesses. Planning ahead and managing cash flow proactively helps you survive the quiet periods and thrive during the busy ones."

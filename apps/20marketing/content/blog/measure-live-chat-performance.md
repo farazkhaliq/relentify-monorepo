@@ -1,7 +1,7 @@
 ---
 title: "How to Measure Live Chat Performance: CSAT, Response Time, and Resolution"
 slug: "measure-live-chat-performance"
-publishDate: "2026-07-18"
+publishDate: "2025-06-18"
 author: "Relentify"
 category: "Chat"
 excerpt: "Measuring live chat performance goes beyond counting conversations. Here are the metrics that actually matter and how to use them to improve your team and your customer experience."

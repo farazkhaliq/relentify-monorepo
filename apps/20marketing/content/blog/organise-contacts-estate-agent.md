@@ -1,7 +1,7 @@
 ---
 title: "How to Organise Your Contacts as an Estate Agent"
 slug: "organise-contacts-estate-agent"
-publishDate: "2026-05-21"
+publishDate: "2025-04-21"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "A well-organised contact database is the foundation of any efficient estate agency. Learn how to structure, categorise, and maintain your contacts for maximum effectiveness."

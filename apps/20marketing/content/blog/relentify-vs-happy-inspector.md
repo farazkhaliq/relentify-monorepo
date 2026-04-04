@@ -1,7 +1,7 @@
 ---
 title: "Relentify Inventories vs Happy Inspector: Digital Inventory Tools Compared"
 slug: "relentify-vs-happy-inspector"
-publishDate: "2026-11-26"
+publishDate: "2025-10-27"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "How does Relentify Inventories compare to Happy Inspector for property inspections? We look at features, pricing, and workflow differences."

@@ -1,7 +1,7 @@
 ---
 title: "How to Handle Ticket Escalation Without Frustrating Customers"
 slug: "ticket-escalation-without-frustrating"
-publishDate: "2026-12-19"
+publishDate: "2025-11-19"
 author: "Relentify"
 category: "Connect"
 excerpt: "Escalation is necessary but often frustrating for customers. Learn how to build an escalation process that resolves issues faster without making customers repeat themselves."

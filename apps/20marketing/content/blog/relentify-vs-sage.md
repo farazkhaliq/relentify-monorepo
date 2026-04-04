@@ -1,7 +1,7 @@
 ---
 title: "Relentify vs Sage: Why Modern Businesses Are Switching"
 slug: "relentify-vs-sage"
-publishDate: "2026-05-10"
+publishDate: "2025-04-10"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Sage has been a fixture in UK accounting for decades, but its complex product lineup and legacy pricing model are driving businesses toward modern alternatives. Here is how Relentify compares."

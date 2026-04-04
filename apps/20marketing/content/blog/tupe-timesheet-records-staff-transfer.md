@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to TUPE and Timesheet Records When Staff Transfer"
 slug: "tupe-timesheet-records-staff-transfer"
-publishDate: "2027-01-09"
+publishDate: "2025-12-10"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "When staff transfer between employers under TUPE or similar regulations, timesheet records play a critical role. Here is what you need to know."

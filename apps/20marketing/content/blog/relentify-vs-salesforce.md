@@ -1,7 +1,7 @@
 ---
 title: "Relentify CRM vs Salesforce: Enterprise Power Without Enterprise Pricing"
 slug: "relentify-vs-salesforce"
-publishDate: "2026-10-09"
+publishDate: "2025-09-09"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Salesforce is the world's largest CRM, but its complexity and cost make it impractical for most property businesses. Here is how Relentify CRM delivers what agents need without the enterprise overhead."

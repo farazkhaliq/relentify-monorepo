@@ -1,7 +1,7 @@
 ---
 title: "How to Use AI Copilot to Help Agents Write Better Replies Faster"
 slug: "ai-copilot-agents-better-replies"
-publishDate: "2026-11-17"
+publishDate: "2025-10-18"
 author: "Relentify"
 category: "Connect"
 excerpt: "AI copilot tools suggest responses, adjust tone, and draft replies in real time — helping agents work faster without sacrificing quality."

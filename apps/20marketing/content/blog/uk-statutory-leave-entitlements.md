@@ -1,7 +1,7 @@
 ---
 title: "The Employer's Guide to UK Statutory Leave Entitlements"
 slug: "uk-statutory-leave-entitlements"
-publishDate: "2027-03-11"
+publishDate: "2026-02-09"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A comprehensive guide to the statutory leave entitlements every UK employer must provide, from annual leave and sick pay to maternity, paternity, and shared parental leave."

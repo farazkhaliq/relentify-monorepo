@@ -1,7 +1,7 @@
 ---
 title: "The Difference Between Bookkeeping and Accounting (and Why It Matters)"
 slug: "bookkeeping-vs-accounting-difference"
-publishDate: "2026-07-31"
+publishDate: "2025-07-01"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Bookkeeping and accounting are related but different. Understanding the distinction helps you decide what your business actually needs."

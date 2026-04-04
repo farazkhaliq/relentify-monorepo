@@ -1,7 +1,7 @@
 ---
 title: "How to Handle Complaints and Disputes in Your CRM"
 slug: "handle-complaints-disputes-crm"
-publishDate: "2026-09-24"
+publishDate: "2025-08-25"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Complaints are inevitable in property management. How you handle them defines your agency's reputation. A CRM ensures every complaint is tracked, escalated, and resolved professionally."

@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Customer Self-Service Portals"
 slug: "customer-self-service-portals-guide"
-publishDate: "2026-12-18"
+publishDate: "2025-11-18"
 author: "Relentify"
 category: "Chat"
 excerpt: "Self-service portals let customers find answers, manage accounts, and resolve issues without contacting support. Here is how to build one that customers actually use."

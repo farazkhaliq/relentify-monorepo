@@ -1,7 +1,7 @@
 ---
 title: "Relentify vs Xero: A Feature-by-Feature Comparison"
 slug: "relentify-vs-xero"
-publishDate: "2026-04-13"
+publishDate: "2025-03-14"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Xero has been a go-to for small business accounting, but rising prices and feature limitations are pushing businesses to look elsewhere. Here is how Relentify compares on every front."

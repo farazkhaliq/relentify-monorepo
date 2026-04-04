@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Helpdesk Audit Logs and Compliance"
 slug: "helpdesk-audit-logs-compliance"
-publishDate: "2027-01-12"
+publishDate: "2025-12-13"
 author: "Relentify"
 category: "Connect"
 excerpt: "Audit logs track every action in your helpdesk for compliance, security, and accountability. Learn what to log, how long to retain it, and how to use it."

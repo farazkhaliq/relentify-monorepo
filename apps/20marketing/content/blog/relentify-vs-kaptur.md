@@ -1,7 +1,7 @@
 ---
 title: "Relentify Inventories vs Kaptur: Inventory Report Software Compared"
 slug: "relentify-vs-kaptur"
-publishDate: "2026-12-04"
+publishDate: "2025-11-04"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "A head-to-head comparison of Relentify Inventories and Kaptur for property inventory reporting — features, pricing, and which suits your workflow."

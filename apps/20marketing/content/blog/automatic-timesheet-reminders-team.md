@@ -1,7 +1,7 @@
 ---
 title: "How to Set Up Automatic Timesheet Reminders for Your Team"
 slug: "automatic-timesheet-reminders-team"
-publishDate: "2026-12-16"
+publishDate: "2025-11-16"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Missing timesheets delay payroll and create admin headaches. Automatic reminders solve the problem without the awkward follow-up conversations."

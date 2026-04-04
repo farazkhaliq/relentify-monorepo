@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Break Tracking and Working Time Regulations"
 slug: "break-tracking-working-time-regulations"
-publishDate: "2026-05-23"
+publishDate: "2025-04-23"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Understand your obligations around employee breaks, how to track them properly, and what happens when records fall short of legal requirements."

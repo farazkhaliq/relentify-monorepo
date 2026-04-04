@@ -1,7 +1,7 @@
 ---
 title: "How to Build a No-Code Chatbot for Your Support Team"
 slug: "build-no-code-chatbot-support"
-publishDate: "2026-08-06"
+publishDate: "2025-07-07"
 author: "Relentify"
 category: "Connect"
 excerpt: "You do not need developers to build a support chatbot. Learn how to create, test, and deploy a no-code chatbot that handles common queries and frees up your team."

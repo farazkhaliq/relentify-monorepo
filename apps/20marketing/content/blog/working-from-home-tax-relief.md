@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Working from Home Tax Relief and Allowances"
 slug: "working-from-home-tax-relief"
-publishDate: "2026-07-11"
+publishDate: "2025-06-11"
 author: "Relentify"
 category: "Small Business & Growth"
 excerpt: "What you can claim when working from home, how to calculate your allowance, and how to make sure you are not leaving money on the table at tax time."

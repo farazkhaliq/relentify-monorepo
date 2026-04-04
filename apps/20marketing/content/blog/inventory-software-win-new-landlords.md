@@ -1,7 +1,7 @@
 ---
 title: "How Inventory Software Helps Letting Agents Win New Landlords"
 slug: "inventory-software-win-new-landlords"
-publishDate: "2026-08-02"
+publishDate: "2025-07-03"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Professional inventory reports are a powerful differentiator for letting agents. The right software makes it easy to deliver a service that wins and retains landlord clients."

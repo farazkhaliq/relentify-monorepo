@@ -1,7 +1,7 @@
 ---
 title: "How to Migrate from Sage to Relentify: What to Expect"
 slug: "migrate-sage-to-relentify"
-publishDate: "2026-07-12"
+publishDate: "2025-06-12"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Migrating from Sage to a modern cloud platform does not have to be painful. This guide covers the process for both Sage Accounting and Sage 50 users, with practical steps and common pitfalls."

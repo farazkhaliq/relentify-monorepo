@@ -1,7 +1,7 @@
 ---
 title: "Understanding Employer's Liability Insurance Requirements"
 slug: "employers-liability-insurance-uk"
-publishDate: "2027-03-19"
+publishDate: "2026-02-17"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "Everything UK employers need to know about employer's liability insurance, including who needs it, the legal minimum cover, exemptions, and what happens if you do not have it."

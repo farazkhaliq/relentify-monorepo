@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Accounting for E-Commerce Businesses"
 slug: "accounting-ecommerce-businesses"
-publishDate: "2027-04-07"
+publishDate: "2026-03-08"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "E-commerce accounting comes with unique challenges including multi-channel sales, payment processor fees, inventory management, and complex tax obligations. Here is how to handle them."

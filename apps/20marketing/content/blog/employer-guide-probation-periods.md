@@ -1,7 +1,7 @@
 ---
 title: "The Employer's Guide to Probation Periods: Setting Them Up Right"
 slug: "employer-guide-probation-periods"
-publishDate: "2026-11-07"
+publishDate: "2025-10-08"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "How to structure probation periods effectively, including setting expectations, conducting reviews, extending probation, and managing employees who are not meeting the required standard."

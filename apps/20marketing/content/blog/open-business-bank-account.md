@@ -1,7 +1,7 @@
 ---
 title: "How to Open a Business Bank Account"
 slug: "open-business-bank-account"
-publishDate: "2026-05-09"
+publishDate: "2025-04-09"
 author: "Relentify"
 category: "Small Business & Growth"
 excerpt: "A practical guide to choosing and opening the right business bank account, whether you are a sole trader or a limited company."

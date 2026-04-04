@@ -1,7 +1,7 @@
 ---
 title: "Statutory Maternity Pay Explained: What Employers Need to Know"
 slug: "statutory-maternity-pay-explained"
-publishDate: "2026-05-24"
+publishDate: "2025-04-24"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A clear guide to Statutory Maternity Pay for UK employers, covering eligibility, calculation, payment periods, and how to recover costs from HMRC."

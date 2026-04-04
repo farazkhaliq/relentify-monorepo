@@ -1,7 +1,7 @@
 ---
 title: "How to Create an Employee Handbook Without a HR Department"
 slug: "create-employee-handbook-guide"
-publishDate: "2026-10-14"
+publishDate: "2025-09-14"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A step-by-step guide to creating a practical employee handbook for your small business, covering what to include, how to write it, and how to keep it current without dedicated HR resources."

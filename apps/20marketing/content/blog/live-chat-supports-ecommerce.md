@@ -1,7 +1,7 @@
 ---
 title: "How Live Chat Supports E-Commerce: From Browsing to Checkout"
 slug: "live-chat-supports-ecommerce"
-publishDate: "2026-12-10"
+publishDate: "2025-11-10"
 author: "Relentify"
 category: "Chat"
 excerpt: "Live chat helps online shoppers at every stage of the buying journey. Here is how to use it to reduce cart abandonment, answer product questions, and increase sales."

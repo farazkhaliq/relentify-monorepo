@@ -1,7 +1,7 @@
 ---
 title: "How to Inventory an HMO: Room-by-Room and Communal Areas"
 slug: "inventory-hmo-room-by-room"
-publishDate: "2026-08-20"
+publishDate: "2025-07-21"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "HMOs present unique inventory challenges with multiple tenants and shared spaces. This guide covers how to document individual rooms and communal areas effectively."

@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Quality Assurance (QA) in Customer Support"
 slug: "quality-assurance-customer-support"
-publishDate: "2026-11-25"
+publishDate: "2025-10-26"
 author: "Relentify"
 category: "Connect"
 excerpt: "Quality assurance ensures your support team delivers consistent, accurate, and empathetic service. Here is how to build a QA programme from scratch."

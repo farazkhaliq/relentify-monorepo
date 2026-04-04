@@ -1,7 +1,7 @@
 ---
 title: "How to Use Timesheet Data to Forecast Staffing Needs"
 slug: "timesheet-data-forecast-staffing"
-publishDate: "2027-01-01"
+publishDate: "2025-12-02"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Historical timesheet data is the most reliable input for staffing forecasts. Learn how to turn past hours into future headcount decisions."

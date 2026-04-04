@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Pre-Chat Forms: What to Ask and Why"
 slug: "pre-chat-forms-what-to-ask"
-publishDate: "2026-05-16"
+publishDate: "2025-04-16"
 author: "Relentify"
 category: "Chat"
 excerpt: "Pre-chat forms collect visitor details before a conversation starts. Get the balance right and you improve agent efficiency without discouraging visitors from chatting."

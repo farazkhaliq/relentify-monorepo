@@ -1,7 +1,7 @@
 ---
 title: "How to Use CRM Reporting to Spot Trends in Your Local Rental Market"
 slug: "crm-reporting-spot-rental-market-trends"
-publishDate: "2026-11-12"
+publishDate: "2025-10-13"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Your CRM contains a goldmine of local market data. Learn how to extract insights about rent trends, demand patterns, and market shifts from the data you already have."

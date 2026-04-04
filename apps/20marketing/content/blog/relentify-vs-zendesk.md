@@ -1,7 +1,7 @@
 ---
 title: "Relentify Connect vs Zendesk: More Included at Every Tier"
 slug: "relentify-vs-zendesk"
-publishDate: "2026-12-12"
+publishDate: "2025-11-12"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Zendesk is the industry giant, but its pricing has crept up while features get locked behind higher tiers. Here is how Relentify Connect compares — more included, less cost."

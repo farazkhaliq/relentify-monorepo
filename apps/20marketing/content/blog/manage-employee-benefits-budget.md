@@ -1,7 +1,7 @@
 ---
 title: "How to Manage Employee Benefits on a Small Business Budget"
 slug: "manage-employee-benefits-budget"
-publishDate: "2027-02-03"
+publishDate: "2026-01-04"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "Practical ways to offer meaningful employee benefits without a large corporate budget, including low-cost perks, salary sacrifice options, and benefits that genuinely improve retention."

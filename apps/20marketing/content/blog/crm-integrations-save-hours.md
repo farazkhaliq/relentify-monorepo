@@ -1,7 +1,7 @@
 ---
 title: "How CRM Integrations Save Estate Agents Hours Every Week"
 slug: "crm-integrations-save-hours"
-publishDate: "2026-10-11"
+publishDate: "2025-09-11"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "A CRM that talks to your other tools eliminates double data entry, reduces errors, and creates workflows that span your entire tech stack."

@@ -1,7 +1,7 @@
 ---
 title: "Relentify CRM vs Jupix: Features, Pricing, and Flexibility Compared"
 slug: "relentify-vs-jupix"
-publishDate: "2026-08-17"
+publishDate: "2025-07-18"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Jupix is a well-known estate agency CRM in the UK market. Here is how it compares to Relentify CRM on features, pricing, and the flexibility that modern agents need."

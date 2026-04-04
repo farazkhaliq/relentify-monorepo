@@ -1,7 +1,7 @@
 ---
 title: "How Security Companies Can Track Guard Hours and Patrol Times"
 slug: "security-companies-track-guard-hours"
-publishDate: "2026-11-30"
+publishDate: "2025-10-31"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Security companies need to prove guards were where they should be, when they should be. Here is how to track hours and patrols with confidence."

@@ -1,7 +1,7 @@
 ---
 title: "The Inventory Clerk's Guide to Writing Fair and Accurate Reports"
 slug: "inventory-clerk-writing-fair-reports"
-publishDate: "2026-05-31"
+publishDate: "2025-05-01"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Fair and accurate reports are the foundation of a successful inventory career. Learn how to write descriptions that are objective, consistent, and defensible."

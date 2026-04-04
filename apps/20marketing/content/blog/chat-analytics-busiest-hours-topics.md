@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Chat Analytics: Understanding Your Busiest Hours and Topics"
 slug: "chat-analytics-busiest-hours-topics"
-publishDate: "2026-10-07"
+publishDate: "2025-09-07"
 author: "Relentify"
 category: "Chat"
 excerpt: "Chat analytics reveal when your visitors need help most and what they ask about. Here is how to read the data and use it to improve staffing, content, and service."

@@ -1,7 +1,7 @@
 ---
 title: "How to Manage Block Management with CRM Software"
 slug: "block-management-crm-software"
-publishDate: "2026-11-28"
+publishDate: "2025-10-29"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Block management involves multiple stakeholders, shared costs, and complex compliance requirements. A CRM adapted for block management brings order to the complexity."

@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Tenant Onboarding for Letting Agents"
 slug: "tenant-onboarding-letting-agents-guide"
-publishDate: "2026-04-24"
+publishDate: "2025-03-25"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "A smooth tenant onboarding process sets the tone for the entire tenancy. This guide covers every step from offer acceptance to move-in day, and how to systematise it."

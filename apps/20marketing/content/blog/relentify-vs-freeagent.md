@@ -1,7 +1,7 @@
 ---
 title: "Relentify vs FreeAgent: Which Does More for Freelancers and Small Teams?"
 slug: "relentify-vs-freeagent"
-publishDate: "2026-06-06"
+publishDate: "2025-05-07"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "FreeAgent is a popular choice for UK freelancers and micro-businesses. But does its feature set justify the price when compared to Relentify? Here is a detailed comparison."

@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Estate Agent KPIs and Performance Metrics"
 slug: "estate-agent-kpis-performance-metrics"
-publishDate: "2026-10-03"
+publishDate: "2025-09-03"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "You cannot improve what you do not measure. This guide covers the KPIs that every estate agency should track and how to use them to drive better performance."

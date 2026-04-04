@@ -1,7 +1,7 @@
 ---
 title: "How to Calculate Holiday Entitlement for Part-Time and Irregular Workers"
 slug: "calculate-holiday-entitlement-part-time"
-publishDate: "2026-06-11"
+publishDate: "2025-05-12"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A practical guide to calculating holiday entitlement for part-time employees, shift workers, and those with irregular hours, including pro-rata calculations and accrual methods."

@@ -1,7 +1,7 @@
 ---
 title: "A Beginner's Guide to Running Payroll for Your Small Business"
 slug: "beginners-guide-running-payroll"
-publishDate: "2026-04-09"
+publishDate: "2025-03-10"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "Everything you need to know about running payroll for the first time, from understanding pay periods to calculating deductions and staying compliant."

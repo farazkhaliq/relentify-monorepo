@@ -1,7 +1,7 @@
 ---
 title: "How Inventory Reports Support Insurance Claims for Landlords"
 slug: "inventory-reports-insurance-claims"
-publishDate: "2026-12-15"
+publishDate: "2025-11-15"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Property inventory reports serve as valuable evidence for insurance claims. Understanding how to use them can help landlords recover losses from damage, theft, and other incidents."

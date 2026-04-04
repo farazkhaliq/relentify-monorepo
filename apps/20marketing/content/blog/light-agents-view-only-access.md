@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Light Agents: Giving View-Only Access to Non-Support Staff"
 slug: "light-agents-view-only-access"
-publishDate: "2026-12-27"
+publishDate: "2025-11-27"
 author: "Relentify"
 category: "Connect"
 excerpt: "Not everyone who needs helpdesk access needs full agent capabilities. Light agents let non-support staff view tickets and add notes without handling the queue."

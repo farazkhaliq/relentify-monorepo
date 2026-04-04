@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Check-In Reports for Rental Properties"
 slug: "check-in-reports-rental-properties"
-publishDate: "2026-04-16"
+publishDate: "2025-03-17"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "A check-in report is the starting point for every tenancy. This guide explains what it should include, how to conduct one properly, and why it matters for deposit protection."

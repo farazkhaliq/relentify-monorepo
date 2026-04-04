@@ -1,7 +1,7 @@
 ---
 title: "How to Manage Multiple Software Subscriptions Without Losing Track"
 slug: "manage-multiple-software-subscriptions"
-publishDate: "2026-09-12"
+publishDate: "2025-08-13"
 author: "Relentify"
 category: "Small Business & Growth"
 excerpt: "A practical approach to tracking, auditing, and controlling your software subscriptions so you stop paying for tools you no longer use."

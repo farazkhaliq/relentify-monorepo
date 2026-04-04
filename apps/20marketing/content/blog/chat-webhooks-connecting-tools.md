@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Chat Webhooks: Connecting Live Chat to Your Other Tools"
 slug: "chat-webhooks-connecting-tools"
-publishDate: "2026-11-16"
+publishDate: "2025-10-17"
 author: "Relentify"
 category: "Chat"
 excerpt: "Webhooks let your live chat platform communicate with CRMs, helpdesks, and other tools automatically. Here is how they work and how to set them up."

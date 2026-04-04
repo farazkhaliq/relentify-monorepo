@@ -1,7 +1,7 @@
 ---
 title: "The Difference Between an Inventory, a Schedule of Condition, and a Dilapidations Report"
 slug: "inventory-vs-schedule-condition-dilapidations"
-publishDate: "2026-07-06"
+publishDate: "2025-06-06"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Inventories, schedules of condition, and dilapidations reports serve different purposes. Understanding the distinctions helps you choose the right document for your situation."

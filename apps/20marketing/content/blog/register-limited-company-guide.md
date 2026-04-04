@@ -1,7 +1,7 @@
 ---
 title: "How to Register a Limited Company: A Step-by-Step Guide"
 slug: "register-limited-company-guide"
-publishDate: "2026-04-12"
+publishDate: "2025-03-13"
 author: "Relentify"
 category: "Small Business & Growth"
 excerpt: "Everything you need to know about registering a limited company, from choosing a name to filing with Companies House."

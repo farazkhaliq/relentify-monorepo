@@ -1,7 +1,7 @@
 ---
 title: "How CRM Software Helps Letting Agents Reduce Void Periods"
 slug: "crm-software-reduce-void-periods"
-publishDate: "2026-05-03"
+publishDate: "2025-04-03"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Every day a property sits empty costs the landlord money and erodes trust in your agency. A CRM gives you the visibility and automation to minimise void periods across your portfolio."

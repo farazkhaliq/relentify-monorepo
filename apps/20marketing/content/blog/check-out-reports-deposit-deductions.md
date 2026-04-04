@@ -1,7 +1,7 @@
 ---
 title: "Check-Out Reports: How to Protect Your Deposit Deductions"
 slug: "check-out-reports-deposit-deductions"
-publishDate: "2026-04-25"
+publishDate: "2025-03-26"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "The check-out report determines whether deposit deductions are justified. Learn how to prepare one that is fair, thorough, and defensible."

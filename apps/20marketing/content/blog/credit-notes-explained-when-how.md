@@ -1,7 +1,7 @@
 ---
 title: "Credit Notes Explained: When and How to Issue Them"
 slug: "credit-notes-explained-when-how"
-publishDate: "2026-08-18"
+publishDate: "2025-07-19"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Credit notes correct invoicing errors and handle refunds properly. Here's when you need them and how to issue them correctly."

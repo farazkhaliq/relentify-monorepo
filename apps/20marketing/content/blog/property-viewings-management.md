@@ -1,7 +1,7 @@
 ---
 title: "Property Viewings Management: Scheduling, Tracking, and Follow-Up"
 slug: "property-viewings-management"
-publishDate: "2026-09-15"
+publishDate: "2025-08-16"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Viewings are where tenancies are won or lost. A structured approach to scheduling, conducting, and following up on viewings maximises your conversion rate."

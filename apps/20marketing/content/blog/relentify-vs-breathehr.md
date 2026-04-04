@@ -1,7 +1,7 @@
 ---
 title: "Relentify HR vs BreatheHR: HR Software for Growing Teams Compared"
 slug: "relentify-vs-breathehr"
-publishDate: "2027-03-20"
+publishDate: "2026-02-18"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "BreatheHR is a well-known UK HR platform designed for SMEs. Here is how Relentify HR compares on features, pricing, and what you get for your money."

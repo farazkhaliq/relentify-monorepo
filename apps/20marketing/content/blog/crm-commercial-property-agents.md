@@ -1,7 +1,7 @@
 ---
 title: "A Guide to CRM for Commercial Property Agents"
 slug: "crm-commercial-property-agents"
-publishDate: "2026-12-22"
+publishDate: "2025-11-22"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Commercial property involves longer sales cycles, complex deal structures, and multi-stakeholder relationships. A CRM designed for these realities is essential for staying on top of the pipeline."

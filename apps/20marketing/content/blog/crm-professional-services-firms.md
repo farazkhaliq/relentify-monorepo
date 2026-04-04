@@ -1,7 +1,7 @@
 ---
 title: "How Professional Services Firms Can Use CRM to Track Projects and Clients"
 slug: "crm-professional-services-firms"
-publishDate: "2027-03-06"
+publishDate: "2026-02-04"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Professional services firms — consultancies, agencies, and advisory practices — need to manage client relationships and project delivery in parallel. A CRM provides the structure for both."

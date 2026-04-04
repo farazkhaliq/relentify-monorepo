@@ -1,7 +1,7 @@
 ---
 title: "Understanding VAT Reverse Charge for Domestic Services"
 slug: "vat-reverse-charge-domestic-services"
-publishDate: "2027-01-22"
+publishDate: "2025-12-23"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "The domestic reverse charge changes who accounts for VAT on certain services. Here's how it works and how to handle it in your accounts."

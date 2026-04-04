@@ -1,7 +1,7 @@
 ---
 title: "How to Use Chat Tags to Categorise and Report on Conversations"
 slug: "chat-tags-categorise-conversations"
-publishDate: "2026-11-08"
+publishDate: "2025-10-09"
 author: "Relentify"
 category: "Chat"
 excerpt: "Chat tags turn unstructured conversations into organised data. Here is how to build a tagging system that powers reporting, routing, and continuous improvement."

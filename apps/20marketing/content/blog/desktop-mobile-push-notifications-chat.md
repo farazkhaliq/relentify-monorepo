@@ -1,7 +1,7 @@
 ---
 title: "How to Set Up Desktop and Mobile Push Notifications for Chat"
 slug: "desktop-mobile-push-notifications-chat"
-publishDate: "2026-10-15"
+publishDate: "2025-09-15"
 author: "Relentify"
 category: "Chat"
 excerpt: "Push notifications ensure you never miss a chat conversation. Here is how to set them up on desktop and mobile so your team stays responsive wherever they are."

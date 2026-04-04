@@ -1,7 +1,7 @@
 ---
 title: "How to Set Up Business Hours and Out-of-Hours Auto-Replies"
 slug: "business-hours-out-of-hours-replies"
-publishDate: "2026-08-24"
+publishDate: "2025-07-25"
 author: "Relentify"
 category: "Connect"
 excerpt: "Customers contact you around the clock, but your team works set hours. Learn how to configure business hours and auto-replies that keep expectations clear."

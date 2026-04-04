@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to VAT Registration for Small Businesses"
 slug: "vat-registration-small-businesses-guide"
-publishDate: "2026-05-20"
+publishDate: "2025-04-20"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Not sure when or how to register for VAT? This guide explains the thresholds, the process, and what changes once you are VAT-registered."

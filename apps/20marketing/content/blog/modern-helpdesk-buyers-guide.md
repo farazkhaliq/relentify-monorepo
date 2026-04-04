@@ -1,7 +1,7 @@
 ---
 title: "What to Look for in a Modern Helpdesk: A Buyer's Guide"
 slug: "modern-helpdesk-buyers-guide"
-publishDate: "2027-02-13"
+publishDate: "2026-01-14"
 author: "Relentify"
 category: "Connect"
 excerpt: "Choosing a helpdesk is a long-term decision. This buyer's guide covers the essential features, common pitfalls, and evaluation criteria for picking the right platform."

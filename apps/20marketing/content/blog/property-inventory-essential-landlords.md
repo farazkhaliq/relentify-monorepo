@@ -1,7 +1,7 @@
 ---
 title: "What Is a Property Inventory and Why Is It Essential for Landlords?"
 slug: "property-inventory-essential-landlords"
-publishDate: "2026-04-07"
+publishDate: "2025-03-08"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "A property inventory is the single most important document for protecting your rental investment. Here is what it is, what it covers, and why every landlord needs one."

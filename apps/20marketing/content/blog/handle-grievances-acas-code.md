@@ -1,7 +1,7 @@
 ---
 title: "How to Handle Grievances: The ACAS Code of Practice Explained"
 slug: "handle-grievances-acas-code"
-publishDate: "2027-01-18"
+publishDate: "2025-12-19"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A practical guide to handling employee grievances in line with the ACAS Code of Practice, covering the process, your obligations, and how to handle complaints fairly and consistently."

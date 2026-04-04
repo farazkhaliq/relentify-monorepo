@@ -1,7 +1,7 @@
 ---
 title: "Understanding the Affordable Care Act (ACA) Employer Mandate"
 slug: "aca-employer-mandate-guide"
-publishDate: "2027-04-04"
+publishDate: "2026-03-05"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "What the ACA employer mandate requires, how to determine if your business is an applicable large employer, and how to stay compliant."

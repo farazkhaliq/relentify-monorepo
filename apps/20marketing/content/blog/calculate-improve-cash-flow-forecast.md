@@ -1,7 +1,7 @@
 ---
 title: "How to Calculate and Improve Your Cash Flow Forecast"
 slug: "calculate-improve-cash-flow-forecast"
-publishDate: "2026-08-09"
+publishDate: "2025-07-10"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Cash flow is the lifeblood of your business. Here's how to forecast it accurately and take steps to improve it."

@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Clock-In Clock-Out Systems for Hourly Workers"
 slug: "clock-in-clock-out-systems-hourly-workers"
-publishDate: "2026-05-05"
+publishDate: "2025-04-05"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Everything you need to know about clock-in clock-out systems for hourly workers, from choosing the right approach to avoiding common pitfalls."

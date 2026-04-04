@@ -1,7 +1,7 @@
 ---
 title: "How to Handle Fair Wear and Tear in Property Inventories"
 slug: "fair-wear-tear-property-inventories"
-publishDate: "2026-07-15"
+publishDate: "2025-06-15"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Fair wear and tear is one of the most misunderstood concepts in property lettings. This guide explains what it means, how to assess it, and how to handle it in your inventory reports."

@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Workers' Compensation Insurance for US Employers"
 slug: "workers-compensation-insurance-us"
-publishDate: "2027-03-29"
+publishDate: "2026-02-27"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "What US employers need to know about workers' compensation insurance, from state requirements and coverage types to managing costs and filing claims."

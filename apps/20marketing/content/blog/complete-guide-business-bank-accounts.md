@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Business Bank Accounts"
 slug: "complete-guide-business-bank-accounts"
-publishDate: "2027-04-21"
+publishDate: "2026-03-22"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "A dedicated business bank account is essential for clean financial records, tax compliance, and professional credibility. This guide covers what to look for and how to manage yours effectively."

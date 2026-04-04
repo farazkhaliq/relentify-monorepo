@@ -1,7 +1,7 @@
 ---
 title: "How to Choose the Right Financial Year End for Your Business"
 slug: "choose-financial-year-end"
-publishDate: "2027-02-15"
+publishDate: "2026-01-16"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Your financial year end affects your tax deadlines, reporting, and cash flow. Here's how to choose the date that works best for your business."

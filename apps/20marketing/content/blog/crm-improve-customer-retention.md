@@ -1,7 +1,7 @@
 ---
 title: "How Small Businesses Can Use CRM to Improve Customer Retention"
 slug: "crm-improve-customer-retention"
-publishDate: "2027-03-14"
+publishDate: "2026-02-12"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Acquiring a new customer costs five to seven times more than keeping an existing one. A CRM helps small businesses build the habits that keep customers coming back."

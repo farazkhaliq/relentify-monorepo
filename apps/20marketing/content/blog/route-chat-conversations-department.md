@@ -1,7 +1,7 @@
 ---
 title: "How to Route Chat Conversations to the Right Department Automatically"
 slug: "route-chat-conversations-department"
-publishDate: "2026-06-12"
+publishDate: "2025-05-13"
 author: "Relentify"
 category: "Chat"
 excerpt: "Automatic chat routing sends each conversation to the team best equipped to handle it. Here is how to set it up so visitors get faster, more accurate answers."

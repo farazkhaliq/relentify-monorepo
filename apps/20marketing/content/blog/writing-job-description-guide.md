@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Writing a Job Description That Attracts the Right Candidates"
 slug: "writing-job-description-guide"
-publishDate: "2026-09-18"
+publishDate: "2025-08-19"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "How to write job descriptions that attract qualified candidates, including structure, language, salary transparency, and the common mistakes that drive good applicants away."

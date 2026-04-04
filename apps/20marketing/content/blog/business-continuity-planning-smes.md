@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Business Continuity Planning for SMEs"
 slug: "business-continuity-planning-smes"
-publishDate: "2026-09-03"
+publishDate: "2025-08-04"
 author: "Relentify"
 category: "Small Business & Growth"
 excerpt: "How to prepare your small business for disruptions so you can keep operating when things go wrong, from power outages to data loss."

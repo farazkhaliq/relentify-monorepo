@@ -1,7 +1,7 @@
 ---
 title: "How to Choose a Pension Provider for Your Small Business"
 slug: "choose-pension-provider-small-business"
-publishDate: "2026-06-29"
+publishDate: "2025-05-30"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A practical guide to selecting the right workplace pension provider for your small business, comparing costs, features, integration options, and what your employees actually care about."

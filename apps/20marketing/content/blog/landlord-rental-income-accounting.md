@@ -1,7 +1,7 @@
 ---
 title: "The Landlord's Guide to Rental Income Accounting"
 slug: "landlord-rental-income-accounting"
-publishDate: "2027-03-01"
+publishDate: "2026-01-30"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Rental income accounting has its own rules and nuances. This guide covers everything landlords need to know about recording income, tracking expenses, and staying compliant."

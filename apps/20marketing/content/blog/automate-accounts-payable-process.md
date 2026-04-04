@@ -1,7 +1,7 @@
 ---
 title: "How to Automate Your Accounts Payable Process"
 slug: "automate-accounts-payable-process"
-publishDate: "2027-01-14"
+publishDate: "2025-12-15"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Manual bill processing is slow, error-prone, and expensive. Here's how to automate your accounts payable to save time and reduce mistakes."

@@ -1,7 +1,7 @@
 ---
 title: "The Estate Agent's Guide to GDPR and Data Protection"
 slug: "estate-agent-gdpr-data-protection"
-publishDate: "2026-07-23"
+publishDate: "2025-06-23"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Estate agents handle sensitive personal data daily. Understanding your data protection obligations is essential for legal compliance and client trust."

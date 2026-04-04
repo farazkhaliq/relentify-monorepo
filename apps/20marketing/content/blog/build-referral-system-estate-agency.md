@@ -1,7 +1,7 @@
 ---
 title: "How to Build a Referral System for Your Estate Agency"
 slug: "build-referral-system-estate-agency"
-publishDate: "2026-09-06"
+publishDate: "2025-08-07"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Referrals are the highest-converting lead source for estate agents. A structured referral system, tracked through your CRM, turns happy clients into a reliable growth engine."

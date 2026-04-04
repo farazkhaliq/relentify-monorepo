@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Workplace Health and Safety for Small Businesses"
 slug: "workplace-health-safety-small-business"
-publishDate: "2027-01-10"
+publishDate: "2025-12-11"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A practical guide to meeting your workplace health and safety obligations as a small business, covering risk assessments, policies, training, and record keeping without overcomplicating things."

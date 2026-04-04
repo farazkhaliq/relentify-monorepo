@@ -1,7 +1,7 @@
 ---
 title: "How to Handle Disciplinary Procedures Fairly and Legally"
 slug: "handle-disciplinary-procedures-fairly"
-publishDate: "2026-11-15"
+publishDate: "2025-10-16"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A practical guide to handling disciplinary procedures in your business, covering investigations, hearings, outcomes, appeals, and how to avoid the most common procedural mistakes."

@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Workplace Pensions and Auto-Enrolment for Employers"
 slug: "workplace-pensions-auto-enrolment"
-publishDate: "2026-06-20"
+publishDate: "2025-05-21"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "Everything UK employers need to know about workplace pensions and auto-enrolment duties, from choosing a scheme to managing contributions and staying compliant with The Pensions Regulator."

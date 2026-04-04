@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Right to Work Checks for Employers"
 slug: "right-to-work-checks-employers"
-publishDate: "2026-10-22"
+publishDate: "2025-09-22"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "How to conduct right to work checks correctly, including which documents to accept, when to check, and how to establish a statutory excuse that protects your business."

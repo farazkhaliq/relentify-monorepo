@@ -1,7 +1,7 @@
 ---
 title: "Trial Balance Explained: What It Is and Why It Matters"
 slug: "trial-balance-explained"
-publishDate: "2027-01-06"
+publishDate: "2025-12-07"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "A trial balance is a fundamental check on your bookkeeping accuracy. Here's what it is, how to read one, and what to do when it does not balance."

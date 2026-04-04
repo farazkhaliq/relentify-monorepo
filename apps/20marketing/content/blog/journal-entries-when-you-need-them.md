@@ -1,7 +1,7 @@
 ---
 title: "What Are Journal Entries and When Do You Need Them?"
 slug: "journal-entries-when-you-need-them"
-publishDate: "2026-10-02"
+publishDate: "2025-09-02"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Journal entries are the manual adjustments that keep your books accurate. Here's when you need them and how to create them correctly."

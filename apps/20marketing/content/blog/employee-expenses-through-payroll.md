@@ -1,7 +1,7 @@
 ---
 title: "How to Handle Employee Expenses Through Payroll"
 slug: "employee-expenses-through-payroll"
-publishDate: "2026-07-17"
+publishDate: "2025-06-17"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A practical guide to processing employee expense reimbursements through payroll, covering policy setup, tax implications, record keeping, and how to avoid common mistakes."

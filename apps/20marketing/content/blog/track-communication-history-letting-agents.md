@@ -1,7 +1,7 @@
 ---
 title: "Why Letting Agents Should Track Communication History with Every Contact"
 slug: "track-communication-history-letting-agents"
-publishDate: "2026-10-19"
+publishDate: "2025-09-19"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Every phone call, email, and meeting contains information that matters. Tracking communication history creates accountability, continuity, and better client relationships."

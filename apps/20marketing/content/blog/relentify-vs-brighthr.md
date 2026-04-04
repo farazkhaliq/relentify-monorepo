@@ -1,7 +1,7 @@
 ---
 title: "Relentify HR vs BrightHR: Which Does More for Small Businesses?"
 slug: "relentify-vs-brighthr"
-publishDate: "2027-03-16"
+publishDate: "2026-02-14"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "BrightHR is a popular UK HR platform for small businesses. Here is how Relentify HR compares on features, pricing, and practical value for growing teams."

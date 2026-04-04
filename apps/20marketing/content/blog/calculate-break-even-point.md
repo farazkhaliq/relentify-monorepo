@@ -1,7 +1,7 @@
 ---
 title: "How to Calculate Your Break-Even Point"
 slug: "calculate-break-even-point"
-publishDate: "2027-04-05"
+publishDate: "2026-03-06"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Your break-even point tells you exactly how much you need to sell to cover your costs. Knowing this number helps you set prices, manage costs, and plan for growth."

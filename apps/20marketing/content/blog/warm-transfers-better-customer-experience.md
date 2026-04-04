@@ -1,7 +1,7 @@
 ---
 title: "How Warm Transfers Create Better Customer Experiences on the Phone"
 slug: "warm-transfers-better-customer-experience"
-publishDate: "2027-01-28"
+publishDate: "2025-12-29"
 author: "Relentify"
 category: "Connect"
 excerpt: "Cold transfers drop customers into the unknown. Warm transfers brief the next agent before connecting. Learn why the difference matters and how to implement warm handoffs."

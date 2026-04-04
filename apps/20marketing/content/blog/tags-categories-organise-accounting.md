@@ -1,7 +1,7 @@
 ---
 title: "How to Use Tags and Categories to Organise Your Accounting Data"
 slug: "tags-categories-organise-accounting"
-publishDate: "2027-04-16"
+publishDate: "2026-03-17"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Tags and categories add another dimension to your accounting data. Used well, they let you slice and analyse your finances in ways that your chart of accounts alone cannot."

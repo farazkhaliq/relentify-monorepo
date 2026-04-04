@@ -1,7 +1,7 @@
 ---
 title: "How to Set Up SLAs That Keep Your Support Team Accountable"
 slug: "set-up-slas-support-team"
-publishDate: "2026-05-17"
+publishDate: "2025-04-17"
 author: "Relentify"
 category: "Connect"
 excerpt: "Service level agreements define how quickly your team should respond to and resolve customer issues. Here is how to set realistic SLAs and enforce them."

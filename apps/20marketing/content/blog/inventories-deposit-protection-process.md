@@ -1,7 +1,7 @@
 ---
 title: "The Role of Inventories in the Deposit Protection Process"
 slug: "inventories-deposit-protection-process"
-publishDate: "2026-10-20"
+publishDate: "2025-09-20"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Deposit protection schemes rely heavily on inventory evidence when resolving disputes. Understanding how the process works helps you prepare evidence that succeeds."

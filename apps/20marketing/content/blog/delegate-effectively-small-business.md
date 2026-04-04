@@ -1,7 +1,7 @@
 ---
 title: "How to Delegate Effectively as a Small Business Owner"
 slug: "delegate-effectively-small-business"
-publishDate: "2026-07-02"
+publishDate: "2025-06-02"
 author: "Relentify"
 category: "Small Business & Growth"
 excerpt: "A practical guide to letting go of tasks, trusting your team, and focusing on the work that only you can do."

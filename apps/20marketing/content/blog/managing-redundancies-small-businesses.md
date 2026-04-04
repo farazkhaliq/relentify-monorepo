@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Managing Redundancies for Small Businesses"
 slug: "managing-redundancies-small-businesses"
-publishDate: "2026-11-23"
+publishDate: "2025-10-24"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "How to manage the redundancy process properly as a small business, from identifying genuine redundancy situations to consultation, selection, and calculating entitlements."

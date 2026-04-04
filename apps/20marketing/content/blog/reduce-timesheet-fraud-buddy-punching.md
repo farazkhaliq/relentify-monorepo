@@ -1,7 +1,7 @@
 ---
 title: "How to Reduce Timesheet Fraud and Buddy Punching"
 slug: "reduce-timesheet-fraud-buddy-punching"
-publishDate: "2026-08-30"
+publishDate: "2025-07-31"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Timesheet fraud costs businesses billions annually. Learn practical strategies to prevent buddy punching, inflated hours, and other forms of time theft."

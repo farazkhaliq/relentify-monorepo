@@ -1,7 +1,7 @@
 ---
 title: "A Freelancer's Guide to Invoicing and Getting Paid"
 slug: "freelancer-invoicing-getting-paid"
-publishDate: "2027-03-21"
+publishDate: "2026-02-19"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Getting paid starts with getting your invoicing right. This guide covers everything freelancers need to know about creating professional invoices and collecting payment efficiently."

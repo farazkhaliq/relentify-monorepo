@@ -1,7 +1,7 @@
 ---
 title: "The Letting Agent's Guide to Automated Follow-Ups and Reminders"
 slug: "letting-agent-automated-follow-ups"
-publishDate: "2026-05-30"
+publishDate: "2025-04-30"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Manual follow-ups are the first casualty of a busy office. Automated reminders ensure nothing falls through the cracks, from tenant enquiries to compliance deadlines."

@@ -1,7 +1,7 @@
 ---
 title: "Why Estate Agents Need a CRM (and Why a Spreadsheet Isn't One)"
 slug: "estate-agents-need-crm-not-spreadsheet"
-publishDate: "2026-04-06"
+publishDate: "2025-03-07"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Spreadsheets served their purpose, but they were never designed to manage landlord relationships, tenancy pipelines, or compliance deadlines. Here is why estate agents need a proper CRM."

@@ -1,7 +1,7 @@
 ---
 title: "How to Manage Petty Cash Properly in Your Business"
 slug: "manage-petty-cash-business"
-publishDate: "2026-10-10"
+publishDate: "2025-09-10"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Petty cash is easy to mismanage. Here's how to set up a system that keeps small expenses tracked and your books accurate."

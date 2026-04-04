@@ -1,7 +1,7 @@
 ---
 title: "Flat Rate VAT Scheme: Is It Right for Your Business?"
 slug: "flat-rate-vat-scheme-explained"
-publishDate: "2026-05-29"
+publishDate: "2025-04-29"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "The flat rate VAT scheme simplifies your VAT accounting, but it is not always the best choice. Here's how it works and who benefits most."

@@ -1,7 +1,7 @@
 ---
 title: "Timesheet Approval Workflows: Who Should Approve and When"
 slug: "timesheet-approval-workflows"
-publishDate: "2026-06-10"
+publishDate: "2025-05-11"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "A well-designed approval workflow catches errors before they reach payroll. Learn how to structure timesheet approvals for accuracy and efficiency."

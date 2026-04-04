@@ -1,7 +1,7 @@
 ---
 title: "The Difference Between Time Tracking and Timesheet Software"
 slug: "time-tracking-vs-timesheet-software"
-publishDate: "2026-11-14"
+publishDate: "2025-10-15"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Time tracking and timesheet software sound similar but serve different purposes. Understand which one your business needs — or whether you need both."

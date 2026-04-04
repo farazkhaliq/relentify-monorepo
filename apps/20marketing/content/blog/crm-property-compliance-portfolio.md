@@ -1,7 +1,7 @@
 ---
 title: "How CRM Software Supports Property Compliance Across Your Portfolio"
 slug: "crm-property-compliance-portfolio"
-publishDate: "2027-02-16"
+publishDate: "2026-01-17"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Compliance obligations multiply with every property you add. A CRM that tracks certificates, deadlines, and remedial actions across your entire portfolio prevents costly lapses."

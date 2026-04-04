@@ -1,7 +1,7 @@
 ---
 title: "Relentify CRM vs Reapit: A Modern Alternative for Estate Agents"
 slug: "relentify-vs-reapit"
-publishDate: "2026-07-30"
+publishDate: "2025-06-30"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Reapit is a long-established name in estate agency software, but its complexity and pricing model are pushing agents toward modern alternatives. Here is how Relentify CRM compares."

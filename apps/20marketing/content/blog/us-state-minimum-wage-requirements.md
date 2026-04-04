@@ -1,7 +1,7 @@
 ---
 title: "A Guide to US State-by-State Minimum Wage Requirements"
 slug: "us-state-minimum-wage-requirements"
-publishDate: "2027-04-12"
+publishDate: "2026-03-13"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "How minimum wage varies across US states, what employers need to know about compliance, and how to stay current when rates change."

@@ -1,7 +1,7 @@
 ---
 title: "Relentify Chat vs Tidio: Free Chat With More Built In"
 slug: "relentify-vs-tidio"
-publishDate: "2027-02-20"
+publishDate: "2026-01-21"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Tidio offers a popular free chat tier, but limits push you to paid plans quickly. Relentify Chat gives you more on the free tier with no hidden upgrade pressure."

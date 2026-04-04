@@ -1,7 +1,7 @@
 ---
 title: "How to Become a Property Inventory Clerk: A Career Guide"
 slug: "become-property-inventory-clerk-career"
-publishDate: "2026-05-22"
+publishDate: "2025-04-22"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Property inventory clerking is a flexible, in-demand career. This guide covers what the role involves, how to get started, what to charge, and how to build a sustainable business."

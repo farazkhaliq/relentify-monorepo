@@ -1,7 +1,7 @@
 ---
 title: "Seasonal Inventory Considerations: What Changes Between Summer and Winter"
 slug: "seasonal-inventory-considerations"
-publishDate: "2026-12-07"
+publishDate: "2025-11-07"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "The time of year affects what you should look for in a property inventory. This guide covers seasonal factors that change between summer and winter inspections."

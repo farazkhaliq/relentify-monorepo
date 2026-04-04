@@ -1,7 +1,7 @@
 ---
 title: "How to Manage Your Time When You're the Only Employee"
 slug: "manage-time-only-employee"
-publishDate: "2026-06-14"
+publishDate: "2025-05-15"
 author: "Relentify"
 category: "Small Business & Growth"
 excerpt: "Practical time management strategies for sole traders and solo founders who juggle every role in their business."

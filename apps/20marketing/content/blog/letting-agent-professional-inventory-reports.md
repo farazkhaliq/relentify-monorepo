@@ -1,7 +1,7 @@
 ---
 title: "A Letting Agent's Guide to Professional Inventory Reports"
 slug: "letting-agent-professional-inventory-reports"
-publishDate: "2026-05-13"
+publishDate: "2025-04-13"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Professional inventory reports set letting agents apart. This guide covers what makes an inventory professional, how to deliver consistency, and why quality matters for your business."

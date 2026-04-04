@@ -1,7 +1,7 @@
 ---
 title: "The Employer's Guide to National Insurance Contributions"
 slug: "employer-guide-national-insurance"
-publishDate: "2026-05-06"
+publishDate: "2025-04-06"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A comprehensive guide to employer and employee National Insurance contributions in the UK, covering classes, thresholds, rates, and how to calculate and report NICs correctly."

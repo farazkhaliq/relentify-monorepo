@@ -1,7 +1,7 @@
 ---
 title: "How to Build a Structured Interview Process for Small Businesses"
 slug: "structured-interview-process-small-business"
-publishDate: "2026-09-27"
+publishDate: "2025-08-28"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A practical guide to creating a structured interview process that helps small businesses hire better, reduce bias, and make consistent, defensible hiring decisions."

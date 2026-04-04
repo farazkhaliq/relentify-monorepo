@@ -1,7 +1,7 @@
 ---
 title: "The Agency Worker's Guide to Timesheet Compliance and Records"
 slug: "agency-worker-timesheet-compliance"
-publishDate: "2026-07-16"
+publishDate: "2025-06-16"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Agency workers present unique timesheet challenges. Learn how to maintain compliant records when workers are employed by one organisation but managed by another."

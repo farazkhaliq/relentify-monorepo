@@ -1,7 +1,7 @@
 ---
 title: "The Letting Agent's Guide to Right to Rent Checks and Record-Keeping"
 slug: "letting-agent-right-to-rent-records"
-publishDate: "2027-01-07"
+publishDate: "2025-12-08"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Right to rent checks are a legal obligation for letting agents. Proper record-keeping protects your agency and demonstrates compliance if questioned."

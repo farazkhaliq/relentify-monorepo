@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Financial Reports Every Business Owner Should Read"
 slug: "financial-reports-business-owner-guide"
-publishDate: "2027-03-27"
+publishDate: "2026-02-25"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Financial reports tell the story of your business. Understanding which reports matter and what they reveal helps you make better decisions and stay in control."

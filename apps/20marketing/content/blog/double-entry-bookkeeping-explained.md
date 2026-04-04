@@ -1,7 +1,7 @@
 ---
 title: "What Is Double-Entry Bookkeeping and Why Does It Matter?"
 slug: "double-entry-bookkeeping-explained"
-publishDate: "2027-04-02"
+publishDate: "2026-03-03"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Double-entry bookkeeping is the foundation of modern accounting. Understanding why every transaction has two sides helps you make sense of your financial records."

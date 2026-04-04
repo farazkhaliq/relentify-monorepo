@@ -1,7 +1,7 @@
 ---
 title: "How Barcodes and QR Codes Could Transform Property Inventories"
 slug: "barcodes-qr-codes-property-inventories"
-publishDate: "2027-01-16"
+publishDate: "2025-12-17"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Barcode and QR code technology is already used in asset management across many industries. Here is how it could transform property inventory tracking."

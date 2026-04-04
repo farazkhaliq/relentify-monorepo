@@ -1,7 +1,7 @@
 ---
 title: "How to Conduct Performance Reviews That Actually Improve Performance"
 slug: "conduct-performance-reviews-guide"
-publishDate: "2026-12-01"
+publishDate: "2025-11-01"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A practical guide to running performance reviews that drive real improvement, covering preparation, structure, feedback techniques, goal setting, and avoiding the common pitfalls."

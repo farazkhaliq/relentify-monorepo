@@ -1,7 +1,7 @@
 ---
 title: "How to Handle Disputed Timesheets: A Manager's Guide"
 slug: "handle-disputed-timesheets-managers"
-publishDate: "2026-11-22"
+publishDate: "2025-10-23"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Timesheet disputes are inevitable. Here is a practical framework for resolving them fairly, quickly, and without damaging the working relationship."

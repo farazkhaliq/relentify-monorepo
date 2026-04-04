@@ -1,7 +1,7 @@
 ---
 title: "Relentify Connect vs HubSpot Service Hub: Dedicated Helpdesk vs All-in-One"
 slug: "relentify-vs-hubspot-service-hub"
-publishDate: "2027-01-21"
+publishDate: "2025-12-22"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "HubSpot Service Hub is part of a powerful CRM ecosystem, but is an all-in-one platform the best choice for helpdesk? Comparing it with Relentify Connect on features and value."

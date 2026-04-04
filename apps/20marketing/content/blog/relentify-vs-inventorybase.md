@@ -1,7 +1,7 @@
 ---
 title: "Relentify Inventories vs InventoryBase: More Features, Lower Price"
 slug: "relentify-vs-inventorybase"
-publishDate: "2026-10-25"
+publishDate: "2025-09-25"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "InventoryBase is the most widely used property inventory software in the UK. Here is how Relentify Inventories compares on features, pricing, and the broader platform advantage."

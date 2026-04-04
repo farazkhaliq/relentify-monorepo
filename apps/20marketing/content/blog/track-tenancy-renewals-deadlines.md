@@ -1,7 +1,7 @@
 ---
 title: "How to Track Tenancy Renewals and Never Miss a Deadline"
 slug: "track-tenancy-renewals-deadlines"
-publishDate: "2026-06-08"
+publishDate: "2025-05-09"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Missed tenancy renewal deadlines lead to void periods, lost revenue, and frustrated landlords. A systematic approach to tracking renewals protects your agency and your landlords."

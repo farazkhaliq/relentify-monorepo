@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Facebook and Instagram Messaging for Customer Support"
 slug: "facebook-instagram-messaging-support"
-publishDate: "2026-07-10"
+publishDate: "2025-06-10"
 author: "Relentify"
 category: "Connect"
 excerpt: "Facebook Messenger and Instagram DMs are where customers already spend time. Learn how to turn social messaging into a professional support channel."

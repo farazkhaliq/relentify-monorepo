@@ -1,7 +1,7 @@
 ---
 title: "How to Build Custom Support Reports and Dashboards"
 slug: "custom-support-reports-dashboards"
-publishDate: "2026-12-03"
+publishDate: "2025-11-03"
 author: "Relentify"
 category: "Connect"
 excerpt: "Default reports only tell part of the story. Learn how to build custom reports and dashboards that answer the specific questions your business needs."

@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Call Recording for Customer Support Teams"
 slug: "call-recording-customer-support"
-publishDate: "2026-11-01"
+publishDate: "2025-10-02"
 author: "Relentify"
 category: "Connect"
 excerpt: "Call recording captures every phone interaction for training, quality assurance, and dispute resolution. Here is how to implement it properly and legally."

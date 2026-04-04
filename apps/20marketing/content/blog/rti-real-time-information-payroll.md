@@ -1,7 +1,7 @@
 ---
 title: "What Is RTI and How Does Real Time Information Payroll Work?"
 slug: "rti-real-time-information-payroll"
-publishDate: "2027-02-23"
+publishDate: "2026-01-24"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A plain-English guide to Real Time Information (RTI) for UK employers, explaining what it is, what you need to submit, when to submit it, and what happens if you get it wrong."

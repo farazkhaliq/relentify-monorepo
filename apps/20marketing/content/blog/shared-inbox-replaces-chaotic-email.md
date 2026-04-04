@@ -1,7 +1,7 @@
 ---
 title: "How a Shared Inbox Replaces Chaotic Team Email Accounts"
 slug: "shared-inbox-replaces-chaotic-email"
-publishDate: "2026-05-08"
+publishDate: "2025-04-08"
 author: "Relentify"
 category: "Connect"
 excerpt: "Team email accounts create confusion. A shared inbox gives every agent visibility, ownership, and accountability over customer conversations."

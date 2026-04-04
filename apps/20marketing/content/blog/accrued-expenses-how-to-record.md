@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Accrued Expenses and How to Record Them"
 slug: "accrued-expenses-how-to-record"
-publishDate: "2027-05-03"
+publishDate: "2026-04-03"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Accrued expenses ensure your financial statements reflect costs you have incurred but not yet been billed for. Understanding how to record them keeps your accounts accurate."

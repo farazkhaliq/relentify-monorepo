@@ -1,7 +1,7 @@
 ---
 title: "Timesheets for Freelancers: Tracking Hours Across Multiple Clients"
 slug: "timesheets-freelancers-multiple-clients"
-publishDate: "2026-12-24"
+publishDate: "2025-11-24"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Freelancers juggling multiple clients need accurate time records for billing, tax, and workload management. Here is how to track hours effectively."

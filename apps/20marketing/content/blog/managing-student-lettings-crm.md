@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Managing Student Lettings with CRM Software"
 slug: "managing-student-lettings-crm"
-publishDate: "2026-11-04"
+publishDate: "2025-10-05"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Student lettings bring unique challenges: seasonal cycles, group tenancies, guarantor management, and high turnover. A CRM helps you manage the complexity at scale."

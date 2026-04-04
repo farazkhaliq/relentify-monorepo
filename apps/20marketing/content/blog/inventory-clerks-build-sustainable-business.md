@@ -1,7 +1,7 @@
 ---
 title: "How Inventory Clerks Can Build a Sustainable Business"
 slug: "inventory-clerks-build-sustainable-business"
-publishDate: "2026-10-12"
+publishDate: "2025-09-12"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Building a sustainable inventory business takes more than doing good inspections. This guide covers client acquisition, pricing strategy, scaling, and long-term growth."

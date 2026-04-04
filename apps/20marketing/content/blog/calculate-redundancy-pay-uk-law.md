@@ -1,7 +1,7 @@
 ---
 title: "How to Calculate Redundancy Pay Under UK Law"
 slug: "calculate-redundancy-pay-uk-law"
-publishDate: "2027-03-03"
+publishDate: "2026-02-01"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A clear guide to calculating statutory redundancy pay in the UK, including eligibility rules, weekly pay caps, and how to handle common edge cases."

@@ -1,7 +1,7 @@
 ---
 title: "How to Handle Multiple Chat Conversations at Once"
 slug: "handle-multiple-chat-conversations"
-publishDate: "2026-08-14"
+publishDate: "2025-07-15"
 author: "Relentify"
 category: "Chat"
 excerpt: "Managing several live chat conversations simultaneously is a skill that can be learned. Here are practical techniques to stay responsive without dropping the ball."

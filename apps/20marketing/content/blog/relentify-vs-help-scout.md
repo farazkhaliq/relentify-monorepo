@@ -1,7 +1,7 @@
 ---
 title: "Relentify Connect vs Help Scout: Simple Helpdesk Comparison"
 slug: "relentify-vs-help-scout"
-publishDate: "2027-01-05"
+publishDate: "2025-12-06"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Help Scout is loved for its simplicity. But does simplicity justify the price? Here is how Relentify Connect compares — same ease of use, more features, lower cost."

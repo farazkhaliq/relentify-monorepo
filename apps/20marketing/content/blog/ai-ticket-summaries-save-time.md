@@ -1,7 +1,7 @@
 ---
 title: "How AI Ticket Summaries Save Agents Time on Long Conversations"
 slug: "ai-ticket-summaries-save-time"
-publishDate: "2026-10-08"
+publishDate: "2025-09-08"
 author: "Relentify"
 category: "Connect"
 excerpt: "Long ticket threads take minutes to read before an agent can respond. AI summaries condense the entire conversation into seconds of context."

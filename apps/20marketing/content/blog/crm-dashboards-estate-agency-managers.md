@@ -1,7 +1,7 @@
 ---
 title: "How CRM Dashboards Help Estate Agency Managers Make Better Decisions"
 slug: "crm-dashboards-estate-agency-managers"
-publishDate: "2026-08-01"
+publishDate: "2025-07-02"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Dashboards turn raw data into actionable insight. For estate agency managers, the right dashboard reveals performance gaps, pipeline health, and team productivity at a glance."

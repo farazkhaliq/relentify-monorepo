@@ -1,7 +1,7 @@
 ---
 title: "How to Claim Allowable Business Expenses: The Complete List"
 slug: "claim-allowable-business-expenses"
-publishDate: "2026-11-11"
+publishDate: "2025-10-12"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Every legitimate expense you miss is tax you overpay. Here's a comprehensive list of allowable business expenses and how to claim them."

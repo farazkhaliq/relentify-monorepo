@@ -1,7 +1,7 @@
 ---
 title: "The Small Business Guide to Flexible Working Requests"
 slug: "flexible-working-requests-guide"
-publishDate: "2026-12-09"
+publishDate: "2025-11-09"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "How to handle flexible working requests as a small business, including what the law requires, how to assess requests fairly, and practical considerations for different types of flexibility."

@@ -1,7 +1,7 @@
 ---
 title: "The Small Business Guide to Auto-Enrolment Pensions"
 slug: "small-business-auto-enrolment-pensions"
-publishDate: "2027-04-15"
+publishDate: "2026-03-16"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Auto-enrolment is a legal requirement for UK employers. This guide explains your obligations, the costs involved, and how to manage pension contributions alongside your payroll."

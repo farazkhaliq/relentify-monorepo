@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Statutory Paternity Pay and Shared Parental Leave"
 slug: "statutory-paternity-pay-shared-parental"
-publishDate: "2026-06-02"
+publishDate: "2025-05-03"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "Understanding Statutory Paternity Pay and Shared Parental Leave as a UK employer, including eligibility, payment calculations, and how to manage the administrative requirements."

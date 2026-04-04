@@ -1,7 +1,7 @@
 ---
 title: "Relentify vs Wave: When Free Accounting Software Isn't Enough"
 slug: "relentify-vs-wave"
-publishDate: "2026-05-19"
+publishDate: "2025-04-19"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Wave offers free accounting software, which is compelling until you discover what free really costs in terms of missing features, limited support, and growth constraints."

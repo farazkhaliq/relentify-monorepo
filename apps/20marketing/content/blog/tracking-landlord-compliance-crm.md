@@ -1,7 +1,7 @@
 ---
 title: "Tracking Landlord Compliance Documents in Your CRM"
 slug: "tracking-landlord-compliance-crm"
-publishDate: "2026-08-10"
+publishDate: "2025-07-11"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Compliance certificates expire. Regulations change. A CRM that tracks every document and deadline across your portfolio protects your agency, your landlords, and your tenants."

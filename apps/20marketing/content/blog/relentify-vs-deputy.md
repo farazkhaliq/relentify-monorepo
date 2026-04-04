@@ -1,7 +1,7 @@
 ---
 title: "Relentify Timesheets vs Deputy: Shift Management Software Compared"
 slug: "relentify-vs-deputy"
-publishDate: "2027-02-28"
+publishDate: "2026-01-29"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Deputy is a popular shift management platform with scheduling, timesheets, and communication. Here is how Relentify Timesheets compares on features, pricing, and value."

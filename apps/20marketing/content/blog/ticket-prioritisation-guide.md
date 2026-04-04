@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Ticket Prioritisation: Urgent, High, Normal, and Low"
 slug: "ticket-prioritisation-guide"
-publishDate: "2026-05-26"
+publishDate: "2025-04-26"
 author: "Relentify"
 category: "Connect"
 excerpt: "Not every support ticket deserves the same response time. Learn how to set up a prioritisation system that ensures critical issues get handled first."

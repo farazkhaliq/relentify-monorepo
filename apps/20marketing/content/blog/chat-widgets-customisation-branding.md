@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Chat Widgets: Customisation, Branding, and Placement"
 slug: "chat-widgets-customisation-branding"
-publishDate: "2026-07-09"
+publishDate: "2025-06-09"
 author: "Relentify"
 category: "Chat"
 excerpt: "Your chat widget is a visible part of your brand. Here is how to customise its appearance, position, and behaviour so it looks professional and works well on every device."

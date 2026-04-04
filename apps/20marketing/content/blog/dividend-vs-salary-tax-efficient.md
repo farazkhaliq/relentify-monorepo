@@ -1,7 +1,7 @@
 ---
 title: "Dividend vs Salary: The Most Tax-Efficient Way to Pay Yourself"
 slug: "dividend-vs-salary-tax-efficient"
-publishDate: "2026-11-03"
+publishDate: "2025-10-04"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "As a company director, the split between salary and dividends affects how much tax you pay. Here's how to find the most efficient balance."

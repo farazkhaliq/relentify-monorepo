@@ -1,7 +1,7 @@
 ---
 title: "How to Handle Overtime Tracking and Calculations in Your Timesheet System"
 slug: "overtime-tracking-calculations-timesheets"
-publishDate: "2026-07-07"
+publishDate: "2025-06-07"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Overtime costs can spiral without proper tracking. Learn how to configure your timesheet system to catch, calculate, and manage overtime effectively."

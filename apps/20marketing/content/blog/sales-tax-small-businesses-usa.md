@@ -1,7 +1,7 @@
 ---
 title: "Understanding Sales Tax for Small Businesses in the United States"
 slug: "sales-tax-small-businesses-usa"
-publishDate: "2027-04-25"
+publishDate: "2026-03-26"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "US sales tax is complex because it varies by state, county, and city. This guide helps small business owners understand their obligations, registration requirements, and filing processes."

@@ -1,7 +1,7 @@
 ---
 title: "Why Recruitment Agencies Need Robust Timesheet Software"
 slug: "recruitment-agencies-timesheet-software"
-publishDate: "2026-09-26"
+publishDate: "2025-08-27"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "For recruitment agencies, timesheets are not just an admin task — they are the foundation of pay, billing, and margin management. Here is what to look for."

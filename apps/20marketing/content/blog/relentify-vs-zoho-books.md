@@ -1,7 +1,7 @@
 ---
 title: "Relentify vs Zoho Books: Full-Featured Accounting Without the Complexity"
 slug: "relentify-vs-zoho-books"
-publishDate: "2026-05-28"
+publishDate: "2025-04-28"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Zoho Books is part of a massive software ecosystem, but that breadth brings complexity. Here is how Relentify delivers more accounting depth with less friction."

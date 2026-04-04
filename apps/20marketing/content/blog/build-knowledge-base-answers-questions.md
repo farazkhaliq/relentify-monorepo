@@ -1,7 +1,7 @@
 ---
 title: "How to Build a Knowledge Base That Answers Questions Before Customers Ask"
 slug: "build-knowledge-base-answers-questions"
-publishDate: "2026-09-19"
+publishDate: "2025-08-20"
 author: "Relentify"
 category: "Chat"
 excerpt: "A well-structured knowledge base deflects support volume and helps customers find answers on their own. Here is how to build one that actually gets used."

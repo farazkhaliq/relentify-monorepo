@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Chat Security: Encryption, Data Protection, and GDPR"
 slug: "chat-security-encryption-gdpr"
-publishDate: "2027-01-27"
+publishDate: "2025-12-28"
 author: "Relentify"
 category: "Chat"
 excerpt: "Live chat handles personal data in every conversation. Here is how to keep it secure with encryption, access controls, and compliance with data protection regulations."

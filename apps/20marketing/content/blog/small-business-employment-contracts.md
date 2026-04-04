@@ -1,7 +1,7 @@
 ---
 title: "The Small Business Guide to Employment Contracts"
 slug: "small-business-employment-contracts"
-publishDate: "2026-10-06"
+publishDate: "2025-09-06"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "What every small business owner needs to know about employment contracts, including what to include, legal requirements, and how to protect both your business and your employees."

@@ -1,7 +1,7 @@
 ---
 title: "How to Read a Balance Sheet: A Plain-English Guide for Business Owners"
 slug: "read-balance-sheet-plain-english"
-publishDate: "2026-07-04"
+publishDate: "2025-06-04"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "The balance sheet shows what your business owns, owes, and is worth. Here's how to read one without getting lost in the jargon."

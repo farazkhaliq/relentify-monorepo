@@ -1,7 +1,7 @@
 ---
 title: "How to Set Up a Workplace Pension Scheme That Meets UK Auto-Enrolment Rules"
 slug: "workplace-pension-auto-enrolment-setup"
-publishDate: "2027-03-15"
+publishDate: "2026-02-13"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A step-by-step guide to setting up a workplace pension scheme that meets auto-enrolment requirements, including provider selection, contribution rates, and ongoing compliance duties."

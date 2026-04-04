@@ -1,7 +1,7 @@
 ---
 title: "How to Handle Statutory Sick Pay (SSP): Eligibility, Rates, and Records"
 slug: "statutory-sick-pay-ssp-guide"
-publishDate: "2026-05-15"
+publishDate: "2025-04-15"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A practical guide to Statutory Sick Pay for UK employers, covering who qualifies, how to calculate it, when to pay it, and what records you need to keep."

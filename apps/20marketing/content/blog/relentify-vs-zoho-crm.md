@@ -1,7 +1,7 @@
 ---
 title: "Relentify CRM vs Zoho CRM: More Property Features, Less Complexity"
 slug: "relentify-vs-zoho-crm"
-publishDate: "2026-10-17"
+publishDate: "2025-09-17"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Zoho CRM is a popular generic CRM with competitive pricing, but it lacks the property-specific features that estate agents need. Here is how Relentify CRM compares for the property industry."

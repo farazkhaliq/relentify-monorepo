@@ -1,7 +1,7 @@
 ---
 title: "Live Chat vs Chatbots: Which Does Your Business Actually Need?"
 slug: "live-chat-vs-chatbots-business"
-publishDate: "2026-04-28"
+publishDate: "2025-03-29"
 author: "Relentify"
 category: "Chat"
 excerpt: "Live chat and chatbots solve different problems. This guide breaks down when each makes sense, when to combine them, and how to avoid the pitfalls of choosing wrong."

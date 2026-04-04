@@ -1,7 +1,7 @@
 ---
 title: "How to Build a Professional Online Presence on a Budget"
 slug: "professional-online-presence-budget"
-publishDate: "2026-08-25"
+publishDate: "2025-07-26"
 author: "Relentify"
 category: "Small Business & Growth"
 excerpt: "Practical steps for creating a credible online presence without spending thousands, from your website and email to social profiles and reviews."

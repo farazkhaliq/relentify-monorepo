@@ -1,7 +1,7 @@
 ---
 title: "Relentify CRM vs Street.co.uk: Which Gives Agents More for Less?"
 slug: "relentify-vs-street"
-publishDate: "2026-09-04"
+publishDate: "2025-08-05"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Street.co.uk markets itself as a modern estate agent CRM with transparent pricing. Here is how it actually compares to Relentify CRM on features, cost, and value."

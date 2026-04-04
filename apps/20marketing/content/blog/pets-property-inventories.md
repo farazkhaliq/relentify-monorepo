@@ -1,7 +1,7 @@
 ---
 title: "How to Handle Pets in Property Inventories"
 slug: "pets-property-inventories"
-publishDate: "2026-12-31"
+publishDate: "2025-12-01"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Pet-friendly lettings are increasingly common, but they create specific inventory challenges. This guide covers how to document pet-related conditions and protect all parties."

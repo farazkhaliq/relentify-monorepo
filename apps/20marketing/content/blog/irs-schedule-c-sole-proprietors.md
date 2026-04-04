@@ -1,7 +1,7 @@
 ---
 title: "Understanding IRS Form Schedule C for Sole Proprietors"
 slug: "irs-schedule-c-sole-proprietors"
-publishDate: "2027-04-29"
+publishDate: "2026-03-30"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Schedule C is the tax form every sole proprietor must file to report business income and expenses. Understanding its sections helps you maximize deductions and file accurately."

@@ -1,7 +1,7 @@
 ---
 title: "Relentify Timesheets vs Clockify: When Free Time Tracking Isn't Enough"
 slug: "relentify-vs-clockify"
-publishDate: "2027-03-04"
+publishDate: "2026-02-02"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Clockify offers free time tracking for unlimited users. But when you need GPS verification, shift management, and compliance features, is free enough? Comparing with Relentify Timesheets."

@@ -1,7 +1,7 @@
 ---
 title: "The Inventory Clerk's Guide to Managing Multiple Bookings Efficiently"
 slug: "inventory-clerk-managing-bookings"
-publishDate: "2027-01-08"
+publishDate: "2025-12-09"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Managing multiple inventory bookings across different clients and properties requires organisation and planning. This guide covers scheduling, routing, and workflow management."

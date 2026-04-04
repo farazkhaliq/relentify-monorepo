@@ -1,7 +1,7 @@
 ---
 title: "How to Inventory a Property with Multiple Tenants"
 slug: "inventory-property-multiple-tenants"
-publishDate: "2026-11-29"
+publishDate: "2025-10-30"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Properties shared by multiple tenants need a structured inventory approach that clearly separates individual and communal responsibilities."

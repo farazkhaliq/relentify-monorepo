@@ -1,7 +1,7 @@
 ---
 title: "Relentify Connect vs Freshdesk: Which Helpdesk Gives You More?"
 slug: "relentify-vs-freshdesk"
-publishDate: "2026-12-28"
+publishDate: "2025-11-28"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Freshdesk is a popular helpdesk with a generous free plan, but paid tiers add up quickly. Here is how Relentify Connect compares on features, pricing, and overall value."

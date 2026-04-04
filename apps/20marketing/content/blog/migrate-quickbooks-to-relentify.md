@@ -1,7 +1,7 @@
 ---
 title: "How to Migrate from QuickBooks to Relentify: A Step-by-Step Guide"
 slug: "migrate-quickbooks-to-relentify"
-publishDate: "2026-07-03"
+publishDate: "2025-06-03"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Moving from QuickBooks to Relentify is simpler than you might think. This guide covers the full migration process, from data export to verification, with tips to avoid common mistakes."

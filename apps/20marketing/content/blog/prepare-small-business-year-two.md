@@ -1,7 +1,7 @@
 ---
 title: "How to Prepare Your Small Business for Year Two and Beyond"
 slug: "prepare-small-business-year-two"
-publishDate: "2026-09-21"
+publishDate: "2025-08-22"
 author: "Relentify"
 category: "Small Business & Growth"
 excerpt: "What changes when your business enters its second year, and the strategic shifts you need to make to move from survival to sustainable growth."

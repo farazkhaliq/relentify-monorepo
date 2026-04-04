@@ -1,7 +1,7 @@
 ---
 title: "How GPS-Verified Timesheets Prevent Time Theft on Remote Sites"
 slug: "gps-verified-timesheets-prevent-time-theft"
-publishDate: "2026-05-14"
+publishDate: "2025-04-14"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "GPS-verified timesheets give businesses confidence that workers are where they say they are. Learn how location verification works and why it matters."

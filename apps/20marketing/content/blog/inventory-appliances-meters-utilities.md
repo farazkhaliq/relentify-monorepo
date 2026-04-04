@@ -1,7 +1,7 @@
 ---
 title: "How to Inventory Appliances, Meters, and Utilities in a Rental"
 slug: "inventory-appliances-meters-utilities"
-publishDate: "2026-09-25"
+publishDate: "2025-08-26"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Appliances, meters, and utilities are often overlooked in property inventories. This guide covers how to document them properly and why it matters."

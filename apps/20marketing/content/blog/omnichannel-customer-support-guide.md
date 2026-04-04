@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Omnichannel Customer Support"
 slug: "omnichannel-customer-support-guide"
-publishDate: "2026-04-20"
+publishDate: "2025-03-21"
 author: "Relentify"
 category: "Connect"
 excerpt: "Omnichannel support means meeting customers wherever they are — email, chat, phone, social — without losing context. Here is how to build it properly."

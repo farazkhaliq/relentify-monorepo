@@ -1,7 +1,7 @@
 ---
 title: "Understanding TUPE Transfers: What Employers Need to Know"
 slug: "tupe-transfers-employers-guide"
-publishDate: "2026-12-25"
+publishDate: "2025-11-25"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A practical guide to TUPE (Transfer of Undertakings) for UK employers, covering when TUPE applies, your obligations as incoming and outgoing employer, and how to handle the transfer process."

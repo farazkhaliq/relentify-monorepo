@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Chat SLAs: Response and Resolution Targets"
 slug: "chat-slas-response-resolution-targets"
-publishDate: "2026-10-23"
+publishDate: "2025-09-23"
 author: "Relentify"
 category: "Chat"
 excerpt: "Service level agreements set clear expectations for chat response and resolution times. Here is how to define, measure, and meet them."

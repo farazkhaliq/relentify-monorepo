@@ -1,7 +1,7 @@
 ---
 title: "Relentify Connect vs Intercom: Full Comparison for Growing Businesses"
 slug: "relentify-vs-intercom"
-publishDate: "2026-12-20"
+publishDate: "2025-11-20"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Intercom pioneered conversational support, but its pricing has become a barrier for many teams. Here is how Relentify Connect compares on features, pricing, and value."

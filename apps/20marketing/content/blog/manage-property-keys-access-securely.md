@@ -1,7 +1,7 @@
 ---
 title: "How to Manage Property Keys and Access Securely"
 slug: "manage-property-keys-access-securely"
-publishDate: "2026-12-30"
+publishDate: "2025-11-30"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Keys go missing, access codes get shared, and contractors need entry at short notice. A structured approach to key and access management prevents security issues and saves time."

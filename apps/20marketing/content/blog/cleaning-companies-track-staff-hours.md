@@ -1,7 +1,7 @@
 ---
 title: "How Cleaning Companies Can Track Staff Hours Across Multiple Clients"
 slug: "cleaning-companies-track-staff-hours"
-publishDate: "2026-08-12"
+publishDate: "2025-07-13"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Cleaning businesses manage dispersed teams across dozens of client sites. Here is how to track hours accurately and keep billing aligned with reality."

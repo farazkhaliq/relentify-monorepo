@@ -1,7 +1,7 @@
 ---
 title: "How to Manage Contractor and Supplier Relationships as a Letting Agent"
 slug: "manage-contractor-supplier-relationships"
-publishDate: "2027-02-26"
+publishDate: "2026-01-27"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Reliable contractors are essential to good property management. A CRM helps you track contractor performance, manage assignments, and build a roster of dependable tradespeople."

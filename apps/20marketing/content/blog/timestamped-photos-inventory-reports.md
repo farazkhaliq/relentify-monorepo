@@ -1,7 +1,7 @@
 ---
 title: "How to Add Time-Stamped Photos to Your Property Inventory Reports"
 slug: "timestamped-photos-inventory-reports"
-publishDate: "2026-09-07"
+publishDate: "2025-08-08"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Time-stamped photos add a layer of verification to inventory reports that makes them significantly harder to challenge. Here is how to capture and manage them effectively."

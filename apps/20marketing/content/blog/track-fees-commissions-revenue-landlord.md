@@ -1,7 +1,7 @@
 ---
 title: "How to Track Fees, Commissions, and Revenue Per Landlord"
 slug: "track-fees-commissions-revenue-landlord"
-publishDate: "2026-12-14"
+publishDate: "2025-11-14"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Understanding the revenue each landlord generates helps you prioritise service, identify growth opportunities, and make informed decisions about your fee structure."

@@ -1,7 +1,7 @@
 ---
 title: "P45, P60, and P11D Explained: What Each Form Means and When to Issue Them"
 slug: "p45-p60-p11d-explained"
-publishDate: "2026-07-08"
+publishDate: "2025-06-08"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A clear explanation of the most common UK payroll forms — P45, P60, and P11D — including what they contain, when you need to issue them, and what happens if you get it wrong."

@@ -1,7 +1,7 @@
 ---
 title: "How to Calculate Staff Costs Per Project Using Timesheet Data"
 slug: "calculate-staff-costs-per-project"
-publishDate: "2026-09-17"
+publishDate: "2025-08-18"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Understanding the true labour cost of each project is essential for pricing, profitability, and planning. Here is how to use timesheet data to calculate it."

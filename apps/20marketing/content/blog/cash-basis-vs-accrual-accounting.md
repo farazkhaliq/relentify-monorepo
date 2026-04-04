@@ -1,7 +1,7 @@
 ---
 title: "Cash Basis vs Accrual Accounting: Which Should Your Business Use?"
 slug: "cash-basis-vs-accrual-accounting"
-publishDate: "2026-06-07"
+publishDate: "2025-05-08"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "The choice between cash basis and accrual accounting affects your tax bill, your reports, and how you understand your business finances."

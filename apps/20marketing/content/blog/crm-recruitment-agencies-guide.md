@@ -1,7 +1,7 @@
 ---
 title: "A Guide to CRM for Recruitment Agencies"
 slug: "crm-recruitment-agencies-guide"
-publishDate: "2027-03-02"
+publishDate: "2026-01-31"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Recruitment agencies manage two-sided relationships — clients and candidates. A CRM designed for this dual pipeline helps you match talent to opportunities faster and more reliably."

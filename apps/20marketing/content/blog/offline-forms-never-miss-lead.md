@@ -1,7 +1,7 @@
 ---
 title: "How to Set Up Offline Forms So You Never Miss a Lead"
 slug: "offline-forms-never-miss-lead"
-publishDate: "2026-05-25"
+publishDate: "2025-04-25"
 author: "Relentify"
 category: "Chat"
 excerpt: "When your team is offline, your website still gets visitors. Offline forms capture their details so you can follow up the moment you are back."

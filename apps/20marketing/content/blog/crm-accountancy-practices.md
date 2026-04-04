@@ -1,7 +1,7 @@
 ---
 title: "CRM for Accountancy Practices: Managing Clients Beyond Spreadsheets"
 slug: "crm-accountancy-practices"
-publishDate: "2027-03-10"
+publishDate: "2026-02-08"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Accountancy practices manage recurring client relationships with seasonal peaks and strict deadlines. A CRM brings structure to client management that spreadsheets cannot."

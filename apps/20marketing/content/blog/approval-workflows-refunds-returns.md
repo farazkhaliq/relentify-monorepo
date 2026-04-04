@@ -1,7 +1,7 @@
 ---
 title: "How to Use Approval Workflows for Refunds, Returns, and Exceptions"
 slug: "approval-workflows-refunds-returns"
-publishDate: "2027-01-04"
+publishDate: "2025-12-05"
 author: "Relentify"
 category: "Connect"
 excerpt: "Approval workflows ensure the right people sign off on refunds, returns, and policy exceptions without slowing down the customer experience."

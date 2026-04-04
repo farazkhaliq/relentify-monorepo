@@ -1,7 +1,7 @@
 ---
 title: "How to Add SMS as a Support Channel for Your Business"
 slug: "add-sms-support-channel"
-publishDate: "2026-07-19"
+publishDate: "2025-06-19"
 author: "Relentify"
 category: "Connect"
 excerpt: "SMS has a 98% open rate and works on every phone. Learn how to set up text messaging as a support channel that integrates with your helpdesk."

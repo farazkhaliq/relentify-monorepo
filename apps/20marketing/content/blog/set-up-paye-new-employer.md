@@ -1,7 +1,7 @@
 ---
 title: "How to Set Up PAYE as a New Employer"
 slug: "set-up-paye-new-employer"
-publishDate: "2027-02-27"
+publishDate: "2026-01-28"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A step-by-step guide to registering for PAYE with HMRC as a new UK employer, setting up your payroll, and making your first submission — everything you need to get started."

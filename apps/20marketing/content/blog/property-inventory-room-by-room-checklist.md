@@ -1,7 +1,7 @@
 ---
 title: "What Should a Property Inventory Include? A Room-by-Room Checklist"
 slug: "property-inventory-room-by-room-checklist"
-publishDate: "2026-06-18"
+publishDate: "2025-05-19"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "A comprehensive checklist of everything your property inventory should cover, organised room by room, so nothing gets missed."

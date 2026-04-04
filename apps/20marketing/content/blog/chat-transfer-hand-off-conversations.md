@@ -1,7 +1,7 @@
 ---
 title: "Chat Transfer: How to Hand Off Conversations Without Frustrating Customers"
 slug: "chat-transfer-hand-off-conversations"
-publishDate: "2026-09-10"
+publishDate: "2025-08-11"
 author: "Relentify"
 category: "Chat"
 excerpt: "Transferring a chat to another agent is sometimes necessary, but it can be done well or badly. Here is how to make handoffs feel seamless rather than frustrating."

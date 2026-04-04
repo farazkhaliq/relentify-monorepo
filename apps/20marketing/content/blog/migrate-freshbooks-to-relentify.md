@@ -1,7 +1,7 @@
 ---
 title: "How to Migrate from FreshBooks to Relentify"
 slug: "migrate-freshbooks-to-relentify"
-publishDate: "2026-07-21"
+publishDate: "2025-06-21"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Outgrowing FreshBooks? This guide walks through the complete migration process to Relentify, covering data export, setup, and the features you will gain by switching."

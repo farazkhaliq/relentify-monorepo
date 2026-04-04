@@ -1,7 +1,7 @@
 ---
 title: "How Accountants Can Manage Multiple Clients Efficiently"
 slug: "accountants-manage-multiple-clients"
-publishDate: "2026-12-13"
+publishDate: "2025-11-13"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Managing multiple clients without dropping balls requires the right systems, tools, and habits. Here's how to scale your practice without burning out."

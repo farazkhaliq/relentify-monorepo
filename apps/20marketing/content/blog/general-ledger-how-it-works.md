@@ -1,7 +1,7 @@
 ---
 title: "What Is a General Ledger and How Does It Work?"
 slug: "general-ledger-how-it-works"
-publishDate: "2027-04-17"
+publishDate: "2026-03-18"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "The general ledger is the master record of all your business's financial transactions. Understanding how it works helps you interpret your accounts and catch errors."

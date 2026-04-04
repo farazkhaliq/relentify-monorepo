@@ -1,7 +1,7 @@
 ---
 title: "How to Manage Zero-Hours Contract Workers with Timesheet Software"
 slug: "zero-hours-contract-timesheet-software"
-publishDate: "2027-01-17"
+publishDate: "2025-12-18"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Zero-hours contracts offer flexibility but create timesheet complexity. Learn how to track hours, calculate entitlements, and stay compliant."

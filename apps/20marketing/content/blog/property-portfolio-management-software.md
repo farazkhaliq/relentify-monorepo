@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Property Portfolio Management Software for Agencies"
 slug: "property-portfolio-management-software"
-publishDate: "2026-06-17"
+publishDate: "2025-05-18"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Managing a growing property portfolio requires more than spreadsheets. This guide explains what portfolio management software should do and how to evaluate your options."

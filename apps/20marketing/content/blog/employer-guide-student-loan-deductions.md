@@ -1,7 +1,7 @@
 ---
 title: "The Employer's Guide to Student Loan Deductions"
 slug: "employer-guide-student-loan-deductions"
-publishDate: "2026-08-13"
+publishDate: "2025-07-14"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "How to handle student loan deductions through payroll as a UK employer, covering Plan 1, Plan 2, Plan 4, Plan 5, and postgraduate loans with their thresholds and rates."

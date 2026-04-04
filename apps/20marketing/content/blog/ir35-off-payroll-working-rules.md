@@ -1,7 +1,7 @@
 ---
 title: "Understanding IR35 and Off-Payroll Working Rules"
 slug: "ir35-off-payroll-working-rules"
-publishDate: "2027-03-07"
+publishDate: "2026-02-05"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A practical guide to IR35 and the off-payroll working rules, covering who is responsible for status determinations, how to assess engagements, and how to stay compliant."

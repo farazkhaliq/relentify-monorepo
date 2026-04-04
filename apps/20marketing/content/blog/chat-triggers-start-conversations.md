@@ -1,7 +1,7 @@
 ---
 title: "How to Use Chat Triggers to Start Conversations at the Right Moment"
 slug: "chat-triggers-start-conversations"
-publishDate: "2026-06-30"
+publishDate: "2025-05-31"
 author: "Relentify"
 category: "Chat"
 excerpt: "Chat triggers send proactive messages based on visitor behaviour. Here is how to set them up so they feel helpful rather than intrusive."

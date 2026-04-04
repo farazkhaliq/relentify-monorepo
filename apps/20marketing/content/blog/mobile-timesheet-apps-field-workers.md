@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Mobile Timesheet Apps for Field-Based Workers"
 slug: "mobile-timesheet-apps-field-workers"
-publishDate: "2027-01-25"
+publishDate: "2025-12-26"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Field-based workers need a timesheet system that goes where they go. Here is what to look for in a mobile timesheet app and how to roll it out successfully."

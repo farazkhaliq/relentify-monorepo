@@ -1,7 +1,7 @@
 ---
 title: "How to Add Live Chat to Your Website in Under 5 Minutes"
 slug: "add-live-chat-website-5-minutes"
-publishDate: "2026-04-19"
+publishDate: "2025-03-20"
 author: "Relentify"
 category: "Chat"
 excerpt: "Adding live chat to your website is faster and easier than most people expect. This step-by-step guide walks you through choosing a platform, installing the widget, and handling your first conversation."

@@ -1,7 +1,7 @@
 ---
 title: "How to Use Macros and Canned Responses to Speed Up Support"
 slug: "macros-canned-responses-speed-support"
-publishDate: "2026-06-04"
+publishDate: "2025-05-05"
 author: "Relentify"
 category: "Connect"
 excerpt: "Macros and canned responses let agents handle repetitive questions in seconds. Learn how to build a library that saves time without sacrificing quality."

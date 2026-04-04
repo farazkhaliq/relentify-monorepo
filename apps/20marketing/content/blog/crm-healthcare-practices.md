@@ -1,7 +1,7 @@
 ---
 title: "CRM for Healthcare Practices: Patient Communication and Follow-Up"
 slug: "crm-healthcare-practices"
-publishDate: "2027-03-25"
+publishDate: "2026-02-23"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Healthcare practices need to manage patient relationships with the same rigour as any client-facing business — while meeting strict data protection and communication standards."

@@ -1,7 +1,7 @@
 ---
 title: "How Inventories Protect Landlords in Deposit Disputes"
 slug: "inventories-protect-landlords-deposit-disputes"
-publishDate: "2026-06-27"
+publishDate: "2025-05-28"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Deposit disputes are won or lost on evidence. A thorough inventory is the most powerful tool landlords have to protect their deductions."

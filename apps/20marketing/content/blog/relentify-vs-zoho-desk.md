@@ -1,7 +1,7 @@
 ---
 title: "Relentify Connect vs Zoho Desk: Features and Pricing Compared"
 slug: "relentify-vs-zoho-desk"
-publishDate: "2027-01-13"
+publishDate: "2025-12-14"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Zoho Desk is affordable and part of a massive ecosystem. But does it give you everything you need? A feature and pricing comparison with Relentify Connect."

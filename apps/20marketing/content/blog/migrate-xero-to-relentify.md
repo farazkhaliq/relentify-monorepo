@@ -1,7 +1,7 @@
 ---
 title: "How to Migrate from Xero to Relentify Without Losing Your Data"
 slug: "migrate-xero-to-relentify"
-publishDate: "2026-06-24"
+publishDate: "2025-05-25"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Switching accounting software sounds daunting, but migrating from Xero to Relentify is straightforward with the right approach. Here is a step-by-step guide covering data, timing, and common pitfalls."

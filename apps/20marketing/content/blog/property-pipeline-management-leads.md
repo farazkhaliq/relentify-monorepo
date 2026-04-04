@@ -1,7 +1,7 @@
 ---
 title: "Property Pipeline Management: Tracking Leads from Enquiry to Tenancy"
 slug: "property-pipeline-management-leads"
-publishDate: "2026-05-12"
+publishDate: "2025-04-12"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "A structured lead pipeline ensures that no enquiry falls through the cracks. Learn how to track every applicant from first contact to signed tenancy agreement."

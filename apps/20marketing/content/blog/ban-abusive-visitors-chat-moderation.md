@@ -1,7 +1,7 @@
 ---
 title: "How to Ban Abusive Visitors and Manage Chat Moderation"
 slug: "ban-abusive-visitors-chat-moderation"
-publishDate: "2026-11-24"
+publishDate: "2025-10-25"
 author: "Relentify"
 category: "Chat"
 excerpt: "Abusive visitors are rare but disruptive. Here is how to moderate chat conversations, protect your agents, and maintain a safe environment for everyone."

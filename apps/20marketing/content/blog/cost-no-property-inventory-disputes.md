@@ -1,7 +1,7 @@
 ---
 title: "The Cost of Not Having a Property Inventory: Real Dispute Examples"
 slug: "cost-no-property-inventory-disputes"
-publishDate: "2026-09-16"
+publishDate: "2025-08-17"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Without a property inventory, landlords face an uphill battle in deposit disputes. These real-world scenarios show what happens when the evidence is not there."

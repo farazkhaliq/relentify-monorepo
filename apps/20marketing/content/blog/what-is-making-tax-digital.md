@@ -1,7 +1,7 @@
 ---
 title: "What Is Making Tax Digital and How Should Small Businesses Prepare?"
 slug: "what-is-making-tax-digital"
-publishDate: "2026-04-05"
+publishDate: "2025-03-06"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Making Tax Digital is transforming how UK businesses handle tax. Here's what it means, who it affects, and how to get ready."

@@ -1,7 +1,7 @@
 ---
 title: "A Guide to File Sharing in Live Chat: What to Allow and Security Tips"
 slug: "file-sharing-live-chat-security"
-publishDate: "2026-08-05"
+publishDate: "2025-07-06"
 author: "Relentify"
 category: "Chat"
 excerpt: "File sharing in live chat speeds up support conversations, but it introduces security risks. Here is how to enable it safely with the right controls in place."

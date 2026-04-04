@@ -1,7 +1,7 @@
 ---
 title: "How to Handle Payroll for Multiple Pay Frequencies"
 slug: "payroll-multiple-pay-frequencies"
-publishDate: "2026-09-09"
+publishDate: "2025-08-10"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A practical guide to managing payroll when your business uses more than one pay frequency, covering setup, tax calculations, compliance, and how to keep everything in sync."

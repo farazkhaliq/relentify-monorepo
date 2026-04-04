@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Consolidated Reporting for Multi-Entity Businesses"
 slug: "consolidated-reporting-multi-entity"
-publishDate: "2027-04-19"
+publishDate: "2026-03-20"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Consolidated reporting combines the financial results of multiple entities into a single set of group accounts. This guide explains the process, the adjustments involved, and how to get it right."

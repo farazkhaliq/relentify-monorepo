@@ -1,7 +1,7 @@
 ---
 title: "Multi-Language Live Chat: Supporting Customers in Their Own Language"
 slug: "multi-language-live-chat"
-publishDate: "2026-12-02"
+publishDate: "2025-11-02"
 author: "Relentify"
 category: "Chat"
 excerpt: "Serving customers in their language builds trust and improves satisfaction. Here is how to set up multi-language live chat without hiring a team of translators."

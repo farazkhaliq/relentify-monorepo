@@ -1,7 +1,7 @@
 ---
 title: "How to Use Timesheet Data to Create Accurate Client Invoices"
 slug: "timesheet-data-accurate-client-invoices"
-publishDate: "2026-06-19"
+publishDate: "2025-05-20"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Timesheet data is the foundation of accurate client billing. Learn how to turn tracked hours into invoices that are transparent, defensible, and profitable."

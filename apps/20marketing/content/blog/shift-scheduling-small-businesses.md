@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Shift Scheduling for Small Businesses"
 slug: "shift-scheduling-small-businesses"
-publishDate: "2026-06-28"
+publishDate: "2025-05-29"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Effective shift scheduling balances business needs with employee wellbeing. Here is a practical approach to building rotas that work."

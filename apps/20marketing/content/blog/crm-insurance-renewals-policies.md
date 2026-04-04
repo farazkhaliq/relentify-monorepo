@@ -1,7 +1,7 @@
 ---
 title: "How to Use a CRM to Manage Insurance Renewals and Client Policies"
 slug: "crm-insurance-renewals-policies"
-publishDate: "2027-03-28"
+publishDate: "2026-02-26"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Insurance brokers manage hundreds of policies with staggered renewal dates. A CRM that tracks every policy and triggers timely renewal conversations prevents lapses and retains clients."

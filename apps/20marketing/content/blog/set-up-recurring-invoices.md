@@ -1,7 +1,7 @@
 ---
 title: "How to Set Up Recurring Invoices and Save Hours Every Month"
 slug: "set-up-recurring-invoices"
-publishDate: "2026-09-05"
+publishDate: "2025-08-06"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "If you invoice the same clients for the same amount each month, recurring invoices eliminate the repetitive work. Here's how to set them up."

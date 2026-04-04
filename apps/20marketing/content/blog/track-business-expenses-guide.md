@@ -1,7 +1,7 @@
 ---
 title: "How to Track Business Expenses Without Losing Your Mind"
 slug: "track-business-expenses-guide"
-publishDate: "2026-07-22"
+publishDate: "2025-06-22"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Good expense tracking saves you money on tax and keeps your books accurate. Here's a practical system that works for busy business owners."

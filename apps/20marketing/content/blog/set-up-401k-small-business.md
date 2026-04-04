@@ -1,7 +1,7 @@
 ---
 title: "How to Set Up a 401(k) Plan for Your Small Business"
 slug: "set-up-401k-small-business"
-publishDate: "2027-04-01"
+publishDate: "2026-03-02"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A step-by-step guide to establishing a 401(k) retirement plan for your small business, from choosing a plan type to managing ongoing compliance."

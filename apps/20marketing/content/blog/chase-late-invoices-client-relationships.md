@@ -1,7 +1,7 @@
 ---
 title: "How to Chase Late Invoices Without Damaging Client Relationships"
 slug: "chase-late-invoices-client-relationships"
-publishDate: "2026-05-11"
+publishDate: "2025-04-11"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Late invoices hurt your cash flow, but aggressive chasing can hurt your relationships. Here's how to collect what you're owed while keeping clients happy."

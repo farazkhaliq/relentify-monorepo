@@ -1,7 +1,7 @@
 ---
 title: "Understanding US Business Structures: LLC, S-Corp, and C-Corp for Tax Purposes"
 slug: "us-business-structures-tax-purposes"
-publishDate: "2027-05-02"
+publishDate: "2026-04-02"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Your business structure determines how you are taxed. Understanding the differences between LLCs, S-Corps, and C-Corps helps you choose the structure that minimizes your tax burden."

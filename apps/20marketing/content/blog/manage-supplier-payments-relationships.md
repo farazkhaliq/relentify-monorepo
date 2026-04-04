@@ -1,7 +1,7 @@
 ---
 title: "How to Manage Supplier Payments and Maintain Good Relationships"
 slug: "manage-supplier-payments-relationships"
-publishDate: "2027-03-13"
+publishDate: "2026-02-11"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Paying suppliers well is about more than just settling invoices. Good payment management strengthens relationships, protects your cash flow, and keeps your business running smoothly."

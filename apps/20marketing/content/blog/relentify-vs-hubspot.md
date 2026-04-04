@@ -1,7 +1,7 @@
 ---
 title: "Relentify CRM vs HubSpot: Purpose-Built vs Generic CRM for Property"
 slug: "relentify-vs-hubspot"
-publishDate: "2026-10-01"
+publishDate: "2025-09-01"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "HubSpot is one of the world's most popular CRMs, but a generic CRM cannot match a purpose-built property platform. Here is why estate agents should think twice before choosing HubSpot."

@@ -1,7 +1,7 @@
 ---
 title: "Mid-Tenancy Inspections: What to Check and How to Document It"
 slug: "mid-tenancy-inspections-document"
-publishDate: "2026-07-24"
+publishDate: "2025-06-24"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Mid-tenancy inspections catch problems early and protect your property. This guide covers what to check, how to document it, and how to handle common issues."

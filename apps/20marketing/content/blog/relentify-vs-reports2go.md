@@ -1,7 +1,7 @@
 ---
 title: "Relentify Inventories vs Reports2Go: A Feature Comparison for Inventory Clerks"
 slug: "relentify-vs-reports2go"
-publishDate: "2026-11-10"
+publishDate: "2025-10-11"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Comparing Relentify Inventories and Reports2Go feature by feature — from report creation to pricing — to help inventory clerks and letting agents choose the right tool."

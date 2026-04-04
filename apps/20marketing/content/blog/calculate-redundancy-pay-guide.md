@@ -1,7 +1,7 @@
 ---
 title: "How to Calculate Redundancy Pay: Statutory and Enhanced"
 slug: "calculate-redundancy-pay-guide"
-publishDate: "2026-12-17"
+publishDate: "2025-11-17"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "A clear guide to calculating statutory and enhanced redundancy pay, including eligibility, the calculation formula, tax treatment, and common mistakes employers make."

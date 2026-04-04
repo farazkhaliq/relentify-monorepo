@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Inventory Pricing: How Much Should Clerks and Agents Charge?"
 slug: "inventory-pricing-how-much-charge"
-publishDate: "2026-12-23"
+publishDate: "2025-11-23"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Pricing inventory services correctly is essential for profitability. This guide covers pricing structures, factors that affect rates, and how to avoid undercharging."

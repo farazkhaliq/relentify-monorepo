@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Salary Sacrifice Schemes: Pensions, Cycle to Work, and More"
 slug: "salary-sacrifice-schemes-guide"
-publishDate: "2026-07-26"
+publishDate: "2025-06-26"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "How salary sacrifice schemes work for UK employers, including pension contributions, cycle to work, childcare, and the tax and National Insurance savings they offer to both employers and employees."

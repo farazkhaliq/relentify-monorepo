@@ -1,7 +1,7 @@
 ---
 title: "How to Handle Foreign Exchange Gains and Losses"
 slug: "foreign-exchange-gains-losses"
-publishDate: "2027-04-22"
+publishDate: "2026-03-23"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "When your business deals in foreign currencies, exchange rate movements create gains and losses that need proper accounting treatment. This guide explains how to handle them."

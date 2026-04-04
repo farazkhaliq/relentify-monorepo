@@ -1,7 +1,7 @@
 ---
 title: "How to Export Timesheet Data for Payroll Processing"
 slug: "export-timesheet-data-payroll"
-publishDate: "2026-10-21"
+publishDate: "2025-09-21"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "The bridge between timesheets and payroll is the export process. Learn how to move data accurately, efficiently, and without manual re-keying."

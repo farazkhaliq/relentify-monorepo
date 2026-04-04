@@ -1,7 +1,7 @@
 ---
 title: "What Happens When There's No Inventory at Check-Out?"
 slug: "no-inventory-at-check-out"
-publishDate: "2027-02-01"
+publishDate: "2026-01-02"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "When a tenancy ends without an inventory, deposit disputes become extremely difficult to resolve. This guide explains what happens and how to protect yourself."

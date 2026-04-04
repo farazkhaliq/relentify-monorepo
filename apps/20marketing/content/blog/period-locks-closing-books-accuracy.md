@@ -1,7 +1,7 @@
 ---
 title: "Period Locks and Closing Your Books: Why Accuracy Matters"
 slug: "period-locks-closing-books-accuracy"
-publishDate: "2027-03-17"
+publishDate: "2026-02-15"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Closing your books and locking accounting periods prevents accidental changes to finalised records. Here is why it matters and how to do it properly."

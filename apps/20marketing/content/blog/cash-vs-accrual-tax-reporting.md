@@ -1,7 +1,7 @@
 ---
 title: "How to Choose Between Cash and Accrual Methods for Tax Reporting"
 slug: "cash-vs-accrual-tax-reporting"
-publishDate: "2027-05-04"
+publishDate: "2026-04-04"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Your accounting method affects when income and expenses are recognised for tax purposes. Choosing the right method can reduce your tax bill and simplify your reporting."

@@ -1,7 +1,7 @@
 ---
 title: "How to Manage Rent Collection and Arrears in Your CRM"
 slug: "manage-rent-collection-arrears-crm"
-publishDate: "2027-01-31"
+publishDate: "2026-01-01"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Rent arrears erode landlord income and agency relationships. A CRM-driven approach to collection and arrears management ensures early intervention and consistent follow-up."

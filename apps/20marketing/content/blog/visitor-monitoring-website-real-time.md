@@ -1,7 +1,7 @@
 ---
 title: "Visitor Monitoring: How to See Who's on Your Website in Real Time"
 slug: "visitor-monitoring-website-real-time"
-publishDate: "2026-06-21"
+publishDate: "2025-05-22"
 author: "Relentify"
 category: "Chat"
 excerpt: "Real-time visitor monitoring shows you who is browsing your website, what pages they are viewing, and when they might need help. Here is how to use it effectively."

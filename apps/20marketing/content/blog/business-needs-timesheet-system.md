@@ -1,7 +1,7 @@
 ---
 title: "Why Your Business Still Needs a Timesheet System (Even If You Trust Your Team)"
 slug: "business-needs-timesheet-system"
-publishDate: "2026-04-08"
+publishDate: "2025-03-09"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Trust is not a substitute for data. Discover why every business benefits from a timesheet system, even when the team is reliable and self-motivated."

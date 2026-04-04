@@ -1,7 +1,7 @@
 ---
 title: "Relentify Chat vs LiveChat: Premium Features Without the Premium Price"
 slug: "relentify-vs-livechat"
-publishDate: "2027-02-14"
+publishDate: "2026-01-15"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "LiveChat is a polished, premium chat platform — with pricing to match. Here is how Relentify Chat delivers the same quality features for free."

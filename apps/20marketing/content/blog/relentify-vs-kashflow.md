@@ -1,7 +1,7 @@
 ---
 title: "Relentify vs KashFlow: A Modern Upgrade for Growing Businesses"
 slug: "relentify-vs-kashflow"
-publishDate: "2026-06-15"
+publishDate: "2025-05-16"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "KashFlow was once a leading UK cloud accounting platform. As development has slowed and features have stagnated, businesses are looking for modern alternatives. Here is how Relentify compares."

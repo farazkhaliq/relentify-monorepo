@@ -1,7 +1,7 @@
 ---
 title: "When to Hire Your First Employee: Signs Your Business Is Ready"
 slug: "hire-first-employee-signs-ready"
-publishDate: "2026-06-23"
+publishDate: "2025-05-24"
 author: "Relentify"
 category: "Small Business & Growth"
 excerpt: "How to know when it is time to stop doing everything yourself and bring someone on board, plus what to consider before making your first hire."

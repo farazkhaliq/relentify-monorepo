@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Construction Industry Scheme (CIS) for Subcontractors and Contractors"
 slug: "construction-industry-scheme-cis-guide"
-publishDate: "2026-12-05"
+publishDate: "2025-11-05"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "The Construction Industry Scheme affects how contractors pay subcontractors. Here's what both sides need to know about registration, deductions, and returns."

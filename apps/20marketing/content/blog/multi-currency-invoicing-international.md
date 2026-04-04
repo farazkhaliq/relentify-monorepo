@@ -1,7 +1,7 @@
 ---
 title: "How to Handle Multi-Currency Invoicing for International Clients"
 slug: "multi-currency-invoicing-international"
-publishDate: "2026-09-23"
+publishDate: "2025-08-24"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Invoicing international clients introduces currency complexity. Here's how to handle exchange rates, accounting, and payments correctly."

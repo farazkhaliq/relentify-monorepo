@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Helpdesk Automation Rules and Triggers"
 slug: "helpdesk-automation-rules-triggers"
-publishDate: "2026-07-28"
+publishDate: "2025-06-28"
 author: "Relentify"
 category: "Connect"
 excerpt: "Automation rules and triggers handle the repetitive work so your agents can focus on customers. Learn how to build a system that scales without adding headcount."

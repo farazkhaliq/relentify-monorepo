@@ -1,7 +1,7 @@
 ---
 title: "How to Set Up IVR Phone Menus for Your Support Team"
 slug: "ivr-phone-menus-support-team"
-publishDate: "2026-10-24"
+publishDate: "2025-09-24"
 author: "Relentify"
 category: "Connect"
 excerpt: "An IVR phone menu routes callers to the right team before they reach an agent. Learn how to design menus that are helpful rather than frustrating."

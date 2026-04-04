@@ -1,7 +1,7 @@
 ---
 title: "A Guide to HR Software for Small Businesses: What to Look For"
 slug: "hr-software-small-businesses-guide"
-publishDate: "2027-02-11"
+publishDate: "2026-01-12"
 author: "Relentify"
 category: "HR & Payroll"
 excerpt: "How to evaluate and choose HR software for your small business, covering essential features, common pitfalls, integration requirements, and what actually matters versus what sounds impressive."

@@ -1,7 +1,7 @@
 ---
 title: "The Small Business Guide to Choosing Your First CRM"
 slug: "choosing-first-crm-small-business"
-publishDate: "2027-03-31"
+publishDate: "2026-03-01"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Choosing your first CRM can feel overwhelming. This practical guide cuts through the jargon and helps you pick a system that fits your business, your budget, and your team."

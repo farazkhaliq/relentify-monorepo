@@ -1,7 +1,7 @@
 ---
 title: "How to Convert Chat Conversations into Support Tickets Automatically"
 slug: "convert-chat-to-support-tickets"
-publishDate: "2027-02-04"
+publishDate: "2026-01-05"
 author: "Relentify"
 category: "Chat"
 excerpt: "Not every chat conversation can be resolved in real time. Here is how to convert chat into support tickets seamlessly so nothing falls through the cracks."

@@ -1,7 +1,7 @@
 ---
 title: "How Collision Detection Prevents Two Agents Replying to the Same Chat"
 slug: "collision-detection-prevents-duplicate-replies"
-publishDate: "2026-10-31"
+publishDate: "2025-10-01"
 author: "Relentify"
 category: "Chat"
 excerpt: "When two agents reply to the same conversation, visitors get confused and your team wastes time. Collision detection prevents this. Here is how it works."

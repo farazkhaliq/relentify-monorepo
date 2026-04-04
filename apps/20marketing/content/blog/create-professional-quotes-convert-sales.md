@@ -1,7 +1,7 @@
 ---
 title: "How to Create Professional Quotes That Convert to Sales"
 slug: "create-professional-quotes-convert-sales"
-publishDate: "2027-04-13"
+publishDate: "2026-03-14"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "A professional quote does more than list prices. It builds confidence, sets expectations, and moves the prospect toward a buying decision. Here is how to create quotes that convert."

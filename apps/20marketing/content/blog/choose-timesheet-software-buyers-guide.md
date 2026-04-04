@@ -1,7 +1,7 @@
 ---
 title: "How to Choose the Right Timesheet Software: A Buyer's Guide"
 slug: "choose-timesheet-software-buyers-guide"
-publishDate: "2027-02-18"
+publishDate: "2026-01-19"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "With dozens of timesheet tools on the market, choosing the right one can be overwhelming. This guide breaks down the features that actually matter for your business."

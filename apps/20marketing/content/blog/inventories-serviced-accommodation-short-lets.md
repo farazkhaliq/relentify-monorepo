@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Inventories for Serviced Accommodation and Short Lets"
 slug: "inventories-serviced-accommodation-short-lets"
-publishDate: "2027-02-17"
+publishDate: "2026-01-18"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Serviced accommodation and short lets need a different inventory approach than standard tenancies. Here is how to adapt your process for high-turnover properties."

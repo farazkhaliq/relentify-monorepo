@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Annual Leave Tracking for Small Businesses"
 slug: "annual-leave-tracking-small-businesses"
-publishDate: "2026-09-08"
+publishDate: "2025-08-09"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Managing holiday entitlements and absence records does not need to be complicated. Here is how to track annual leave accurately for a small team."

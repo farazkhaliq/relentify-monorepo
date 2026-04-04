@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Timesheet Software for Accountancy Practices"
 slug: "timesheet-software-accountancy-practices"
-publishDate: "2026-12-08"
+publishDate: "2025-11-08"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Accountancy practices need to track time for billing, profitability, and compliance. Here is how to choose and implement timesheet software that fits."

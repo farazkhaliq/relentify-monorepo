@@ -1,7 +1,7 @@
 ---
 title: "How to File Quarterly Estimated Taxes as a US Freelancer"
 slug: "quarterly-estimated-taxes-us-freelancer"
-publishDate: "2027-04-28"
+publishDate: "2026-03-29"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Unlike employees who have taxes withheld from each paycheck, freelancers must pay estimated taxes quarterly. Missing these payments leads to penalties. Here is how to stay on track."

@@ -1,7 +1,7 @@
 ---
 title: "How to Set Up Expense Approval Workflows for Your Team"
 slug: "expense-approval-workflows-team"
-publishDate: "2027-03-24"
+publishDate: "2026-02-22"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "An expense approval workflow protects your business from overspending and fraud while keeping the process efficient for your team. Here is how to set one up."

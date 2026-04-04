@@ -1,7 +1,7 @@
 ---
 title: "How CRM Helps Small Teams Punch Above Their Weight"
 slug: "crm-helps-small-teams"
-publishDate: "2027-04-03"
+publishDate: "2026-03-04"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Small teams cannot outspend larger competitors. But with the right CRM, they can out-organise, out-respond, and out-deliver them — turning size into an advantage rather than a limitation."

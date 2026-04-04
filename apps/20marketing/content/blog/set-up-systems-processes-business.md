@@ -1,7 +1,7 @@
 ---
 title: "How to Set Up Systems and Processes Before Your Business Outgrows You"
 slug: "set-up-systems-processes-business"
-publishDate: "2026-07-20"
+publishDate: "2025-06-20"
 author: "Relentify"
 category: "Small Business & Growth"
 excerpt: "Why building repeatable systems early prevents chaos later, and how to document processes that scale with your business."

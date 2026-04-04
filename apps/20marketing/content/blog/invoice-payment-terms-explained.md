@@ -1,7 +1,7 @@
 ---
 title: "Invoice Payment Terms Explained: Net 30, Due on Receipt, and More"
 slug: "invoice-payment-terms-explained"
-publishDate: "2026-05-02"
+publishDate: "2025-04-02"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Understanding invoice payment terms helps you get paid faster and manage cash flow. Here's what every term means and when to use each one."

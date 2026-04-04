@@ -1,7 +1,7 @@
 ---
 title: "Year-End Accounting Checklist for Small Businesses"
 slug: "year-end-accounting-checklist"
-publishDate: "2026-07-13"
+publishDate: "2025-06-13"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "A practical checklist to help you close your books accurately and prepare for tax filing at the end of your financial year."

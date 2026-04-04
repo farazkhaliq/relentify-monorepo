@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Business Insurance: What Cover Do You Actually Need?"
 slug: "business-insurance-what-cover-need"
-publishDate: "2026-05-18"
+publishDate: "2025-04-18"
 author: "Relentify"
 category: "Small Business & Growth"
 excerpt: "A practical breakdown of the insurance types every small business should consider, what each policy covers, and how to avoid paying for protection you do not need."

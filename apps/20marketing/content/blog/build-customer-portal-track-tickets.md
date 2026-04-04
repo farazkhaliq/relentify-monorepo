@@ -1,7 +1,7 @@
 ---
 title: "How to Build a Customer Portal Where Clients Track Their Own Tickets"
 slug: "build-customer-portal-track-tickets"
-publishDate: "2026-09-20"
+publishDate: "2025-08-21"
 author: "Relentify"
 category: "Connect"
 excerpt: "A customer portal lets clients submit tickets, check status, and find answers without contacting your team. Here is how to set one up effectively."

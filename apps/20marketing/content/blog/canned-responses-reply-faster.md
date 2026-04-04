@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Canned Responses: Reply Faster Without Sounding Robotic"
 slug: "canned-responses-reply-faster"
-publishDate: "2026-06-03"
+publishDate: "2025-05-04"
 author: "Relentify"
 category: "Chat"
 excerpt: "Canned responses let your team reply in seconds without sacrificing personality. Here is how to create, organise, and use them effectively."

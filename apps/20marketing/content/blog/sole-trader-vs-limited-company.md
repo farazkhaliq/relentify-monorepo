@@ -1,7 +1,7 @@
 ---
 title: "Sole Trader vs Limited Company: Which Structure Is Right for You?"
 slug: "sole-trader-vs-limited-company"
-publishDate: "2026-04-21"
+publishDate: "2025-03-22"
 author: "Relentify"
 category: "Small Business & Growth"
 excerpt: "A clear comparison of sole trader and limited company structures to help you decide which is the best fit for your business."

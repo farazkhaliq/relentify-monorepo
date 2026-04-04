@@ -1,7 +1,7 @@
 ---
 title: "The Complete Guide to Ticket Tags, Custom Fields, and Views"
 slug: "ticket-tags-custom-fields-views"
-publishDate: "2026-06-13"
+publishDate: "2025-05-14"
 author: "Relentify"
 category: "Connect"
 excerpt: "Tags, custom fields, and views turn a chaotic ticket queue into an organised system. Here is how to structure them for maximum clarity and efficiency."

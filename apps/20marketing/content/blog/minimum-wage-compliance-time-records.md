@@ -1,7 +1,7 @@
 ---
 title: "The Small Business Guide to Minimum Wage Compliance and Time Records"
 slug: "minimum-wage-compliance-time-records"
-publishDate: "2026-10-13"
+publishDate: "2025-09-13"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Minimum wage compliance depends on accurate time records. Understand the connection between hours worked, pay, and your legal obligations."

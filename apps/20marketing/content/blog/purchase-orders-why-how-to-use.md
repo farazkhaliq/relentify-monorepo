@@ -1,7 +1,7 @@
 ---
 title: "Purchase Orders: Why Your Business Needs Them and How to Use Them"
 slug: "purchase-orders-why-how-to-use"
-publishDate: "2026-08-27"
+publishDate: "2025-07-28"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Purchase orders bring structure and accountability to your buying process. Here's how they work and why they matter more than you think."

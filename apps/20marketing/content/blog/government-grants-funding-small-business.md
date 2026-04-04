@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Government Grants and Funding for Small Businesses"
 slug: "government-grants-funding-small-business"
-publishDate: "2026-08-16"
+publishDate: "2025-07-17"
 author: "Relentify"
 category: "Small Business & Growth"
 excerpt: "How to find, apply for, and win government grants and funding programmes that can help your small business grow without giving up equity."

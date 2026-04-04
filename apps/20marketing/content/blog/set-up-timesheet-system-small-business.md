@@ -1,7 +1,7 @@
 ---
 title: "How to Set Up a Timesheet System for Your Small Business"
 slug: "set-up-timesheet-system-small-business"
-publishDate: "2026-04-26"
+publishDate: "2025-03-27"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "A step-by-step guide to choosing, configuring, and rolling out a timesheet system that works for your small business from day one."

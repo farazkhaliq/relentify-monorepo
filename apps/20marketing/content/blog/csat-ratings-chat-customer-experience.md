@@ -1,7 +1,7 @@
 ---
 title: "How CSAT Ratings in Chat Help You Improve Customer Experience"
 slug: "csat-ratings-chat-customer-experience"
-publishDate: "2026-12-26"
+publishDate: "2025-11-26"
 author: "Relentify"
 category: "Chat"
 excerpt: "CSAT ratings collected after chat conversations provide direct feedback on service quality. Here is how to collect, interpret, and act on them."

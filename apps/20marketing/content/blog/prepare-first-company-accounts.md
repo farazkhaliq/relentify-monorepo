@@ -1,7 +1,7 @@
 ---
 title: "How to Prepare Your First Set of Company Accounts"
 slug: "prepare-first-company-accounts"
-publishDate: "2027-04-24"
+publishDate: "2026-03-25"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Preparing your first company accounts can feel daunting. This guide breaks down what is required, the timeline, and how to make the process as smooth as possible."

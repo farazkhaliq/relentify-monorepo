@@ -1,7 +1,7 @@
 ---
 title: "Relentify CRM vs AgentOS: Why Agents Are Switching to Modern Software"
 slug: "relentify-vs-agentos"
-publishDate: "2026-08-26"
+publishDate: "2025-07-27"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "AgentOS is a UK-focused letting agent platform, but its limitations and pricing are prompting agents to explore alternatives. Here is how Relentify CRM compares."

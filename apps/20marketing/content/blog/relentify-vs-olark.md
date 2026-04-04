@@ -1,7 +1,7 @@
 ---
 title: "Relentify Chat vs Olark: Which Free Chat Does More?"
 slug: "relentify-vs-olark"
-publishDate: "2027-02-24"
+publishDate: "2026-01-25"
 author: "Relentify"
 category: "Industry Comparisons"
 excerpt: "Olark is a straightforward live chat tool with a 14-day trial and paid plans. Relentify Chat is free forever with AI included. Here is the comparison."

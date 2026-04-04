@@ -1,7 +1,7 @@
 ---
 title: "How to Handle Bad Debt and Write-Offs in Your Accounts"
 slug: "bad-debt-write-offs-accounts"
-publishDate: "2026-12-29"
+publishDate: "2025-11-29"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "When clients do not pay, you need to account for the loss properly. Here's how to handle bad debts, write-offs, and provisions correctly."

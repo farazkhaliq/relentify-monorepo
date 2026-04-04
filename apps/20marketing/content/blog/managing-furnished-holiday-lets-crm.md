@@ -1,7 +1,7 @@
 ---
 title: "A Guide to Managing Furnished Holiday Lets with CRM"
 slug: "managing-furnished-holiday-lets-crm"
-publishDate: "2027-02-08"
+publishDate: "2026-01-09"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Holiday lets operate on a different model from standard tenancies — seasonal demand, short stays, and high turnover. A CRM adapted for holiday lets helps manage the operational intensity."

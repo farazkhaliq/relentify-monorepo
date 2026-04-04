@@ -1,7 +1,7 @@
 ---
 title: "How to Set Up Payroll Tax Withholding for US Employees"
 slug: "payroll-tax-withholding-us-employees"
-publishDate: "2027-05-01"
+publishDate: "2026-04-01"
 author: "Relentify"
 category: "Accounting & Finance"
 excerpt: "Setting up payroll tax withholding correctly is one of the most important compliance obligations for US employers. This guide explains what to withhold, how to calculate it, and when to remit."

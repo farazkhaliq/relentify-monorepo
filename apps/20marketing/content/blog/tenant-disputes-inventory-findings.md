@@ -1,7 +1,7 @@
 ---
 title: "How to Handle Tenant Disputes Over Inventory Findings"
 slug: "tenant-disputes-inventory-findings"
-publishDate: "2026-10-28"
+publishDate: "2025-09-28"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "When tenants challenge inventory findings, a clear process and strong evidence make all the difference. This guide covers how to handle disputes professionally and fairly."

@@ -1,7 +1,7 @@
 ---
 title: "How to Use Condition Ratings Consistently Across Your Inventory Reports"
 slug: "condition-ratings-inventory-reports"
-publishDate: "2027-02-09"
+publishDate: "2026-01-10"
 author: "Relentify"
 category: "Property Inventories"
 excerpt: "Consistent condition ratings make your inventory reports more reliable and defensible in deposit disputes. Here is how to standardise your grading system."

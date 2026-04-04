@@ -1,7 +1,7 @@
 ---
 title: "A Guide to CRM for Independent Financial Advisers"
 slug: "crm-independent-financial-advisers"
-publishDate: "2027-03-18"
+publishDate: "2026-02-16"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Financial advisers manage long-term client relationships with complex needs and regulatory obligations. A CRM provides the structure to deliver consistent, compliant, and personal service."

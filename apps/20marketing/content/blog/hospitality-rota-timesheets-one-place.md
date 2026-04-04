@@ -1,7 +1,7 @@
 ---
 title: "How Hospitality Businesses Can Manage Rota and Timesheets in One Place"
 slug: "hospitality-rota-timesheets-one-place"
-publishDate: "2026-11-06"
+publishDate: "2025-10-07"
 author: "Relentify"
 category: "Timesheets & Workforce"
 excerpt: "Hospitality businesses juggle complex rotas and variable hours. Learn how combining scheduling and time tracking in one system saves time and reduces errors."

@@ -1,7 +1,7 @@
 ---
 title: "Why Estate Agents Should Move Away from Legacy Software"
 slug: "estate-agents-move-away-legacy-software"
-publishDate: "2027-01-23"
+publishDate: "2025-12-24"
 author: "Relentify"
 category: "CRM & Estate Agents"
 excerpt: "Legacy software served its purpose, but outdated technology holds your agency back. Understanding the real costs of staying on old systems helps make the case for change."
