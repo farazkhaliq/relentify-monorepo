@@ -14,12 +14,13 @@ All UI components, theming, and navigation must come from `@relentify/ui`.
 | 22accounting | 22accounting | 3022 | TopBar layout (no sidebar) |
 | 23inventory | 23inventory | 3023 | TopBar layout |
 | 24reminders | 24reminders | 3024 | TopBar layout |
-| 25crm | 25crm | 3025 | TopBar layout (no sidebar) |
+| 25crm | ~~25crm~~ → platform | 3040 | **Retired** — migrated to platform (2026-04-04) |
 | 26help | 26help | 3026 | Static export (output: 'export'), TopBar layout, Pagefind search, help.relentify.com |
 | 27sign | 27sign | 3027 | Digital signature service, Preset D theme, sign.relentify.com |
 | 28timesheets | 28timesheets | 3028 | GPS-verified mobile timesheets, Preset B theme, timesheets.relentify.com |
-| 29chat | 29chat | 3029 | Standalone webchat (Tawk.to competitor), TopBar layout, chat.relentify.com |
-| 30connect | 30connect | 3030 | Multi-channel helpdesk (Intercom/Zendesk competitor), TopBar layout, connect.relentify.com |
+| 29chat | ~~29chat~~ → platform | 3040 | **Retired** — migrated to platform (2026-04-04) |
+| 30connect | ~~30connect~~ → platform | 3040 | **Retired** — migrated to platform (2026-04-04) |
+| platform | platform | 3040 | Unified comms platform: chat + connect + crm, serves 3 domains |
 
 **Container naming**: All containers are named to match their app folder (20marketing, 21auth, etc.).
 The old names (relentify-com, relentify-login, relentify-accounts, etc.) are retired — containers deleted.
@@ -40,18 +41,48 @@ The old names (relentify-com, relentify-login, relentify-accounts, etc.) are ret
 
 ## Communications Platform (Active Project)
 
-Building a layered communications platform: `CRM ⊃ Connect ⊃ Chat`. Competes with Tawk.to, Intercom, and Zendesk. All plans are in `PLANS/`:
+Layered communications platform: `CRM ⊃ Connect ⊃ Chat`. Competes with Tawk.to, Intercom, Zendesk.
 
-| # | Deliverable | Plan | Status |
-|---|-------------|------|--------|
-| 1 | **29chat** (Tawk.to competitor) | `PLANS/29chat-build.md` | ✅ All 15 phases complete — live at chat.relentify.com |
-| 2 | **30connect** (Intercom/Zendesk competitor) | `PLANS/30connect-build.md` | ✅ Phases 1-9 complete — all features built, pending DNS for connect.relentify.com |
-| 3 | **CRM Integration** (embed Connect in 25crm) | `PLANS/crm-integration-build.md` | ✅ Complete — inbox in CRM, shared packages, Gemini removed, archive view |
-| 4 | **Marketing Pages** (comparison/pricing on relentify.com) | `PLANS/marketing-pages-build.md` | ✅ Complete — /chat, /connect, /pricing, /chat/demo live at relentify.com |
+### Architecture: Single App, Three Products
 
-**Master plan** (pricing, competitive comparisons, full scope): `PLANS/communications-platform-master-plan.md`
+**Master plan**: `PLANS/unified-platform-plan.md` (replaces all previous plans)
 
-**Build order**: 29chat → 30connect → CRM Integration + Marketing Pages (parallel)
+One Next.js app (`apps/platform/`) serves all 3 domains. Middleware reads hostname → sets product context → nav/pages/API adapt.
+
+```
+chat.relentify.com    → platform (product=chat)     — webchat + inbox + AI + ticketing
+connect.relentify.com → platform (product=connect)  — + multi-channel + bots + workflows + voice
+crm.relentify.com     → platform (product=crm)      — + contacts + properties + tenancies + reports
+```
+
+### Migration Status
+
+| Phase | Status | What |
+|-------|--------|------|
+| 1 | ✅ Complete | Platform shell — middleware, product context, feature flags, adaptive layout |
+| 2 | ✅ Complete | Move Chat (29chat) — 16 services, 54 API routes, 8 components, 14 pages |
+| 3 | ✅ Complete | Move Connect (30connect) — 14 services, 25 API routes, 5 components, 6 pages |
+| 4 | ✅ Complete | Move CRM (25crm) — 15 services, 44 API routes, 44 components, 17 pages |
+| 5 | ✅ Complete | Deploy — Caddy switched, old containers retired (2026-04-04) |
+| 6 | ✅ Complete | Cleanup — docs updated |
+
+### Current State (Post-Migration)
+
+One container serves all three products:
+- `platform` (port 3040) — **live**, serves chat.relentify.com, connect.relentify.com, crm.relentify.com
+- `29chat`, `30connect`, `25crm` containers **retired and removed** (2026-04-04)
+- Source at `apps/29chat/`, `apps/30connect/`, `apps/25crm/` preserved as archive (git history)
+
+### Archived Plans (all completed, superseded by unified-platform-plan.md)
+
+| Plan | Status |
+|------|--------|
+| `PLANS/29chat-build.md` | ✅ Done (15/15 phases) |
+| `PLANS/30connect-build.md` | ✅ Done (9/10 phases) |
+| `PLANS/crm-integration-build.md` | ✅ Done |
+| `PLANS/marketing-pages-build.md` | ✅ Done |
+| `PLANS/product-composition-architecture.md` | ✅ Decision made (Option C) |
+| `PLANS/communications-platform-master-plan.md` | Reference (pricing, competitive analysis) |
 
 ---
 

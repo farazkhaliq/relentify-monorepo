@@ -1,0 +1,44 @@
+{
+  "properties": [
+    {
+      "src": "https://picsum.photos/seed/prop1/600/400",
+      "hint": "modern apartment"
+    },
+    {
+      "src": "https://picsum.photos/seed/prop2/600/400",
+      "hint": "suburban house"
+    },
+    {
+      "src": "https://picsum.photos/seed/prop3/600/400",
+      "hint": "city living"
+    },
+    {
+      "src": "https://picsum.photos/seed/prop4/600/400",
+      "hint": "family home"
+    },
+    {
+      "src": "https://picsum.photos/seed/prop5/600/400",
+      "hint": "luxury flat"
+    },
+    {
+      "src": "https://picsum.photos/seed/prop6/600/400",
+      "hint": "countryside cottage"
+    },
+    {
+      "src": "https://picsum.photos/seed/prop7/600/400",
+      "hint": "urban loft"
+    },
+    {
+      "src": "https://picsum.photos/seed/prop8/600/400",
+      "hint": "beachfront villa"
+    },
+    {
+      "src": "https://picsum.photos/seed/prop9/600/400",
+      "hint": "historic townhouse"
+    },
+    {
+      "src": "https://picsum.photos/seed/prop10/600/400",
+      "hint": "penthouse view"
+    }
+  ]
+}
