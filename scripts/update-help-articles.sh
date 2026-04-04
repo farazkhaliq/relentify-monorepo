@@ -14,7 +14,7 @@ set -euo pipefail
 
 MONOREPO="/opt/relentify-monorepo"
 MCP_DIR="/opt/infra/mcp/22accounting-mcp"
-CONTENT_DIR="$MONOREPO/apps/26help/content"
+CONTENT_DIR="$MONOREPO/apps/22help/content"
 LOG="/var/log/help-articles.log"
 CLAUDE="/root/.local/bin/claude"
 DRY_RUN=false
@@ -37,9 +37,9 @@ MCP_SUMMARY=$(echo "$MCP_OUTPUT" | tail -20)
 log "MCP tests: $(echo "$MCP_OUTPUT" | grep 'RESULTS:')"
 
 # ── 2. Gather recent 22accounting changes ───────────────────────────
-log "Gathering recent git changes in apps/22accounting..."
-GIT_CHANGES=$(cd "$MONOREPO" && git log --oneline --since="7 days ago" -- apps/22accounting/ 2>/dev/null || echo "(no recent commits)")
-GIT_DIFF=$(cd "$MONOREPO" && git diff HEAD~20..HEAD --stat -- apps/22accounting/src/ 2>/dev/null | head -40 || echo "(no diff available)")
+log "Gathering recent git changes in apps/23accounting..."
+GIT_CHANGES=$(cd "$MONOREPO" && git log --oneline --since="7 days ago" -- apps/23accounting/ 2>/dev/null || echo "(no recent commits)")
+GIT_DIFF=$(cd "$MONOREPO" && git diff HEAD~20..HEAD --stat -- apps/23accounting/src/ 2>/dev/null | head -40 || echo "(no diff available)")
 
 # ── 3. Build the prompt ─────────────────────────────────────────────
 if $DRY_RUN; then
@@ -58,8 +58,8 @@ You are reviewing the Relentify help articles for accuracy.
 ## Context
 
 The 22accounting app (accounting.relentify.com) has help articles in:
-  /opt/relentify-monorepo/apps/26help/content/accounting/*.mdx
-  /opt/relentify-monorepo/apps/26help/content/api/*.mdx
+  /opt/relentify-monorepo/apps/22help/content/accounting/*.mdx
+  /opt/relentify-monorepo/apps/22help/content/api/*.mdx
 
 Each article is MDX with YAML frontmatter (title, description, category, order, appRoute, relatedArticles).
 The body describes a feature step-by-step for end users.
@@ -72,7 +72,7 @@ PROMPT_END
 PROMPT="$PROMPT
 $MCP_SUMMARY
 
-## Recent Git Changes in apps/22accounting/ (last 7 days)
+## Recent Git Changes in apps/23accounting/ (last 7 days)
 
 Commits:
 $GIT_CHANGES
@@ -126,19 +126,19 @@ echo "$CLAUDE_OUTPUT" >> "$LOG"
 
 # ── 5. Rebuild 26help if files were edited ──────────────────────────
 if ! $DRY_RUN; then
-    CHANGED=$(cd "$MONOREPO" && { git diff --name-only -- apps/26help/content/; git ls-files --others --exclude-standard -- apps/26help/content/; } 2>/dev/null)
+    CHANGED=$(cd "$MONOREPO" && { git diff --name-only -- apps/22help/content/; git ls-files --others --exclude-standard -- apps/22help/content/; } 2>/dev/null)
     if [[ -n "$CHANGED" ]]; then
         log "Articles updated — rebuilding 26help container..."
         cd "$MONOREPO"
-        docker compose -f apps/26help/docker-compose.yml down
-        docker compose -f apps/26help/docker-compose.yml build --no-cache
-        docker compose -f apps/26help/docker-compose.yml up -d
+        docker compose -f apps/22help/docker-compose.yml down
+        docker compose -f apps/22help/docker-compose.yml build --no-cache
+        docker compose -f apps/22help/docker-compose.yml up -d
         docker builder prune -f
         log "26help rebuilt and redeployed."
 
         # Commit the changes
         cd "$MONOREPO"
-        git add apps/26help/content/
+        git add apps/22help/content/
         git commit -m "[help] Auto-update articles from weekly review
 
 Changes detected by automated MCP test comparison.
