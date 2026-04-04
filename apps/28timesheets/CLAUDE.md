@@ -19,7 +19,7 @@ If there is any conflict between this file and the monorepo claude.md:
 GPS-verified mobile timesheet app for field staff. Built for construction, cleaning, facilities management — any business with workers on-site.
 
 Container: `28timesheets` on port 3028 → timesheets.relentify.com
-Shared DB: `infra-postgres` → relentify DB, relentify_user
+DB: `infra-postgres` → `relentify` database, `relentify_user` — all tables prefixed `ts_` (same pattern as `acc_`, `crm_`, `inv_`)
 Monorepo: `/opt/relentify-monorepo/apps/28timesheets/`
 
 ---
@@ -79,6 +79,24 @@ Monorepo: `/opt/relentify-monorepo/apps/28timesheets/`
 | `src/lib/settings.service.ts` | Workspace settings CRUD |
 | `src/lib/geo.service.ts` | Haversine distance, geofence check |
 | `src/lib/audit.service.ts` | Fire-and-forget audit logging |
+| `src/lib/shift.service.ts` | Shift CRUD, bulk create, conflict detection |
+| `src/lib/shift-template.service.ts` | Shift template CRUD |
+| `src/lib/team.service.ts` | Team invite, accept, list, role/permissions |
+| `src/lib/import.service.ts` | CSV worker import |
+| `src/lib/approval.service.ts` | Approve, reject, bulk, lock entries |
+| `src/lib/overtime.service.ts` | Overtime rules CRUD + calculation |
+| `src/lib/break-rules.service.ts` | Break rules CRUD + compliance evaluation |
+| `src/lib/trust-score.service.ts` | Trust score computation (0-100) |
+| `src/lib/auto-clock-out.service.ts` | Cron-driven auto clock-out with deductions |
+| `src/lib/gps.service.ts` | GPS ping recording + geofence tracking |
+| `src/lib/feed.service.ts` | Activity feed queries (role-scoped) |
+| `src/lib/comment.service.ts` | Comment threads on feed events |
+| `src/lib/dashboard.service.ts` | Live status + daily summary |
+| `src/lib/reports.service.ts` | Payroll, attendance, hours, wage leakage, CSV export |
+| `src/lib/notification.service.ts` | Web Push via VAPID, sendPush, sendToManagers |
+| `src/lib/alert-rules.service.ts` | Smart alert evaluation (off-site, late, pending) |
+| `src/lib/consent.service.ts` | GDPR consent check + record |
+| `src/lib/photo.service.ts` | Photo storage with SHA-256 reuse detection |
 
 ---
 
@@ -93,6 +111,54 @@ Monorepo: `/opt/relentify-monorepo/apps/28timesheets/`
 | GET | `/api/clock/status` | Current clock status + active break |
 | POST | `/api/clock/break/start` | Start a break |
 | POST | `/api/clock/break/end` | End a break |
+| GET/POST | `/api/sites` | Site CRUD |
+| GET/PUT/DEL | `/api/sites/:id` | Single site |
+| GET/POST | `/api/workers` | Worker CRUD |
+| GET/PUT | `/api/workers/:id` | Single worker |
+| POST | `/api/workers/import` | CSV import |
+| GET/PUT | `/api/settings` | Workspace settings |
+| GET/POST | `/api/team` | Team members + invite |
+| PUT | `/api/team/:id/role` | Update member role |
+| PUT | `/api/team/:id/permissions` | Update member permissions |
+| GET/POST | `/api/shifts` | Shift CRUD |
+| GET/PUT/DEL | `/api/shifts/:id` | Single shift |
+| POST | `/api/shifts/bulk-create` | Bulk shift creation |
+| GET | `/api/shifts/my` | Worker's own shifts |
+| GET/POST | `/api/shift-templates` | Shift template CRUD |
+| PUT/DEL | `/api/shift-templates/:id` | Single template |
+| GET | `/api/entries` | List entries |
+| GET/PUT/DEL | `/api/entries/:id` | Single entry |
+| POST | `/api/entries/:id/approve` | Approve entry |
+| POST | `/api/entries/:id/reject` | Reject entry |
+| POST | `/api/entries/:id/lock` | Lock entry |
+| POST | `/api/entries/bulk-approve` | Bulk approve |
+| POST | `/api/entries/bulk-reject` | Bulk reject |
+| GET/POST | `/api/overtime-rules` | Overtime rules CRUD |
+| PUT/DEL | `/api/overtime-rules/:id` | Single overtime rule |
+| GET/POST | `/api/break-rules` | Break rules CRUD |
+| PUT/DEL | `/api/break-rules/:id` | Single break rule |
+| POST | `/api/gps/ping` | Record GPS ping |
+| GET | `/api/feed` | Activity feed |
+| GET/POST | `/api/comments` | Comment threads |
+| GET | `/api/dashboard/live` | Live clocked-in status |
+| GET | `/api/dashboard/summary` | Daily summary stats |
+| GET | `/api/reports/payroll-summary` | Payroll report |
+| GET | `/api/reports/attendance` | Attendance report |
+| GET | `/api/reports/hours` | Hours report |
+| GET | `/api/reports/gps` | Wage leakage report |
+| GET | `/api/reports/export` | CSV export |
+| GET | `/api/audit` | Audit log |
+| GET/POST | `/api/alert-rules` | Smart alert rules |
+| PUT/DEL | `/api/alert-rules/:id` | Single alert rule |
+| POST | `/api/cron/auto-clock-out` | Auto clock-out cron |
+| POST | `/api/cron/overtime-calculation` | Nightly overtime cron |
+| POST | `/api/cron/shift-reminders` | Shift reminders cron |
+| POST | `/api/cron/data-retention` | GDPR data retention cron |
+| POST/DEL | `/api/push/subscribe` | Push notification subscribe/unsubscribe |
+| GET/POST | `/api/consent` | GDPR consent check/record |
+| POST | `/api/photos/upload` | Upload photo (clock-in/out) |
+| GET | `/api/photos/:id` | Serve photo |
+| GET | `/api/workers/:id/export` | GDPR data export (CSV) |
 
 ---
 
@@ -126,22 +192,14 @@ cat apps/28timesheets/database/migrations/NNN_*.sql | docker exec -i infra-postg
 ## Build Status
 
 ### Phase 1: Scaffolding + Database + Clock In/Out — ✅ Complete
-- BottomTabBar added to `@relentify/ui`
-- All 20 ts_* tables created
-- Feed triggers installed
-- Clock in/out/break API routes working
-- Worker UI with timer, GPS, clock in/out/break
-- Docker container healthy on port 3028
-- Caddy reverse proxy configured
-
-### Phase 2: Sites + Workers + Settings + Team — Pending
-### Phase 3: Shifts + Scheduling — Pending
-### Phase 4: Approval Workflow — Pending
-### Phase 5: Overtime + Break Rules + Auto Clock-Out + Trust Score — Pending
-### Phase 6: GPS Pings + Photo Verification — Pending
-### Phase 7: Activity Feed + Comments — Pending
-### Phase 8: Dashboard + Reports — Pending
-### Phase 9: Push Notifications + Smart Alerts — Pending
-### Phase 10: PWA + GDPR + Polish — Pending
-### Phase 11: Docker Deployment — ✅ Complete (Phase 1 deployment)
-### Phase 12: MCP Test Suite — Pending
+### Phase 2: Sites + Workers + Settings + Team + CSV Import — ✅ Complete
+### Phase 3: Shifts + Scheduling + Templates — ✅ Complete
+### Phase 4: Approval Workflow + Bulk Approve/Reject + Locking — ✅ Complete
+### Phase 5: Overtime + Break Rules + Auto Clock-Out + Trust Score — ✅ Complete
+### Phase 6: GPS Pings + Geofence Tracking — ✅ Complete
+### Phase 7: Activity Feed + Comments — ✅ Complete
+### Phase 8: Dashboard + Reports + CSV Export — ✅ Complete
+### Phase 9: Push Notifications + Smart Alerts — ✅ Complete
+### Phase 10: PWA + GDPR + Polish — ✅ Complete
+### Phase 11: Docker Deployment + Cron Jobs — ✅ Complete
+### Phase 12: MCP Test Suite — ✅ Complete (61/61 tests passing)

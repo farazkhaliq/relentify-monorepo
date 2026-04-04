@@ -1,11 +1,13 @@
 -- 001_core_tables.sql
 -- Creates all ts_* tables for Relentify Timesheets
+-- Standalone database: no FK refs to users/entities (those live in relentify DB)
+-- UUIDs stored for user_id, entity_id, worker_user_id — integrity enforced at application layer
 
 -- ts_sites: Job locations with optional geofencing
 CREATE TABLE IF NOT EXISTS ts_sites (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id),
-  entity_id UUID NOT NULL REFERENCES entities(id),
+  user_id UUID NOT NULL,
+  entity_id UUID NOT NULL,
   name VARCHAR(255) NOT NULL,
   address TEXT,
   latitude DECIMAL,
@@ -20,10 +22,10 @@ CREATE TABLE IF NOT EXISTS ts_sites (
 -- ts_workers: Per-worker timesheet config
 CREATE TABLE IF NOT EXISTS ts_workers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id),
-  entity_id UUID NOT NULL REFERENCES entities(id),
-  worker_user_id UUID NOT NULL REFERENCES users(id),
-  manager_user_id UUID REFERENCES users(id),
+  user_id UUID NOT NULL,
+  entity_id UUID NOT NULL,
+  worker_user_id UUID NOT NULL,
+  manager_user_id UUID,
   employee_number VARCHAR(50),
   hourly_rate DECIMAL,
   currency VARCHAR(10) DEFAULT 'GBP',
@@ -49,8 +51,8 @@ CREATE TABLE IF NOT EXISTS ts_workers (
 -- ts_shift_templates: Reusable shift patterns
 CREATE TABLE IF NOT EXISTS ts_shift_templates (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id),
-  entity_id UUID NOT NULL REFERENCES entities(id),
+  user_id UUID NOT NULL,
+  entity_id UUID NOT NULL,
   site_id UUID REFERENCES ts_sites(id),
   name VARCHAR(255) NOT NULL,
   start_time TIME NOT NULL,
@@ -64,11 +66,11 @@ CREATE TABLE IF NOT EXISTS ts_shift_templates (
 -- ts_shifts: Individual scheduled shifts
 CREATE TABLE IF NOT EXISTS ts_shifts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id),
-  entity_id UUID NOT NULL REFERENCES entities(id),
+  user_id UUID NOT NULL,
+  entity_id UUID NOT NULL,
   template_id UUID REFERENCES ts_shift_templates(id),
   site_id UUID REFERENCES ts_sites(id),
-  worker_user_id UUID NOT NULL REFERENCES users(id),
+  worker_user_id UUID NOT NULL,
   date DATE NOT NULL,
   start_time TIMESTAMPTZ NOT NULL,
   end_time TIMESTAMPTZ NOT NULL,
@@ -81,10 +83,10 @@ CREATE TABLE IF NOT EXISTS ts_shifts (
 -- ts_entries: Core timesheet record — one per shift worked
 CREATE TABLE IF NOT EXISTS ts_entries (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id),
-  entity_id UUID NOT NULL REFERENCES entities(id),
+  user_id UUID NOT NULL,
+  entity_id UUID NOT NULL,
   shift_id UUID REFERENCES ts_shifts(id),
-  worker_user_id UUID NOT NULL REFERENCES users(id),
+  worker_user_id UUID NOT NULL,
   site_id UUID REFERENCES ts_sites(id),
   project_tag VARCHAR(255),
   clock_in_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -115,7 +117,7 @@ CREATE TABLE IF NOT EXISTS ts_entries (
   gps_verification_pct DECIMAL,
   idempotency_key VARCHAR(100),
   status VARCHAR(20) DEFAULT 'active',
-  approved_by UUID REFERENCES users(id),
+  approved_by UUID,
   approved_at TIMESTAMPTZ,
   rejection_reason VARCHAR(255),
   notes TEXT,
@@ -153,8 +155,8 @@ CREATE TABLE IF NOT EXISTS ts_gps_pings (
 -- ts_overtime_rules: Configurable overtime rules per workspace
 CREATE TABLE IF NOT EXISTS ts_overtime_rules (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id),
-  entity_id UUID NOT NULL REFERENCES entities(id),
+  user_id UUID NOT NULL,
+  entity_id UUID NOT NULL,
   name VARCHAR(255) NOT NULL,
   rule_type VARCHAR(20) NOT NULL,
   threshold_minutes INTEGER NOT NULL,
@@ -168,8 +170,8 @@ CREATE TABLE IF NOT EXISTS ts_overtime_rules (
 -- ts_break_rules: Configurable break rules per workspace
 CREATE TABLE IF NOT EXISTS ts_break_rules (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id),
-  entity_id UUID NOT NULL REFERENCES entities(id),
+  user_id UUID NOT NULL,
+  entity_id UUID NOT NULL,
   name VARCHAR(255) NOT NULL,
   after_worked_minutes INTEGER NOT NULL,
   break_duration_minutes INTEGER NOT NULL,
@@ -182,8 +184,8 @@ CREATE TABLE IF NOT EXISTS ts_break_rules (
 -- ts_settings: Workspace-wide configuration
 CREATE TABLE IF NOT EXISTS ts_settings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id),
-  entity_id UUID NOT NULL REFERENCES entities(id),
+  user_id UUID NOT NULL,
+  entity_id UUID NOT NULL,
   require_gps BOOLEAN DEFAULT true,
   require_photo BOOLEAN DEFAULT false,
   gps_ping_interval_minutes INTEGER DEFAULT 30,
@@ -220,13 +222,13 @@ CREATE TABLE IF NOT EXISTS ts_feed_events (
 -- ts_comments: Comment threads on feed events
 CREATE TABLE IF NOT EXISTS ts_comments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id),
-  entity_id UUID NOT NULL REFERENCES entities(id),
+  user_id UUID NOT NULL,
+  entity_id UUID NOT NULL,
   entry_id UUID REFERENCES ts_entries(id),
   shift_id UUID REFERENCES ts_shifts(id),
   feed_event_type VARCHAR(30),
   feed_event_id VARCHAR(100),
-  author_user_id UUID NOT NULL REFERENCES users(id),
+  author_user_id UUID NOT NULL,
   body TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -234,8 +236,8 @@ CREATE TABLE IF NOT EXISTS ts_comments (
 -- ts_push_subscriptions: Web Push API subscriptions
 CREATE TABLE IF NOT EXISTS ts_push_subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id),
-  worker_user_id UUID NOT NULL REFERENCES users(id),
+  user_id UUID NOT NULL,
+  worker_user_id UUID NOT NULL,
   endpoint TEXT NOT NULL UNIQUE,
   p256dh TEXT NOT NULL,
   auth TEXT NOT NULL,
@@ -277,8 +279,8 @@ CREATE TABLE IF NOT EXISTS ts_photo_data (
 -- ts_alert_rules: Smart alert configuration
 CREATE TABLE IF NOT EXISTS ts_alert_rules (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id),
-  entity_id UUID NOT NULL REFERENCES entities(id),
+  user_id UUID NOT NULL,
+  entity_id UUID NOT NULL,
   name VARCHAR(255) NOT NULL,
   alert_type VARCHAR(30) NOT NULL,
   threshold_value INTEGER NOT NULL,
@@ -289,8 +291,8 @@ CREATE TABLE IF NOT EXISTS ts_alert_rules (
 -- ts_time_off_types: V2 — created empty
 CREATE TABLE IF NOT EXISTS ts_time_off_types (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id),
-  entity_id UUID NOT NULL REFERENCES entities(id),
+  user_id UUID NOT NULL,
+  entity_id UUID NOT NULL,
   name VARCHAR(255) NOT NULL,
   is_paid BOOLEAN DEFAULT true,
   days_per_year DECIMAL,
@@ -300,9 +302,9 @@ CREATE TABLE IF NOT EXISTS ts_time_off_types (
 -- ts_time_off_requests: V2 — created empty
 CREATE TABLE IF NOT EXISTS ts_time_off_requests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL REFERENCES users(id),
-  entity_id UUID NOT NULL REFERENCES entities(id),
-  worker_user_id UUID NOT NULL REFERENCES users(id),
+  user_id UUID NOT NULL,
+  entity_id UUID NOT NULL,
+  worker_user_id UUID NOT NULL,
   type_id UUID REFERENCES ts_time_off_types(id),
   start_date DATE NOT NULL,
   end_date DATE NOT NULL,

@@ -9,7 +9,7 @@ All UI components, theming, and navigation must come from `@relentify/ui`.
 
 | App | Container | Port | Notes |
 |-----|-----------|------|-------|
-| 20marketing | 20marketing | 3020 | Vite + React Router, live at relentify.com |
+| 20marketing | 20marketing | 3020 | Next.js App Router, shared TopBar, live at relentify.com |
 | 21auth | 21auth | 3021 | Auth pages only, no main nav |
 | 22accounting | 22accounting | 3022 | TopBar layout (no sidebar) |
 | 23inventory | 23inventory | 3023 | TopBar layout |
@@ -18,6 +18,8 @@ All UI components, theming, and navigation must come from `@relentify/ui`.
 | 26help | 26help | 3026 | Static export (output: 'export'), TopBar layout, Pagefind search, help.relentify.com |
 | 27sign | 27sign | 3027 | Digital signature service, Preset D theme, sign.relentify.com |
 | 28timesheets | 28timesheets | 3028 | GPS-verified mobile timesheets, Preset B theme, timesheets.relentify.com |
+| 29chat | 29chat | 3029 | Standalone webchat (Tawk.to competitor), TopBar layout, chat.relentify.com |
+| 30connect | 30connect | 3030 | Multi-channel helpdesk (Intercom/Zendesk competitor), TopBar layout, connect.relentify.com |
 
 **Container naming**: All containers are named to match their app folder (20marketing, 21auth, etc.).
 The old names (relentify-com, relentify-login, relentify-accounts, etc.) are retired — containers deleted.
@@ -31,6 +33,25 @@ The old names (relentify-com, relentify-login, relentify-accounts, etc.) are ret
 | `@relentify/auth` | JWT / auth logic |
 | `@relentify/config` | Shared config |
 | `@relentify/utils` | Shared utilities |
+| `@relentify/chat` | Shared chat services + components (extracted from 29chat during CRM integration) |
+| `@relentify/connect` | Shared multi-channel services + components (extracted from 30connect during CRM integration) |
+
+---
+
+## Communications Platform (Active Project)
+
+Building a layered communications platform: `CRM ⊃ Connect ⊃ Chat`. Competes with Tawk.to, Intercom, and Zendesk. All plans are in `PLANS/`:
+
+| # | Deliverable | Plan | Status |
+|---|-------------|------|--------|
+| 1 | **29chat** (Tawk.to competitor) | `PLANS/29chat-build.md` | ✅ All 15 phases complete — live at chat.relentify.com |
+| 2 | **30connect** (Intercom/Zendesk competitor) | `PLANS/30connect-build.md` | ✅ Phases 1-9 complete — all features built, pending DNS for connect.relentify.com |
+| 3 | **CRM Integration** (embed Connect in 25crm) | `PLANS/crm-integration-build.md` | Planned |
+| 4 | **Marketing Pages** (comparison/pricing on relentify.com) | `PLANS/marketing-pages-build.md` | Planned |
+
+**Master plan** (pricing, competitive comparisons, full scope): `PLANS/communications-platform-master-plan.md`
+
+**Build order**: 29chat → 30connect → CRM Integration + Marketing Pages (parallel)
 
 ---
 
@@ -214,51 +235,19 @@ pattern maps to our `import { useTheme } from '@relentify/ui'` (once migration b
    - `packages/ui/src/styles/globals.css`: Fixed `--shadow-cinematic` from invisible 4% opacity to visible 18% multi-layer; native CSS `rounded-cinematic`
    - `packages/ui/src/components/layout/ThemeProvider.tsx`: Fixed dark mode `--theme-card` from 3% (invisible) to `rgba(26,26,26,0.9)`; light mode card to `#ffffff` (solid)
 
-### Current State of 20marketing
+### 20marketing Architecture (migrated 2026-04-03)
 
-20marketing currently uses a **hybrid/transitional** architecture:
+20marketing was migrated from Vite + React Router to **Next.js 15 App Router** on 2026-04-03.
 
-- `src/app/App.tsx` — self-contained ThemeContext + RegionContext (NOT @relentify/ui ThemeProvider)
-- `src/app/themes.ts` — local copy of THEMES (should move to @relentify/ui or use from there)
-- `src/app/components/` — local Navbar, Footer, ThemeSwitcher, Logo (marketing-specific, correct to keep here)
-- `src/app/lib/utils.ts` — local cn() (redundant with @relentify/ui/src/lib/utils.ts)
-- Pages import `useTheme`, `useRegion`, `formatPrice` from `'../App'` (local), not `@relentify/ui`
-
-**Problem**: The pages copied from the reference repo define `cn` locally using clsx+tailwind-merge,
-and the visual output is still wrong (transparent backgrounds, blank phone mockups) because the
-reference repo's actual page files have NOT yet been copied in — we were stopped before doing this.
-
-### What Needs To Happen Next
-
-#### Step 1: Centralise into @relentify/ui (NEXT SESSION — Step 2 from previous notes)
-
-The goal is that 20marketing uses @relentify/ui for all shared logic, so other apps (22accounting etc.)
-benefit from the same theme system. The architecture should be:
-
-**@relentify/ui already has** (confirmed):
-- `ThemeProvider` at `packages/ui/src/components/layout/ThemeProvider.tsx` ✅
-- `RegionProvider` at `packages/ui/src/components/layout/RegionProvider.tsx` ✅
-- `useTheme` exported from `packages/ui/src/hooks/useTheme.ts` ✅
-- `useRegion` exported from `packages/ui/src/hooks/useRegion.ts` ✅
-- `cn`, `Region`, `formatPrice`, `getCurrencySymbol`, `getRegionMultiplier` in `packages/ui/src/lib/utils.ts` ✅
-- THEMES, Preset, ThemeConfig in `packages/ui/src/styles/themes.ts` ✅
-- globals.css with fonts, noise-overlay, magnetic-btn, rounded-cinematic ✅
-
-**@relentify/ui is missing** (needs adding):
-- `heroLinePattern` field on `ThemeConfig` — reference themes.ts has this, @relentify/ui themes.ts doesn't
-  Add to ThemeConfig interface: `heroLinePattern: { part1: string; part2: string; }`
-  Add to each THEME preset in THEMES record.
-
-**20marketing migration** — once @relentify/ui has heroLinePattern:
-1. Delete `src/app/themes.ts` (use from @relentify/ui)
-2. Delete `src/app/lib/utils.ts` (use from @relentify/ui)
-3. Rewrite `src/app/App.tsx` to use `ThemeProvider` + `RegionProvider` from @relentify/ui
-4. Update page imports: `from '../App'` → `from '@relentify/ui'`
-5. Add @relentify/ui back to 20marketing's package.json dependencies
-6. Rebuild
-
-**Marketing Navbar/Footer/ThemeSwitcher/Logo** — these are marketing-specific and should STAY
-in `src/app/components/`. They are NOT shared with other apps. This is correct.
+- `app/layout.tsx` — Server component, uses `ThemeProvider` + `RegionProvider` from `@relentify/ui`, shared `TopBar` for navigation
+- `app/components/` — Marketing-specific client components: `Footer.tsx`, `RegionSwitcher.tsx`, `Analytics.tsx`, `ChatWidget.tsx`, `CookieBanner.tsx`
+- `app/lib/themes.ts` — Local copy of THEMES (kept for `theme.palette.dark` and `theme.typography.headings` used by Footer and pages)
+- All pages import `useTheme`, `useRegion`, `formatPrice`, `cn` from `@relentify/ui`
+- All pages are `'use client'` (they use hooks, framer-motion, gsap)
+- Shared `TopBar` with dark mode toggle, Apps dropdown, Blog link, RegionSwitcher, Login
+- Old `src/` directory deleted (Vite app, React Router, local Navbar, ThemeSwitcher)
+- Chatwoot live chat widget via `ChatWidget.tsx` component
+- Docker: Next.js standalone (same pattern as all other apps), 384M memory limit
 
 ---
 
@@ -529,6 +518,8 @@ Use this when the vulnerable package is deep in a dep chain you don't control (e
 | `reminders_` | 24reminders | 7 | `reminders_tasks`, `reminders_lists`, `reminders_workspaces`, etc. |
 | `inv_` | 23inventory | 2 | `inv_items`, `inv_photos` |
 | `ts_` | 28timesheets | 20 | `ts_entries`, `ts_breaks`, `ts_shifts`, `ts_sites`, `ts_workers`, `ts_settings`, `ts_feed_events`, `ts_gps_pings`, etc. |
+| `chat_` | 29chat | 13 | `chat_visitors`, `chat_config`, `chat_sessions`, `chat_messages`, `chat_ai_usage`, `chat_knowledge_articles`, `chat_tickets`, `chat_triggers`, `chat_webhooks`, `chat_api_keys`, `chat_push_subscriptions`, `chat_voice_config`, `chat_calls` |
+| `connect_` | 30connect | 9 | `connect_channels`, `connect_conversations`, `connect_messages`, `connect_templates`, `connect_bots`, `connect_bot_sessions`, `connect_workflows`, `connect_workflow_runs`, `connect_qa_reviews` |
 
 ### Separate databases
 | Database | Owner | Tables |

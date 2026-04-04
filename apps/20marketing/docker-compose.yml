@@ -12,8 +12,8 @@ services:
           memory: 384M
     env_file:
       - .env
-    expose:
-      - 3000
+    ports:
+      - "127.0.0.1:3020:3000"
     networks:
       - infra_default
     healthcheck:

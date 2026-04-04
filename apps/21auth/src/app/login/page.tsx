@@ -39,7 +39,9 @@ function LoginForm() {
       })
       const d = await r.json()
       if (!r.ok) throw new Error(d.error)
-      router.push(getSafeRedirect(redirectParam))
+      // Use explicit redirect param if provided, otherwise use server's defaultRedirect (last-used product)
+      const target = redirectParam ? getSafeRedirect(redirectParam) : (d.defaultRedirect || '/portal')
+      window.location.href = target
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed')
     } finally {

@@ -52,25 +52,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <RegionProvider>
             <TopBar
               logo={
-                <Link href="/" className="no-underline flex items-center">
-                  <Logo className="text-xl" iconClassName="w-6 h-6" />
-                </Link>
+                <div className="flex items-center gap-4">
+                  <Link href="/" className="no-underline flex items-center">
+                    <Logo className="text-xl" iconClassName="w-6 h-6" />
+                  </Link>
+                  <RegionSwitcher />
+                </div>
               }
               navLinks={
                 <>
                   <TopBarDropdown label="Apps" items={appItems} />
                   <TopBarLink href="/blog">Blog</TopBarLink>
-                  <RegionSwitcher />
+                  <TopBarLink href="https://auth.relentify.com/login?redirect=https://relentify.com/portal">Login</TopBarLink>
                 </>
               }
-            >
-              <Link
-                href="https://accounts.relentify.com"
-                className="text-sm font-medium text-[var(--theme-text-muted)] hover:text-[var(--theme-text)] transition-colors"
-              >
-                Login
-              </Link>
-            </TopBar>
+            />
 
             <main className="pt-24">{children}</main>
 

@@ -1,0 +1,38 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getAuthUser } from '@/src/lib/auth'
+import { getActiveEntity } from '@/src/lib/entity.service'
+import { checkPermission } from '@/src/lib/workspace-auth'
+import { listOvertimeRules, createOvertimeRule } from '@/src/lib/overtime.service'
+import { z } from 'zod'
+
+export async function GET() {
+  const auth = await getAuthUser()
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const entity = await getActiveEntity(auth.userId)
+  if (!entity) return NextResponse.json({ error: 'No entity' }, { status: 400 })
+  const rules = await listOvertimeRules(entity.user_id, entity.id)
+  return NextResponse.json({ rules })
+}
+
+const schema = z.object({
+  name: z.string().min(1).max(255),
+  ruleType: z.enum(['daily', 'weekly', 'consecutive_day', 'holiday', 'night']),
+  thresholdMinutes: z.number().positive(),
+  multiplier: z.number().positive(),
+  conditions: z.object({}).passthrough().optional(),
+  priority: z.number().optional(),
+})
+
+export async function POST(req: NextRequest) {
+  const auth = await getAuthUser()
+  if (!auth) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const denied = checkPermission(auth, 'settings', 'manage')
+  if (denied) return denied
+  const entity = await getActiveEntity(auth.userId)
+  if (!entity) return NextResponse.json({ error: 'No entity' }, { status: 400 })
+  const body = await req.json()
+  const parsed = schema.safeParse(body)
+  if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
+  const rule = await createOvertimeRule({ userId: entity.user_id, entityId: entity.id, ...parsed.data })
+  return NextResponse.json({ rule }, { status: 201 })
+}

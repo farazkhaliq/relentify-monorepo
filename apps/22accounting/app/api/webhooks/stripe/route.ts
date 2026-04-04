@@ -24,6 +24,8 @@ export async function POST(req: NextRequest) {
       };
 
       if (session.mode === 'subscription') {
+        const product = session.metadata?.product || 'accounting';
+        const plan = session.metadata?.plan || session.metadata?.tier;
         // Subscription checkout — upgrade user tier
         const userId = session.metadata?.user_id;
         const tier = session.metadata?.tier;
@@ -39,6 +41,16 @@ export async function POST(req: NextRequest) {
             stripeSubscriptionId,
           });
           console.log(`✅ Subscription activated: user ${userId} → ${tier}`);
+          // Update unified user_subscriptions table
+          try {
+            const { query: dbQuery } = await import('@/src/lib/db');
+            await dbQuery(
+              `INSERT INTO user_subscriptions (user_id, product, plan, status, stripe_subscription_id, updated_at)
+               VALUES ($1, $2, $3, 'active', $4, NOW())
+               ON CONFLICT (user_id, product) DO UPDATE SET plan = $3, status = 'active', stripe_subscription_id = $4, updated_at = NOW()`,
+              [userId, product, plan || 'free', stripeSubscriptionId]
+            );
+          } catch (e) { console.error('user_subscriptions upsert failed:', e); }
         }
       } else {
         // Connect payment checkout — mark invoice paid

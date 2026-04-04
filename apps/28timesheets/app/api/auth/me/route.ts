@@ -21,7 +21,7 @@ export async function GET() {
   let permissions = null
   if (entity) {
     const memberResult = await query(
-      `SELECT role, permissions FROM workspace_members
+      `SELECT role, permissions FROM acc_workspace_members
        WHERE owner_user_id = $1 AND member_user_id = $2 AND status = 'active'`,
       [entity.user_id, auth.userId]
     )

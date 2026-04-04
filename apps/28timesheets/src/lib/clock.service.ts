@@ -3,6 +3,9 @@ import { isWithinGeofence } from './geo.service'
 import { logAudit } from './audit.service'
 import { getWorkspaceSettings } from './settings.service'
 import { TsEntry } from './entry.service'
+import { evaluateBreakCompliance } from './break-rules.service'
+import { calculateOvertime } from './overtime.service'
+import { calculateTrustScore } from './trust-score.service'
 
 export interface TsBreak {
   id: string
@@ -174,7 +177,15 @@ export async function clockOut(data: {
     action: 'clock_out', targetType: 'entry', targetId: entry.id,
   })
 
-  return r.rows[0]
+  // Post clock-out processing
+  await evaluateBreakCompliance(entry.id)
+  const date = new Date(entry.clock_in_at).toISOString().split('T')[0]
+  await calculateOvertime(data.workerId, data.entityId, date)
+  await calculateTrustScore(entry.id)
+
+  // Re-fetch with updated values
+  const updated = await query(`SELECT * FROM ts_entries WHERE id = $1`, [entry.id])
+  return updated.rows[0] || r.rows[0]
 }
 
 export async function startBreak(data: {

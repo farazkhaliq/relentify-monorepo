@@ -1,14 +1,16 @@
 'use client';
-import React from 'react';
-import { formatPrice, useRegion, useTheme } from '@relentify/ui';
+import React, { useState } from 'react';
+import { formatPrice, useRegion, useTheme, Dialog, DialogContent, DialogHeader, DialogTitle } from '@relentify/ui';
 import { cn } from '@relentify/ui';
 
 import { motion } from 'motion/react';
 import { Clock, MapPin, Smartphone, Shield, CheckCircle2, ArrowRight, Zap, Users, BarChart3, Globe } from 'lucide-react';
+import { SignupForm } from '../components/SignupForm';
 
 export default function Timesheets() {
   const { theme } = useTheme();
   const { region } = useRegion();
+  const [signupOpen, setSignupOpen] = useState(false);
 
   return (
     <div className="w-full pt-32">
@@ -25,9 +27,10 @@ export default function Timesheets() {
             <div className="flex flex-col gap-6">
               <div className="flex items-center gap-4">
                 <button
-                  className="px-8 py-4 rounded-full font-bold text-white shadow-cinematic bg-[var(--theme-accent)]"
+                  onClick={() => setSignupOpen(true)}
+                  className="px-8 py-4 rounded-full font-bold text-white shadow-cinematic bg-[var(--theme-accent)] hover:scale-105 transition-transform"
                 >
-                  Reserve Free Trial
+                  Start Free Trial
                 </button>
                 <div className="text-left">
                   <p className="text-2xl font-bold">{formatPrice(1, region)}<span className="text-sm opacity-40">/person/mo</span></p>
@@ -99,16 +102,26 @@ export default function Timesheets() {
               Mobile-first timesheets that actually work. Reserve your spot now to get 30 days of free access for your entire team at launch.
             </p>
             <div className="flex flex-col md:flex-row gap-4 justify-center max-w-md mx-auto">
-              <button 
+              <button
+                onClick={() => setSignupOpen(true)}
                 className="px-10 py-5 rounded-full font-bold text-white shadow-cinematic hover:scale-105 transition-transform bg-[var(--theme-accent)]"
               >
-                Reserve My Spot
+                Start Free Trial
               </button>
             </div>
-            <p className="text-[var(--theme-text-10)] font-bold uppercase tracking-widest opacity-40 mt-8">No credit card required • Early access priority</p>
+            <p className="text-[var(--theme-text-10)] font-bold uppercase tracking-widest opacity-40 mt-8">No credit card required • 31 day free trial</p>
           </div>
         </div>
       </section>
+
+      <Dialog open={signupOpen} onOpenChange={setSignupOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Start your free trial</DialogTitle>
+          </DialogHeader>
+          <SignupForm product="timesheets" redirectUrl="https://timesheets.relentify.com/worker" />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

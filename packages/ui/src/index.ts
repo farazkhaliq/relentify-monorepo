@@ -18,6 +18,7 @@ export * from './components/layout/Footer';
 export * from './components/layout/RegionProvider';
 export * from './components/layout/ScrollToTop';
 export * from './components/layout/BottomTabBar';
+export * from './components/layout/AppSwitcher';
 
 // UI Components (Atoms)
 export * from './components/ui/Logo';

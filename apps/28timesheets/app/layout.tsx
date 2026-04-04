@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import '@/src/styles/globals.css'
 import { THEME_SCRIPT, ThemeProvider } from '@relentify/ui'
+import { ServiceWorkerRegister } from './components/ServiceWorkerRegister'
 
 export const metadata: Metadata = {
   title: 'Relentify Timesheets',
@@ -17,6 +18,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
           rel="stylesheet"
         />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/favicon-32x32.png" sizes="32x32" type="image/png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#000000" />
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
@@ -24,6 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-[var(--theme-background)] text-[var(--theme-text)] min-h-screen overflow-x-hidden selection:bg-[var(--theme-accent)]/30">
         <ThemeProvider initialPreset="B">
           {children}
+          <ServiceWorkerRegister />
         </ThemeProvider>
       </body>
     </html>

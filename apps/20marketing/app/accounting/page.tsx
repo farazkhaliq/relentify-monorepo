@@ -1,13 +1,15 @@
 'use client';
-import React from 'react';
-import { useTheme, useRegion, formatPrice } from '@relentify/ui';
+import React, { useState } from 'react';
+import { useTheme, useRegion, formatPrice, Dialog, DialogContent, DialogHeader, DialogTitle } from '@relentify/ui';
 import { cn } from '@relentify/ui';
 import { motion } from 'motion/react';
 import { CheckCircle2, ArrowRight, CreditCard, RefreshCw, FileText, Shield, Zap, Layers, Users, QrCode, Star } from 'lucide-react';
+import { SignupForm } from '../components/SignupForm';
 
 export default function Accounting() {
   const { theme } = useTheme();
   const { region } = useRegion();
+  const [signupOpen, setSignupOpen] = useState(false);
 
   const tiers = [
     { 
@@ -108,10 +110,11 @@ export default function Accounting() {
               A streamlined, high-precision financial OS. No per-user fees. No invoice limits. Just pure, modern performance.
             </p>
             <div className="flex flex-wrap gap-4">
-              <button 
+              <button
+                onClick={() => setSignupOpen(true)}
                 className="magnetic-btn px-8 py-4 rounded-full font-bold text-white flex items-center gap-2 shadow-cinematic bg-[var(--theme-accent)]"
               >
-                Buy Now <ArrowRight size={18} />
+                Start Free Trial <ArrowRight size={18} />
               </button>
             </div>
           </div>
@@ -185,8 +188,9 @@ export default function Accounting() {
                 </li>
               ))}
             </ul>
-            <button 
-              className="px-10 py-5 rounded-full font-bold text-white shadow-cinematic bg-[var(--theme-accent)]"
+            <button
+              onClick={() => setSignupOpen(true)}
+              className="px-10 py-5 rounded-full font-bold text-white shadow-cinematic bg-[var(--theme-accent)] hover:scale-105 transition-transform"
             >
               Get Started for Free
             </button>
@@ -355,6 +359,15 @@ export default function Accounting() {
            </div>
         </div>
       </section>
+
+      <Dialog open={signupOpen} onOpenChange={setSignupOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Start your free trial</DialogTitle>
+          </DialogHeader>
+          <SignupForm product="accounting" redirectUrl="https://accounting.relentify.com/dashboard" />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
