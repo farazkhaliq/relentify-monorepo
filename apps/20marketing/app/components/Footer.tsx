@@ -16,11 +16,14 @@ export default function Footer() {
           <h4 className="text-sm font-bold uppercase tracking-widest mb-6 opacity-40">Product</h4>
           <ul className="flex flex-col gap-4">
             <li><Link href="/accounting" className="hover:text-accent transition-colors">Accounting</Link></li>
-            <li><Link href="/inventory" className="hover:text-accent transition-colors">Property Inventories</Link></li>
+            <li><Link href="/chat" className="hover:text-accent transition-colors">Chat</Link></li>
+            <li><Link href="/connect" className="hover:text-accent transition-colors">Connect</Link></li>
             <li><Link href="/crm" className="hover:text-accent transition-colors">CRM</Link></li>
-            <li><Link href="/timesheets" className="hover:text-accent transition-colors">Timesheets</Link></li>
             <li><Link href="/esign" className="hover:text-accent transition-colors">E-Sign</Link></li>
             <li><Link href="/payroll" className="hover:text-accent transition-colors">Payroll & HR</Link></li>
+            <li><Link href="/inventory" className="hover:text-accent transition-colors">Property Inventories</Link></li>
+            <li><Link href="/reminders" className="hover:text-accent transition-colors">Reminders</Link></li>
+            <li><Link href="/timesheets" className="hover:text-accent transition-colors">Timesheets</Link></li>
             <li><Link href="/websites" className="hover:text-accent transition-colors">Websites</Link></li>
           </ul>
         </div>

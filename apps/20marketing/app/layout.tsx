@@ -26,15 +26,15 @@ export const metadata: Metadata = {
 };
 
 const appItems: TopBarDropdownItem[] = [
+  { label: 'Accounting', href: '/accounting' },
   { label: 'Chat', href: '/chat' },
   { label: 'Connect', href: '/connect' },
-  { label: 'Accounting', href: '/accounting' },
-  { label: 'Property Inventories', href: '/inventory' },
   { label: 'CRM', href: '/crm' },
-  { label: 'Reminders', href: '/reminders' },
-  { label: 'Timesheets', href: '/timesheets' },
   { label: 'E-Sign', href: '/esign' },
   { label: 'Payroll & HR', href: '/payroll' },
+  { label: 'Property Inventories', href: '/inventory' },
+  { label: 'Reminders', href: '/reminders' },
+  { label: 'Timesheets', href: '/timesheets' },
 ];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
