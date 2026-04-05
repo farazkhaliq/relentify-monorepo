@@ -5,7 +5,7 @@ import { useUserProfile } from '@/hooks/use-user-profile';
 import { Skeleton } from '@relentify/ui';
 import { Card, CardContent, CardHeader, CardTitle } from '@relentify/ui';
 import { Badge } from '@relentify/ui';
-import { Home, Bed, Bath, PoundSterling, Building, StickyNote, User, FileText, Wrench, File, Download, Landmark, Sparkles, Upload } from 'lucide-react';
+import { Home, Bed, Bath, PoundSterling, Building, StickyNote, User, FileText, Wrench, File, Download, Landmark, Sparkles, Upload, ClipboardList } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@relentify/ui';
 import { EditPropertyDialog } from '@/components/crm/edit-property-dialog';
@@ -82,6 +82,11 @@ export default function PropertyDetailPage() {
   // TODO: Replace with useApiCollection when transactions API exists
   const transactions: any[] = [];
   const isLoadingTransactions = false;
+
+  // Inventories linked to this property
+  const { data: inventories, isLoading: isLoadingInventories } = useApiCollection<any>(
+    propertyId ? `/api/inventory/items?property_id=${propertyId}` : null
+  );
 
   // Fetch landlord contacts for display
   const { data: allContacts, isLoading: isLoadingLandlords } = useApiCollection<any>('/api/contacts');
@@ -357,9 +362,10 @@ export default function PropertyDetailPage() {
         </Card>
 
         <Tabs defaultValue="tenancies" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="tenancies">Tenancies</TabsTrigger>
             <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
+            <TabsTrigger value="inventories">Inventories</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="financials">Financials</TabsTrigger>
           </TabsList>
@@ -420,6 +426,45 @@ export default function PropertyDetailPage() {
                                     </TableRow>
                                 )) : (
                                     <TableRow><TableCell colSpan={4} className="text-center h-24">No maintenance history.</TableCell></TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    )}
+                </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="inventories" className="mt-4">
+            <Card>
+                <CardHeader className="flex-row items-center justify-between">
+                    <CardTitle className="text-lg flex items-center gap-2"><ClipboardList className="w-5 h-5 text-muted-foreground" /> Property Inventories</CardTitle>
+                    <Button variant="outline" size="sm" onClick={() => router.push(`/inventory/new?property_id=${propertyId}`)}>New Inventory</Button>
+                </CardHeader>
+                <CardContent>
+                    {isLoadingInventories ? <Skeleton className="h-24 w-full" /> : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Type</TableHead>
+                                    <TableHead>Created By</TableHead>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Status</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {inventories && inventories.length > 0 ? inventories.map((inv: any) => (
+                                    <TableRow key={inv.id} className="cursor-pointer" onClick={() => router.push(`/inventory/${inv.id}`)}>
+                                        <TableCell className="capitalize">{inv.type}</TableCell>
+                                        <TableCell>{inv.createdBy}</TableCell>
+                                        <TableCell>{format(getTimestampAsDate(inv.createdAt), 'PP')}</TableCell>
+                                        <TableCell>
+                                          <Badge variant={inv.tenantConfirmed ? 'default' : 'secondary'}>
+                                            {inv.tenantConfirmed ? 'Signed' : 'Pending'}
+                                          </Badge>
+                                        </TableCell>
+                                    </TableRow>
+                                )) : (
+                                    <TableRow><TableCell colSpan={4} className="text-center h-24">No inventories yet. Click "New Inventory" to create one.</TableCell></TableRow>
                                 )}
                             </TableBody>
                         </Table>

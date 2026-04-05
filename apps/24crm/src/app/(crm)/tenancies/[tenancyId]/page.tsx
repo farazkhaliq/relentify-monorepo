@@ -41,6 +41,8 @@ export default function TenancyDetailPage() {
 
   // Fetch tenancy via API
   const { data: tenancy, isLoading: isLoadingTenancy } = useApiDoc<any>(`/api/tenancies/${tenancyId}`);
+  const { data: inventories, isLoading: isLoadingInventories } = useApiCollection<any>(tenancyId ? `/api/inventory/items?tenancy_id=${tenancyId}` : null);
+  const { data: signingRequests, isLoading: isLoadingSigningRequests } = useApiCollection<any>(tenancyId ? `/api/esign/requests?related_type=crm_tenancy&related_id=${tenancyId}` : null);
 
   // Fetch related data via API
   const { data: allContacts, isLoading: isLoadingContacts } = useApiCollection<any>('/api/contacts');
@@ -207,9 +209,10 @@ export default function TenancyDetailPage() {
         </div>
 
         <Tabs defaultValue="details" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="details">Details</TabsTrigger>
                 <TabsTrigger value="inventory">Inventory</TabsTrigger>
+                <TabsTrigger value="agreements">Agreements</TabsTrigger>
                 <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
                 <TabsTrigger value="documents">Documents</TabsTrigger>
                 <TabsTrigger value="financials">Financials</TabsTrigger>
@@ -280,23 +283,68 @@ export default function TenancyDetailPage() {
             </TabsContent>
             <TabsContent value="inventory" className="mt-4">
                 <Card>
-                    <CardHeader>
-                        <CardTitle>External Inventory</CardTitle>
-                        <CardDescription>Create new inventories or view existing ones from your integrated inventory app.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <Button onClick={handleCreateInventory} disabled={!tenancy.property_address}>
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            Create Inventory
+                    <CardHeader className="flex-row items-center justify-between">
+                        <div>
+                            <CardTitle>Property Inventories</CardTitle>
+                            <CardDescription>Check-in and check-out reports for this tenancy.</CardDescription>
+                        </div>
+                        <Button onClick={() => router.push(`/inventory/new?tenancy_id=${tenancyId}${tenancy.property_id ? `&property_id=${tenancy.property_id}` : ''}`)}>
+                            New Inventory
                         </Button>
-                        {tenancy.inventory_url ? (
-                            <Button asChild variant="outline">
-                                <Link href={tenancy.inventory_url} target="_blank">View Inventory Report</Link>
-                            </Button>
-                        ) : (
-                            <p className="text-sm text-muted-foreground">
-                                No inventory report has been linked. Add the URL by editing the tenancy.
-                            </p>
+                    </CardHeader>
+                    <CardContent>
+                        {isLoadingInventories ? <Skeleton className="h-24 w-full" /> : (
+                            inventories && inventories.length > 0 ? (
+                                <div className="space-y-2">
+                                    {inventories.map((inv: any) => (
+                                        <div key={inv.id} className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-muted/50" onClick={() => router.push(`/inventory/${inv.id}`)}>
+                                            <div>
+                                                <p className="font-medium capitalize">{inv.type} &middot; {inv.createdBy}</p>
+                                                <p className="text-xs text-muted-foreground">{format(getTimestampAsDate(inv.createdAt), 'PP')}</p>
+                                            </div>
+                                            <Badge variant={inv.tenantConfirmed ? 'default' : 'secondary'}>
+                                                {inv.tenantConfirmed ? 'Signed' : 'Pending'}
+                                            </Badge>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground text-center py-8">No inventories yet. Click "New Inventory" to create one.</p>
+                            )
+                        )}
+                    </CardContent>
+                </Card>
+            </TabsContent>
+            <TabsContent value="agreements" className="mt-4">
+                <Card>
+                    <CardHeader className="flex-row items-center justify-between">
+                        <div>
+                            <CardTitle>Signing Requests</CardTitle>
+                            <CardDescription>Tenancy agreements and other documents sent for signing.</CardDescription>
+                        </div>
+                        <Button onClick={() => router.push(`/esign/requests/new?related_type=crm_tenancy&related_id=${tenancyId}`)}>
+                            Send for Signing
+                        </Button>
+                    </CardHeader>
+                    <CardContent>
+                        {isLoadingSigningRequests ? <Skeleton className="h-24 w-full" /> : (
+                            signingRequests && signingRequests.length > 0 ? (
+                                <div className="space-y-2">
+                                    {signingRequests.map((sr: any) => (
+                                        <div key={sr.id} className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-muted/50" onClick={() => router.push(`/esign/requests/${sr.id}`)}>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-medium truncate">{sr.title}</p>
+                                                <p className="text-xs text-muted-foreground truncate">{sr.signer_email} &middot; {format(new Date(sr.created_at), 'PP')}</p>
+                                            </div>
+                                            <Badge variant={sr.status === 'signed' ? 'default' : sr.status === 'pending' ? 'secondary' : 'outline'} className="capitalize">
+                                                {sr.status}
+                                            </Badge>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground text-center py-8">No signing requests yet. Click "Send for Signing" to create one.</p>
+                            )
                         )}
                     </CardContent>
                 </Card>
